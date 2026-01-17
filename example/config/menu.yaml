@@ -1,0 +1,20 @@
+menu:
+  - title: Home
+    path: /
+
+  - title: Dashboards
+    children:
+      - title: Sales
+        path: /dashboard
+      - title: Inventory
+        path: /reports/inventory
+
+  - title: Reports
+    children:
+      - title: Monthly Sales
+        path: /reports/sales
+      - title: Customers
+        path: /reports/customers
+
+  - title: Experiments
+    path: /experiments

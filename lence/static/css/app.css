@@ -1,0 +1,126 @@
+/**
+ * Lence - Application Styles
+ *
+ * Uses Pico CSS as base + custom properties for components.
+ */
+
+/* Layout */
+:root {
+  --lence-sidebar-width: 250px;
+  --lence-header-height: 60px;
+  --lence-content-padding: 1.5rem;
+}
+
+/* Component custom properties */
+:root {
+  --lence-chart-height: 300px;
+  --lence-chart-background: var(--pico-background-color, #fff);
+
+  --lence-table-stripe-color: var(--pico-secondary-background, #f8f9fa);
+  --lence-table-border-color: var(--pico-muted-border-color, #dee2e6);
+
+  --lence-card-padding: 1rem;
+  --lence-card-background: var(--pico-card-background-color, #fff);
+  --lence-card-border-radius: 0.5rem;
+}
+
+/* App layout */
+.lence-app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.lence-sidebar {
+  width: var(--lence-sidebar-width);
+  background: var(--pico-card-background-color, #fff);
+  border-right: 1px solid var(--pico-muted-border-color, #dee2e6);
+  padding: 1rem;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.lence-main {
+  margin-left: var(--lence-sidebar-width);
+  flex: 1;
+  padding: var(--lence-content-padding);
+}
+
+/* Sidebar navigation */
+.lence-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lence-nav li {
+  margin-bottom: 0.25rem;
+}
+
+.lence-nav a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  color: var(--pico-color, inherit);
+}
+
+.lence-nav a:hover {
+  background: var(--pico-secondary-background, #f8f9fa);
+}
+
+.lence-nav a.active {
+  background: var(--pico-primary-background, #e3f2fd);
+  color: var(--pico-primary, #1976d2);
+}
+
+.lence-nav-group-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--pico-muted-color, #6c757d);
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Page content */
+.lence-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lence-page h1 {
+  margin-top: 0;
+}
+
+/* Component containers */
+.lence-component {
+  margin: 1.5rem 0;
+}
+
+/* Loading state */
+.lence-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--pico-muted-color, #6c757d);
+}
+
+/* Error state */
+.lence-error {
+  padding: 1rem;
+  background: var(--pico-del-color, #ffebee);
+  border-radius: 0.25rem;
+  color: var(--pico-color, #c62828);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lence-sidebar {
+    display: none;
+  }
+
+  .lence-main {
+    margin-left: 0;
+  }
+}

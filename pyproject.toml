@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lence"
+version = "0.1.0"
+description = "A lightweight data visualization framework"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "Oskar Skoog" },
+]
+keywords = ["data", "visualization", "dashboard", "duckdb", "markdoc"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "duckdb>=0.10.0",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.26.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+lence = "lence.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/osks/lence"
+Documentation = "https://github.com/osks/lence"
+Repository = "https://github.com/osks/lence"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lence"]
+artifacts = ["lence/static/js/"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "lence/",
+]
+# Include compiled JS (normally gitignored)
+artifacts = ["lence/static/js/"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
