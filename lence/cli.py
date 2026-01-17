@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 import uvicorn
 
-from lence.app import create_app, PACKAGE_DIR
+from lence.backend.app import create_app, PACKAGE_DIR
 
 
 # Environment variable for project path (used by app factory for reload)

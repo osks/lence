@@ -81,8 +81,9 @@ lint-fix: ## Fix code style issues automatically
 
 ##@ Testing
 .PHONY: test
-test: ## Run tests
+test: ## Run all tests (backend + frontend)
 	@uv run pytest
+	@npm run test
 
 .PHONY: test-watch
 test-watch: ## Run tests in watch mode

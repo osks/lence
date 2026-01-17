@@ -2,11 +2,14 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 
 export default defineConfig({
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
   build: {
     outDir: 'lence/static/js',
     emptyOutDir: true,
     lib: {
-      entry: resolve(__dirname, 'src/app.ts'),
+      entry: resolve(__dirname, 'lence/frontend/app.ts'),
       formats: ['es'],
       fileName: () => 'app.js',
     },

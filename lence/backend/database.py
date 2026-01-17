@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 import duckdb
 
-from lence.config import DataSource
+from .config import DataSource
 
 
 class QueryResult:

@@ -1,6 +1,6 @@
 /**
  * Simple client-side router for Lence.
- * Uses hash-based routing for simplicity (no server config needed).
+ * Uses History API for clean URLs.
  */
 
 export type RouteChangeHandler = (path: string) => void;
@@ -13,32 +13,36 @@ export class Router {
   private currentPath: string = '/';
 
   constructor() {
-    // Initialize from current hash
-    this.currentPath = this.getPathFromHash();
+    // Initialize from current pathname
+    this.currentPath = window.location.pathname || '/';
 
-    // Listen for hash changes
-    window.addEventListener('hashchange', () => {
+    // Listen for browser back/forward
+    window.addEventListener('popstate', () => {
       this.handleRouteChange();
     });
-  }
 
-  /**
-   * Get the current path from the URL hash.
-   */
-  private getPathFromHash(): string {
-    const hash = window.location.hash;
-    if (!hash || hash === '#') {
-      return '/';
-    }
-    // Remove the leading #
-    return hash.slice(1) || '/';
+    // Intercept link clicks for SPA navigation
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+      if (!anchor) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      // Only handle internal links
+      if (href.startsWith('/') && !href.startsWith('//')) {
+        e.preventDefault();
+        this.navigate(href);
+      }
+    });
   }
 
   /**
    * Handle route changes and notify handlers.
    */
   private handleRouteChange(): void {
-    const newPath = this.getPathFromHash();
+    const newPath = window.location.pathname || '/';
     if (newPath !== this.currentPath) {
       this.currentPath = newPath;
       this.notifyHandlers();
@@ -66,8 +70,9 @@ export class Router {
    */
   navigate(path: string): void {
     if (path !== this.currentPath) {
-      window.location.hash = path;
-      // hashchange event will trigger handleRouteChange
+      this.currentPath = path;
+      history.pushState(null, '', path);
+      this.notifyHandlers();
     }
   }
 

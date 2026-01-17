@@ -8,22 +8,26 @@ Create a `pages/index.md` file in your project to replace this page.
 
 ```
 my-project/
-├── pages/
-│   └── index.md      ← Create this file
-├── data/
-└── config/
+├── sources/
+│   ├── sources.yaml   ← Define data sources
+│   └── sales.csv      ← Your data files
+└── pages/
+    └── index.md       ← Your pages
 ```
 
-## Quick Example
+## Features
 
-```markdown
-# My Dashboard
+- **SQL Queries** - Query CSV files with DuckDB
+- **Charts** - Line, bar, pie, and more with ECharts
+- **Tables** - Sortable data tables
+- **Markdown** - Write content with Markdoc syntax
 
-{% query name="sample" source="my_data" %}
-SELECT * FROM my_table LIMIT 10
-{% /query %}
+## Syntax
 
-{% table data="sample" /%}
-```
+Define queries and visualizations using Markdoc tags:
 
-See the [documentation](https://github.com/your-repo/lence) for more details.
+- `query` - Define a SQL query with `name` and `source` attributes
+- `chart` - Render a chart with `data`, `type`, `x`, and `y` attributes
+- `table` - Render a data table with `data` attribute
+
+See the [Demo](/demo) and [Sales Dashboard](/dashboard) for working examples.

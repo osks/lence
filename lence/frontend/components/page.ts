@@ -91,9 +91,9 @@ export class LencePage extends LitElement {
       this.loadPage();
     }
 
-    // After render, pass data to components
-    if (changedProperties.has('queryData')) {
-      this.updateComponentData();
+    // After render, pass data to components (use requestAnimationFrame to ensure DOM is ready)
+    if (changedProperties.has('queryData') || changedProperties.has('htmlContent')) {
+      requestAnimationFrame(() => this.updateComponentData());
     }
   }
 

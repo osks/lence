@@ -61,7 +61,7 @@ export async function executeQuery(
   sql: string,
 ): Promise<QueryResult> {
   const request: QueryRequest = { source, sql };
-  return fetchJson<QueryResult>('/api/query', {
+  return fetchJson<QueryResult>('/_api/v1/sources/query', {
     method: 'POST',
     body: JSON.stringify(request),
   });
@@ -71,21 +71,21 @@ export async function executeQuery(
  * List all available data sources.
  */
 export async function fetchSources(): Promise<SourceInfo[]> {
-  return fetchJson<SourceInfo[]>('/api/sources');
+  return fetchJson<SourceInfo[]>('/_api/v1/sources');
 }
 
 /**
  * Get information about a specific data source.
  */
 export async function fetchSource(name: string): Promise<SourceInfo> {
-  return fetchJson<SourceInfo>(`/api/sources/${encodeURIComponent(name)}`);
+  return fetchJson<SourceInfo>(`/_api/v1/sources/${encodeURIComponent(name)}`);
 }
 
 /**
- * Get the sidebar menu configuration.
+ * Get the auto-generated menu from pages.
  */
 export async function fetchMenu(): Promise<MenuItem[]> {
-  return fetchJson<MenuItem[]>('/api/config/menu');
+  return fetchJson<MenuItem[]>('/_api/v1/pages/menu');
 }
 
 /**
@@ -101,7 +101,7 @@ export async function fetchPage(path: string): Promise<string> {
     pagePath = 'index';
   }
 
-  const response = await fetch(`${API_BASE}/pages/${pagePath}.md`);
+  const response = await fetch(`${API_BASE}/_api/v1/pages/page/${pagePath}`);
 
   if (!response.ok) {
     throw new ApiRequestError(

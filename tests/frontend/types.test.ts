@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getColumn, toObjects, type QueryResult } from '../types.js';
+import { getColumn, toObjects, type QueryResult } from '../../lence/frontend/types.js';
 
 describe('getColumn', () => {
   const sampleResult: QueryResult = {

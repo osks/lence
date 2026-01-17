@@ -1,72 +1,59 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Router, pathToPageName } from '../router.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Router, pathToPageName } from '../../lence/frontend/router.js';
 
 describe('Router', () => {
-  let originalHash: string;
+  let pushStateSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    originalHash = window.location.hash;
-    window.location.hash = '';
-  });
-
-  afterEach(() => {
-    window.location.hash = originalHash;
+    // Mock history.pushState
+    pushStateSpy = vi.spyOn(history, 'pushState').mockImplementation(() => {});
   });
 
   describe('getPath', () => {
-    it('should return / for empty hash', () => {
-      window.location.hash = '';
+    it('should return current pathname', () => {
       const router = new Router();
       expect(router.getPath()).toBe('/');
-    });
-
-    it('should return / for # only', () => {
-      window.location.hash = '#';
-      const router = new Router();
-      expect(router.getPath()).toBe('/');
-    });
-
-    it('should return path from hash', () => {
-      window.location.hash = '#/dashboard';
-      const router = new Router();
-      expect(router.getPath()).toBe('/dashboard');
     });
   });
 
   describe('navigate', () => {
-    it('should update hash when navigating', () => {
+    it('should call pushState when navigating', () => {
       const router = new Router();
       router.navigate('/dashboard');
-      expect(window.location.hash).toBe('#/dashboard');
+      expect(pushStateSpy).toHaveBeenCalledWith(null, '', '/dashboard');
     });
 
-    it('should not update if already on path', () => {
-      window.location.hash = '#/dashboard';
+    it('should not call pushState if already on path', () => {
       const router = new Router();
-      const originalHash = window.location.hash;
+      // Already at /
+      router.navigate('/');
+      expect(pushStateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should update current path', () => {
+      const router = new Router();
       router.navigate('/dashboard');
-      expect(window.location.hash).toBe(originalHash);
+      expect(router.getPath()).toBe('/dashboard');
     });
   });
 
   describe('isActive', () => {
     it('should match exact path for root', () => {
-      window.location.hash = '';
       const router = new Router();
       expect(router.isActive('/')).toBe(true);
       expect(router.isActive('/dashboard')).toBe(false);
     });
 
     it('should match exact path', () => {
-      window.location.hash = '#/dashboard';
       const router = new Router();
+      router.navigate('/dashboard');
       expect(router.isActive('/dashboard')).toBe(true);
       expect(router.isActive('/reports')).toBe(false);
     });
 
     it('should match parent paths', () => {
-      window.location.hash = '#/reports/sales';
       const router = new Router();
+      router.navigate('/reports/sales');
       expect(router.isActive('/reports')).toBe(true);
       expect(router.isActive('/reports/sales')).toBe(true);
       expect(router.isActive('/dashboard')).toBe(false);
@@ -74,17 +61,13 @@ describe('Router', () => {
   });
 
   describe('onRouteChange', () => {
-    it('should notify handlers on route change', async () => {
+    it('should notify handlers on navigate', () => {
       const router = new Router();
       const handler = vi.fn();
 
       router.onRouteChange(handler);
       router.navigate('/dashboard');
 
-      // Wait for hashchange event
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      // Handler should be called with new path
       expect(handler).toHaveBeenCalledWith('/dashboard');
     });
 
@@ -97,7 +80,6 @@ describe('Router', () => {
 
       router.navigate('/test');
 
-      // Handler should not be called after unsubscribe
       expect(handler).not.toHaveBeenCalled();
     });
   });

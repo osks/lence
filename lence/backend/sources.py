@@ -1,13 +1,13 @@
-"""Query API routes for Lence."""
+"""Data sources API routes for Lence."""
 
 from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from lence.database import get_database
+from .database import get_database
 
 
-router = APIRouter(tags=["query"])
+router = APIRouter(tags=["sources"])
 
 
 class QueryRequest(BaseModel):
@@ -68,7 +68,7 @@ async def execute_query(request: QueryRequest) -> QueryResponse:
         )
 
 
-@router.get("/sources", response_model=list[SourceInfo])
+@router.get("/", response_model=list[SourceInfo])
 async def list_sources() -> list[SourceInfo]:
     """List all available data sources."""
     db = get_database()
@@ -76,7 +76,7 @@ async def list_sources() -> list[SourceInfo]:
     return [SourceInfo(**source) for source in sources]
 
 
-@router.get("/sources/{source_name}", response_model=SourceInfo)
+@router.get("/{source_name}", response_model=SourceInfo)
 async def get_source(source_name: str) -> SourceInfo:
     """Get information about a specific data source."""
     db = get_database()

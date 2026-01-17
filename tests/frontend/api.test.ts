@@ -6,7 +6,7 @@ import {
   fetchMenu,
   fetchPage,
   ApiRequestError,
-} from '../api.js';
+} from '../../lence/frontend/api.js';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -36,7 +36,7 @@ describe('API Client', () => {
 
       const result = await executeQuery('orders', 'SELECT id FROM orders');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/query', {
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/sources/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ source: 'orders', sql: 'SELECT id FROM orders' }),
@@ -87,7 +87,7 @@ describe('API Client', () => {
 
       const sources = await fetchSources();
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/sources', {
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/sources', {
         headers: { 'Content-Type': 'application/json' },
       });
       expect(sources).toEqual(mockSources);
@@ -105,7 +105,7 @@ describe('API Client', () => {
 
       const source = await fetchSource('orders');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/sources/orders', {
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/sources/orders', {
         headers: { 'Content-Type': 'application/json' },
       });
       expect(source).toEqual(mockSource);
@@ -119,7 +119,7 @@ describe('API Client', () => {
 
       await fetchSource('my source');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/sources/my%20source', expect.any(Object));
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/sources/my%20source', expect.any(Object));
     });
   });
 
@@ -137,7 +137,7 @@ describe('API Client', () => {
 
       const menu = await fetchMenu();
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/config/menu', {
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/pages/menu', {
         headers: { 'Content-Type': 'application/json' },
       });
       expect(menu).toEqual(mockMenu);
@@ -155,7 +155,7 @@ describe('API Client', () => {
 
       const content = await fetchPage('/dashboard');
 
-      expect(mockFetch).toHaveBeenCalledWith('/pages/dashboard.md');
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/pages/page/dashboard');
       expect(content).toBe(mockContent);
     });
 
@@ -167,7 +167,7 @@ describe('API Client', () => {
 
       await fetchPage('/');
 
-      expect(mockFetch).toHaveBeenCalledWith('/pages/index.md');
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/pages/page/index');
     });
 
     it('should throw for missing page', async () => {

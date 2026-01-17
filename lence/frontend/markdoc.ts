@@ -47,7 +47,7 @@ function extractTextContent(node: Node): string {
     return node.children
       .filter((child): child is Node => typeof child === 'object' && child !== null)
       .map(extractTextContent)
-      .join('');
+      .join('\n');
   }
 
   return '';

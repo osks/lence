@@ -1,0 +1,89 @@
+# Lence
+
+Lightweight data visualization framework. Write markdown pages with SQL queries, render charts and tables.
+
+## Tech Stack
+
+- **Backend**: Python 3.11+, FastAPI, DuckDB
+- **Frontend**: TypeScript, Lit web components, Vite
+- **Syntax**: Markdown (Markdoc)
+
+## Commands
+
+```bash
+make dev      # Run dev server (Vite watch + FastAPI)
+make build    # Build for production
+make test     # Run Python tests (pytest)
+npm test      # Run JS tests (vitest)
+```
+
+Dev server runs at http://localhost:8000
+
+## Project Structure
+
+```
+lence/              # Python package
+  cli.py            # CLI (lence dev/serve/init)
+  backend/          # FastAPI backend
+    app.py          # FastAPI app factory
+    api.py          # Query API routes
+    pages.py        # Page/SPA routes
+    config.py       # Config loading
+    database.py     # DuckDB wrapper
+  frontend/         # TypeScript source
+    app.ts          # Entry point
+    components/     # Lit web components
+  static/js/        # Vite output (bundled app.js)
+  pages/            # Default pages
+  templates/        # HTML templates
+
+tests/
+  frontend/         # Vitest (JS tests)
+  backend/          # pytest (Python tests)
+  e2e/              # Playwright (future)
+
+example/            # Example project for development
+  pages/            # Markdown pages
+  data/             # CSV files
+  config/           # sources.yaml
+```
+
+## Request Flow
+
+1. Browser loads `/` → FastAPI serves `index.html`
+2. Browser loads `/static/lence/js/app.js` → Bundled frontend
+3. Frontend fetches `/pages/index.md` → Raw markdown
+4. Frontend parses Markdoc, renders components
+5. Components call `/api/query` → DuckDB executes SQL
+
+## Markdoc Syntax
+
+```markdown
+{% query name="monthly" source="orders" %}
+SELECT strftime(date, '%Y-%m') as month, SUM(amount) as total
+FROM orders GROUP BY 1
+{% /query %}
+
+{% chart data="monthly" type="line" x="month" y="total" /%}
+
+{% table data="monthly" /%}
+```
+
+## Query API
+
+```
+POST /api/query
+{ "source": "orders", "sql": "SELECT ..." }
+
+Response:
+{
+  "columns": [{ "name": "month", "type": "VARCHAR" }, ...],
+  "data": [["2024-01", 15000], ...],
+  "row_count": 2
+}
+```
+
+## Testing
+
+- **Backend**: `make test` or `uv run pytest` (tests/backend/)
+- **Frontend**: `npm test` (tests/frontend/)

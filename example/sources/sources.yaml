@@ -1,15 +1,15 @@
 sources:
   orders:
     type: csv
-    path: ./data/orders.csv
+    path: ./sources/orders.csv
     description: Order transactions
 
   products:
     type: csv
-    path: ./data/products.csv
+    path: ./sources/products.csv
     description: Product catalog
 
   customers:
     type: csv
-    path: ./data/customers.csv
+    path: ./sources/customers.csv
     description: Customer information

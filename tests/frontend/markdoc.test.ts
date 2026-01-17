@@ -6,7 +6,7 @@ import {
   getReferencedQueries,
   buildQueryMap,
   renderToHtml,
-} from '../markdoc.js';
+} from '../../lence/frontend/markdoc.js';
 
 describe('extractQueries', () => {
   it('should extract query definitions from content', () => {

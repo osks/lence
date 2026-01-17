@@ -72,11 +72,27 @@ export class LenceLayout extends LitElement {
     }
 
     .nav-group-title {
+      display: block;
       font-weight: 600;
       font-size: 0.875rem;
       color: var(--pico-muted-color, #6c757d);
       padding: 0.5rem 0.75rem;
       margin-top: 0.75rem;
+      text-decoration: none;
+      border-radius: 0.25rem;
+    }
+
+    a.nav-group-title {
+      cursor: pointer;
+    }
+
+    a.nav-group-title:hover {
+      background: var(--pico-secondary-background, #f8f9fa);
+    }
+
+    a.nav-group-title.active {
+      background: var(--pico-primary-background, #e3f2fd);
+      color: var(--pico-primary, #1976d2);
     }
 
     .nav-children {
@@ -149,12 +165,25 @@ export class LenceLayout extends LitElement {
     return getRouter().isActive(path);
   }
 
+  private isExactActive(path: string): boolean {
+    return this.currentPath === path;
+  }
+
   private renderMenuItem(item: MenuItem): unknown {
     if (item.children && item.children.length > 0) {
-      // Group with children
+      // Group with children - title may or may not be clickable
+      // Use exact match for section headers to avoid both parent and child being "active"
+      const titleContent = item.path
+        ? html`<a
+            href="${item.path}"
+            class="nav-group-title ${this.isExactActive(item.path) ? 'active' : ''}"
+            @click=${(e: Event) => this.handleNavClick(e, item.path!)}
+          >${item.title}</a>`
+        : html`<div class="nav-group-title">${item.title}</div>`;
+
       return html`
         <li>
-          <div class="nav-group-title">${item.title}</div>
+          ${titleContent}
           <ul class="nav-children">
             ${item.children.map((child) => this.renderMenuItem(child))}
           </ul>
@@ -169,7 +198,7 @@ export class LenceLayout extends LitElement {
     return html`
       <li>
         <a
-          href="#${path}"
+          href="${path}"
           class=${isActive ? 'active' : ''}
           @click=${(e: Event) => this.handleNavClick(e, path)}
         >

@@ -1,3 +1,7 @@
+---
+title: Sales Dashboard
+---
+
 # Sales Dashboard
 
 {% query name="monthly_sales" source="orders" %}

@@ -13,17 +13,9 @@ class DataSource(BaseModel):
     description: str = ""
 
 
-class MenuItem(BaseModel):
-    """A menu item, possibly with children."""
-    title: str
-    path: str | None = None
-    children: list["MenuItem"] = []
-
-
 class Config(BaseModel):
     """Application configuration."""
     sources: dict[str, DataSource] = {}
-    menu: list[MenuItem] = []
 
 
 def load_yaml(file_path: Path) -> dict[str, Any]:
@@ -34,9 +26,9 @@ def load_yaml(file_path: Path) -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
-def load_sources(config_dir: Path) -> dict[str, DataSource]:
-    """Load data sources from sources.yaml."""
-    data = load_yaml(config_dir / "sources.yaml")
+def load_sources(project_dir: Path) -> dict[str, DataSource]:
+    """Load data sources from sources/sources.yaml."""
+    data = load_yaml(project_dir / "sources" / "sources.yaml")
     sources_data = data.get("sources", {})
     return {
         name: DataSource(**source_config)
@@ -44,17 +36,9 @@ def load_sources(config_dir: Path) -> dict[str, DataSource]:
     }
 
 
-def load_menu(config_dir: Path) -> list[MenuItem]:
-    """Load menu structure from menu.yaml."""
-    data = load_yaml(config_dir / "menu.yaml")
-    menu_data = data.get("menu", [])
-    return [MenuItem(**item) for item in menu_data]
-
-
-def load_config(config_dir: Path | str) -> Config:
-    """Load full configuration from config directory."""
-    config_dir = Path(config_dir)
+def load_config(project_dir: Path | str) -> Config:
+    """Load full configuration from project directory."""
+    project_dir = Path(project_dir)
     return Config(
-        sources=load_sources(config_dir),
-        menu=load_menu(config_dir),
+        sources=load_sources(project_dir),
     )
