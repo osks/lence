@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Data Table Component
 
 Full-featured table with search, pagination, and sorting. Works correctly in shadow DOM environments.

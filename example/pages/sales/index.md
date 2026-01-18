@@ -1,5 +1,6 @@
 ---
 title: Sales Reports
+showSource: true
 ---
 
 # Sales Reports

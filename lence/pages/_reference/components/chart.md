@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Chart Component
 
 Renders data as interactive charts using ECharts.

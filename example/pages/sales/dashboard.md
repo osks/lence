@@ -1,5 +1,6 @@
 ---
 title: Sales Dashboard
+showSource: true
 ---
 
 # Sales Dashboard

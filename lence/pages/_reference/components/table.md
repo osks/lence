@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Table Component
 
 Renders data as a sortable table.

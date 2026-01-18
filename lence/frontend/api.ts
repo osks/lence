@@ -89,9 +89,21 @@ export async function fetchMenu(): Promise<MenuItem[]> {
 }
 
 /**
- * Fetch a markdown page's raw content.
+ * Page response with content and frontmatter.
  */
-export async function fetchPage(path: string): Promise<string> {
+export interface PageResponse {
+  content: string;
+  frontmatter: {
+    title?: string;
+    showSource?: boolean;
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * Fetch a markdown page with frontmatter.
+ */
+export async function fetchPage(path: string): Promise<PageResponse> {
   // Normalize path
   let pagePath = path;
   if (pagePath.startsWith('/')) {
@@ -101,14 +113,5 @@ export async function fetchPage(path: string): Promise<string> {
     pagePath = 'index';
   }
 
-  const response = await fetch(`${API_BASE}/_api/v1/pages/page/${pagePath}`);
-
-  if (!response.ok) {
-    throw new ApiRequestError(
-      `Page not found: ${path}`,
-      response.status,
-    );
-  }
-
-  return response.text();
+  return fetchJson<PageResponse>(`/_api/v1/pages/page/${pagePath}`);
 }

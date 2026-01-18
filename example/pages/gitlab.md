@@ -1,5 +1,6 @@
 ---
 title: Gitlab data
+showSource: true
 ---
 
 # Gitlab data

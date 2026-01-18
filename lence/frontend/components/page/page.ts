@@ -5,7 +5,7 @@
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { fetchPage, executeQuery } from '../../api.js';
+import { fetchPage, executeQuery, type PageResponse } from '../../api.js';
 import { inputs } from '../../stores/inputs.js';
 import { pathToPageName } from '../../router.js';
 import {
@@ -153,6 +153,40 @@ export class LencePage extends LitElement {
       display: inline-block;
       margin: 0.5rem 0.5rem 0.5rem 0;
     }
+
+    .page-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.5rem;
+    }
+
+    .source-toggle {
+      font-size: var(--lence-font-size-xs, 0.75rem);
+      color: var(--lence-text-muted, #6b7280);
+      background: none;
+      border: 1px solid var(--lence-border, #e5e7eb);
+      border-radius: var(--lence-radius, 4px);
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+    }
+
+    .source-toggle:hover {
+      background: var(--lence-bg-subtle, #f9fafb);
+      color: var(--lence-text, #374151);
+    }
+
+    .source-view {
+      background: var(--lence-bg-subtle, #f9fafb);
+      border: 1px solid var(--lence-border, #e5e7eb);
+      border-radius: var(--lence-radius, 4px);
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--lence-font-mono, ui-monospace, monospace);
+      font-size: var(--lence-font-size-xs, 0.8125rem);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
   `;
 
   @property({ type: String })
@@ -160,6 +194,9 @@ export class LencePage extends LitElement {
 
   @state()
   private htmlContent = '';
+
+  @state()
+  private rawContent = '';
 
   @state()
   private loading = true;
@@ -172,6 +209,12 @@ export class LencePage extends LitElement {
 
   @state()
   private queryErrors: Map<string, string> = new Map();
+
+  @state()
+  private showSourceEnabled = false;
+
+  @state()
+  private viewingSource = false;
 
   private queryMap: Map<string, QueryDefinition> = new Map();
 
@@ -200,7 +243,9 @@ export class LencePage extends LitElement {
     }
 
     // After render, pass data to components (use requestAnimationFrame to ensure DOM is ready)
-    if (changedProperties.has('queryData') || changedProperties.has('htmlContent')) {
+    // Also trigger when switching from source view back to rendered view
+    const switchedToRendered = changedProperties.has('viewingSource') && !this.viewingSource;
+    if (changedProperties.has('queryData') || changedProperties.has('htmlContent') || switchedToRendered) {
       requestAnimationFrame(() => this.updateComponentData());
     }
   }
@@ -211,15 +256,20 @@ export class LencePage extends LitElement {
     this.queryData = new Map();
     this.queryErrors = new Map();
     this.inputDependencies = new Map();
+    this.viewingSource = false;
     inputs.clear();
 
     try {
-      // Fetch Markdoc content
+      // Fetch page content with frontmatter
       const pageName = pathToPageName(this.path);
-      const content = await fetchPage(pageName);
+      const page = await fetchPage(pageName);
+
+      // Store raw content and frontmatter settings
+      this.rawContent = page.content;
+      this.showSourceEnabled = page.frontmatter.showSource === true;
 
       // Parse Markdoc
-      const parsed = parseMarkdoc(content);
+      const parsed = parseMarkdoc(page.content);
       this.htmlContent = renderToHtml(parsed.content);
       this.queryMap = buildQueryMap(parsed.queries);
 
@@ -381,6 +431,10 @@ export class LencePage extends LitElement {
     `;
   }
 
+  private toggleSource() {
+    this.viewingSource = !this.viewingSource;
+  }
+
   render() {
     if (this.loading) {
       return html`<div class="loading">Loading page...</div>`;
@@ -391,10 +445,23 @@ export class LencePage extends LitElement {
     }
 
     return html`
+      ${this.showSourceEnabled
+        ? html`
+            <div class="page-header">
+              <button class="source-toggle" @click=${this.toggleSource}>
+                ${this.viewingSource ? 'Rendered' : 'Source'}
+              </button>
+            </div>
+          `
+        : null}
       ${this.renderQueryErrors()}
-      <article class="content">
-        ${unsafeHTML(this.htmlContent)}
-      </article>
+      ${this.viewingSource
+        ? html`<pre class="source-view">${this.rawContent}</pre>`
+        : html`
+            <article class="content">
+              ${unsafeHTML(this.htmlContent)}
+            </article>
+          `}
     `;
   }
 }

@@ -145,35 +145,44 @@ describe('API Client', () => {
   });
 
   describe('fetchPage', () => {
-    it('should return markdown content', async () => {
-      const mockContent = '# Hello\n\nThis is a test page.';
+    it('should return page content and frontmatter', async () => {
+      const mockResponse = {
+        content: '# Hello\n\nThis is a test page.',
+        frontmatter: { title: 'Hello', showSource: true },
+      };
 
       mockFetch.mockResolvedValue({
         ok: true,
-        text: () => Promise.resolve(mockContent),
+        json: () => Promise.resolve(mockResponse),
       });
 
-      const content = await fetchPage('/dashboard');
+      const page = await fetchPage('/dashboard');
 
-      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/pages/page/dashboard');
-      expect(content).toBe(mockContent);
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/pages/page/dashboard', {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      expect(page.content).toBe(mockResponse.content);
+      expect(page.frontmatter.showSource).toBe(true);
     });
 
     it('should handle root path', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        text: () => Promise.resolve('# Home'),
+        json: () => Promise.resolve({ content: '# Home', frontmatter: {} }),
       });
 
       await fetchPage('/');
 
-      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/pages/page/index');
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/pages/page/index', {
+        headers: { 'Content-Type': 'application/json' },
+      });
     });
 
     it('should throw for missing page', async () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 404,
+        json: () => Promise.resolve({ detail: 'Page not found' }),
       });
 
       await expect(fetchPage('/nonexistent'))

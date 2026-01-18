@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Project Timeline
 
 ## Milestones Gantt Chart

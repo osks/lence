@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Data Sources
 
 Configure data sources in `sources.yaml` at your project root.

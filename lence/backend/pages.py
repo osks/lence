@@ -186,7 +186,7 @@ def resolve_page_path(base_dir: Path, path: str) -> Path | None:
 
 @router.get("/page/{path:path}")
 async def get_page(request: Request, path: str):
-    """Serve raw markdown files. Project pages override bundled defaults."""
+    """Serve page content with frontmatter. Project pages override bundled defaults."""
     pages_dir = request.app.state.pages_dir
 
     # Try project pages first
@@ -202,4 +202,7 @@ async def get_page(request: Request, path: str):
             content={"error": f"Page not found: {path}"},
         )
 
-    return FileResponse(file_path, media_type="text/markdown")
+    content = file_path.read_text()
+    frontmatter = parse_frontmatter(content)
+
+    return {"content": content, "frontmatter": frontmatter}

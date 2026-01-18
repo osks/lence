@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Gantt Chart Component
 
 Renders timeline data as a horizontal bar chart (Gantt chart) using ECharts.

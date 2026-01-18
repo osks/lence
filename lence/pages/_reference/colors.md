@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Color Palette
 
 Lence uses a 10-color palette for charts.

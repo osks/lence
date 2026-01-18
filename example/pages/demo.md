@@ -1,5 +1,6 @@
 ---
 title: Demo
+showSource: true
 ---
 
 # Quick Demo

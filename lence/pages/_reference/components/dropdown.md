@@ -1,3 +1,7 @@
+---
+showSource: true
+---
+
 # Dropdown Component
 
 A dropdown input that filters queries reactively. When a value is selected, queries using `${inputs.name.value}` are automatically re-executed.
