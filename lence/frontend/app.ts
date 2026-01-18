@@ -12,6 +12,7 @@ import './components/area-chart/area-chart.js';
 import './components/table/simple-table.js';
 import './components/data-table/data-table.js';
 import './components/gantt/echarts-gantt.js';
+import './components/dropdown/dropdown.js';
 
 /**
  * Main application component.

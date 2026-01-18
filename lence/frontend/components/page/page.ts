@@ -6,6 +6,7 @@ import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { fetchPage, executeQuery } from '../../api.js';
+import { inputs } from '../../stores/inputs.js';
 import { pathToPageName } from '../../router.js';
 import {
   parseMarkdoc,
@@ -147,6 +148,11 @@ export class LencePage extends LitElement {
       display: block;
       margin: 1rem 0;
     }
+
+    .content lence-dropdown {
+      display: inline-block;
+      margin: 0.5rem 0.5rem 0.5rem 0;
+    }
   `;
 
   @property({ type: String })
@@ -169,9 +175,23 @@ export class LencePage extends LitElement {
 
   private queryMap: Map<string, QueryDefinition> = new Map();
 
+  /** Maps input name -> array of query names that depend on it */
+  private inputDependencies: Map<string, string[]> = new Map();
+
+  /** Unsubscribe function for inputs store */
+  private unsubscribeInputs?: () => void;
+
   connectedCallback() {
     super.connectedCallback();
+    this.unsubscribeInputs = inputs.onChange((name) => this.handleInputChange(name));
     this.loadPage();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this.unsubscribeInputs) {
+      this.unsubscribeInputs();
+    }
   }
 
   updated(changedProperties: Map<string, unknown>) {
@@ -190,6 +210,8 @@ export class LencePage extends LitElement {
     this.error = null;
     this.queryData = new Map();
     this.queryErrors = new Map();
+    this.inputDependencies = new Map();
+    inputs.clear();
 
     try {
       // Fetch Markdoc content
@@ -200,6 +222,9 @@ export class LencePage extends LitElement {
       const parsed = parseMarkdoc(content);
       this.htmlContent = renderToHtml(parsed.content);
       this.queryMap = buildQueryMap(parsed.queries);
+
+      // Build input dependency map from queries
+      this.buildInputDependencies();
 
       // Process inline data definitions first
       this.processInlineData(parsed.data);
@@ -217,6 +242,41 @@ export class LencePage extends LitElement {
     } finally {
       this.loading = false;
     }
+  }
+
+  /**
+   * Build a map of input name -> dependent query names by parsing SQL.
+   */
+  private buildInputDependencies() {
+    const inputPattern = /\$\{inputs\.(\w+)\.value\}/g;
+
+    for (const [queryName, query] of this.queryMap) {
+      let match;
+      while ((match = inputPattern.exec(query.sql)) !== null) {
+        const inputName = match[1];
+        const deps = this.inputDependencies.get(inputName) || [];
+        if (!deps.includes(queryName)) {
+          deps.push(queryName);
+        }
+        this.inputDependencies.set(inputName, deps);
+      }
+    }
+  }
+
+  /**
+   * Handle input value changes by re-executing dependent queries.
+   */
+  private async handleInputChange(inputName: string) {
+    const dependentQueries = this.inputDependencies.get(inputName);
+    if (!dependentQueries || dependentQueries.length === 0) return;
+
+    // Clear errors for dependent queries
+    for (const name of dependentQueries) {
+      this.queryErrors.delete(name);
+    }
+
+    // Re-execute dependent queries
+    await this.executeQueries(dependentQueries);
   }
 
   /**
@@ -250,7 +310,9 @@ export class LencePage extends LitElement {
       }
 
       try {
-        const result = await executeQuery(query.source, query.sql);
+        // Interpolate SQL with current input values
+        const interpolatedSql = this.interpolateSQL(query.sql);
+        const result = await executeQuery(query.source, interpolatedSql);
         this.queryData = new Map(this.queryData).set(name, result);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Query failed';
@@ -262,6 +324,22 @@ export class LencePage extends LitElement {
   }
 
   /**
+   * Interpolate SQL with current input values.
+   * Replaces ${inputs.name.value} with the escaped value (no quotes added).
+   * User provides quotes in SQL: WHERE col = '${inputs.x.value}'
+   */
+  private interpolateSQL(sql: string): string {
+    return sql.replace(/\$\{inputs\.(\w+)\.value\}/g, (_, inputName) => {
+      const input = inputs.get(inputName);
+      if (input.value === null) {
+        return '';
+      }
+      // Escape single quotes for SQL safety
+      return input.value.replace(/'/g, "''");
+    });
+  }
+
+  /**
    * After rendering, find components and pass them their data.
    */
   private updateComponentData() {
@@ -269,15 +347,24 @@ export class LencePage extends LitElement {
     const contentDiv = this.shadowRoot?.querySelector('.content');
     if (!contentDiv) return;
 
-    // Find chart and table components
-    const components = contentDiv.querySelectorAll('lence-chart, lence-area-chart, lence-table, lence-data-table, lence-gantt');
+    // Find chart, table, and gantt components
+    const dataComponents = contentDiv.querySelectorAll('lence-chart, lence-area-chart, lence-table, lence-data-table, lence-gantt');
 
-    for (const component of components) {
+    for (const component of dataComponents) {
       // Markdoc uses 'data' attribute, but we also check 'query' for backwards compat
       const queryName = component.getAttribute('data') || component.getAttribute('query');
       if (queryName && this.queryData.has(queryName)) {
         // Pass data to component via property
         (component as any).data = this.queryData.get(queryName);
+      }
+    }
+
+    // Find dropdown components and pass their data
+    const dropdowns = contentDiv.querySelectorAll('lence-dropdown');
+    for (const dropdown of dropdowns) {
+      const dataAttr = dropdown.getAttribute('data');
+      if (dataAttr && this.queryData.has(dataAttr)) {
+        (dropdown as any).queryData = this.queryData.get(dataAttr);
       }
     }
   }

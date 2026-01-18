@@ -54,8 +54,7 @@ export class EChartsChart extends BaseChart {
     this.chart.setOption(option, true);
   }
 
-  // Evidence.dev template default palette (light mode)
-  // Source: https://github.com/evidence-dev/template/blob/main/evidence.config.yaml
+  // Default palette (light mode)
   private static readonly CHART_COLORS = [
     '#236aa4', // Deep blue
     '#45a1bf', // Teal

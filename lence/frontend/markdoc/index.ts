@@ -1,7 +1,7 @@
 /**
  * Markdoc parsing for Lence.
  *
- * Uses Markdoc for Evidence.dev-style {% tag %} syntax.
+ * Uses Markdoc for {% tag %} syntax.
  * Supports:
  * - {% query name="..." source="..." %}SQL{% /query %} - Define SQL queries
  * - {% chart data="..." type="..." x="..." y="..." /%} - Render charts
@@ -136,6 +136,21 @@ const tags: Config['tags'] = {
     },
   },
 
+  dropdown: {
+    render: 'lence-dropdown',
+    selfClosing: true,
+    attributes: {
+      name: { type: String, required: true },
+      data: { type: String },
+      value: { type: String },
+      label: { type: String },
+      title: { type: String },
+      defaultValue: { type: String },
+      placeholder: { type: String },
+      disableSelectAll: { type: Boolean, default: false },
+    },
+  },
+
   data: {
     render: 'data-block',
     attributes: {
@@ -251,7 +266,7 @@ export function extractComponents(tree: RenderableTreeNode): ComponentDefinition
 
     const tagNode = node as { name?: string; attributes?: Record<string, unknown>; children?: RenderableTreeNode[] };
 
-    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-area-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-data-table' || tagNode.name === 'lence-gantt') {
+    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-area-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-data-table' || tagNode.name === 'lence-gantt' || tagNode.name === 'lence-dropdown') {
       components.push({
         type: tagNode.name,
         attributes: tagNode.attributes || {},

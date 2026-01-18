@@ -1,6 +1,6 @@
 # Color Palette
 
-Lence uses a 10-color palette inspired by Evidence.dev for charts.
+Lence uses a 10-color palette for charts.
 
 ## Colors
 

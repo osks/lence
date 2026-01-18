@@ -10,7 +10,7 @@ import type { QueryResult, Column } from '../../types.js';
 type EChartsInstance = ReturnType<typeof echarts.init>;
 type EChartsOption = echarts.EChartsOption;
 
-// Evidence.dev template default palette
+// Default palette
 const CHART_COLORS = [
   '#236aa4', // Deep blue
   '#45a1bf', // Teal

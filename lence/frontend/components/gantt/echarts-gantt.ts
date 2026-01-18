@@ -16,7 +16,7 @@ const TOP_PADDING = 30; // space for axis
 const BOTTOM_PADDING = 40; // space for x-axis labels
 const TITLE_HEIGHT = 30; // additional space when title is present
 
-// Evidence.dev template default palette
+// Default palette
 const CHART_COLORS = [
   '#236aa4', // Deep blue
   '#45a1bf', // Teal

@@ -1,11 +1,11 @@
 /**
  * Lence - Application Styles
  *
- * Evidence.dev-inspired design system with Pico CSS as base.
+ * Design system with Pico CSS as base.
  */
 
 /* ============================================
-   Design Tokens (Evidence.dev inspired)
+   Design Tokens
    ============================================ */
 :root {
   /* Typography */
@@ -52,7 +52,7 @@
   --lence-info: #3b82f6;
   --lence-info-bg: #eff6ff;
 
-  /* Chart Color Palette (Evidence.dev template default) */
+  /* Chart Color Palette */
   --lence-chart-1: #236aa4;  /* Deep blue */
   --lence-chart-2: #45a1bf;  /* Teal */
   --lence-chart-3: #a5cdee;  /* Light blue */

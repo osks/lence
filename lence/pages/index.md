@@ -8,8 +8,8 @@ Create a `pages/index.md` file in your project to replace this page.
 
 ```
 my-project/
+├── sources.yaml       ← Define data sources
 ├── sources/
-│   ├── sources.yaml   ← Define data sources
 │   └── sales.csv      ← Your data files
 └── pages/
     └── index.md       ← Your pages
@@ -17,10 +17,10 @@ my-project/
 
 ## Features
 
-- **SQL Queries** - Query CSV files with DuckDB
+- **Markdown** - Write content with Markdoc syntax
+- **SQL Queries** - Query Parquet, Postgres, CSV, JSON, HTTP APIs with DuckDB
 - **Charts** - Line, bar, pie, and more with ECharts
 - **Tables** - Sortable data tables
-- **Markdown** - Write content with Markdoc syntax
 
 ## Syntax
 
