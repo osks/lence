@@ -23,4 +23,4 @@ WHERE
 
 {% gantt data="all_milestones" label="title" start="start_date" end="due_date" title="Milestone Timeline" /%}
 
-{% tanstackTable data="all_milestones" search=true /%}
+{% dataTable data="all_milestones" search=true /%}

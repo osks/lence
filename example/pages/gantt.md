@@ -17,4 +17,4 @@ ORDER BY COALESCE(start_date, due_date)
 
 ## Data Table
 
-{% tanstackTable data="milestones" /%}
+{% dataTable data="milestones" /%}
