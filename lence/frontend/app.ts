@@ -5,11 +5,11 @@
 import { LitElement, html, css } from 'lit';
 import { state } from 'lit/decorators.js';
 import { initRouter, getRouter } from './router.js';
-import './components/layout.js';
-import './components/page.js';
-import './components/charts/echarts-chart.js';
-import './components/tables/simple-table.js';
-import './components/tables/grid-table.js';
+import './components/layout/layout.js';
+import './components/page/page.js';
+import './components/chart/echarts-chart.js';
+import './components/table/simple-table.js';
+import './components/grid-table/grid-table.js';
 
 /**
  * Main application component.

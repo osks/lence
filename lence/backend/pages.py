@@ -77,6 +77,7 @@ def build_menu(pages_dir: Path) -> list[dict]:
 
     Merges built-in pages with project pages (project overrides).
     Reads title from frontmatter. Groups pages by directory.
+    Supports arbitrary nesting depth.
 
     Section titles come from index.md in the directory (e.g., sales/index.md
     defines the "Sales" section title). Falls back to directory name if no index.
@@ -87,66 +88,65 @@ def build_menu(pages_dir: Path) -> list[dict]:
     # Merge: project pages override built-in
     all_pages = {**builtin_pages, **project_pages}
 
-    # First pass: identify which paths are sections (have nested pages)
-    sections = set()
-    for url_path in all_pages.keys():
-        parts = [p for p in url_path.split("/") if p]
-        if len(parts) > 1:
-            sections.add(parts[0])
+    # Build a tree where each node can have children
+    # Node structure: {"title": str, "path": str|None, "children": {key: node}}
+    root: dict = {"children": {}}
 
-    # Build tree structure
-    root: dict[str, any] = {"children": {}}
+    def ensure_path(parts: list[str]) -> dict:
+        """Ensure all parent nodes exist and return the deepest one."""
+        node = root
+        for part in parts:
+            if part not in node["children"]:
+                # Create placeholder node
+                fallback_title = part.replace("-", " ").replace("_", " ").title()
+                node["children"][part] = {
+                    "title": fallback_title,
+                    "path": None,
+                    "children": {},
+                }
+            node = node["children"][part]
+        return node
 
+    # Process all pages
     for url_path in sorted(all_pages.keys()):
         title = get_page_title(all_pages[url_path], url_path)
         parts = [p for p in url_path.split("/") if p]
 
         if not parts:  # Root path "/"
-            root["children"]["/"] = {"title": title, "path": url_path}
-        elif len(parts) == 1:
-            key = parts[0]
-            if key in sections:
-                # This is a section index (e.g., /sales from sales/index.md)
-                if key not in root["children"]:
-                    root["children"][key] = {"title": title, "path": url_path, "children": []}
-                else:
-                    root["children"][key]["title"] = title
-                    root["children"][key]["path"] = url_path
-            else:
-                # Regular top-level page like "/demo"
-                root["children"][key] = {"title": title, "path": url_path}
-        else:  # Nested page like "/sales/dashboard"
-            parent_key = parts[0]
-            section_path = "/" + parent_key
-
-            if parent_key not in root["children"]:
-                # Create section entry with fallback title
-                section_title = parent_key.replace("-", " ").replace("_", " ").title()
-                root["children"][parent_key] = {
-                    "title": section_title,
-                    "path": None,
-                    "children": [],
-                }
-
-            parent = root["children"][parent_key]
-            parent["children"].append({"title": title, "path": url_path})
-
-    # Convert to list format
-    menu = []
-    for key in sorted(root["children"].keys()):
-        item = root["children"][key]
-        if "children" in item and item["children"]:
-            entry = {
-                "title": item["title"],
-                "children": sorted(item["children"], key=lambda x: x["path"]),
-            }
-            if item.get("path"):
-                entry["path"] = item["path"]
-            menu.append(entry)
+            root["children"]["/"] = {"title": title, "path": url_path, "children": {}}
         else:
-            menu.append({"title": item["title"], "path": item["path"]})
+            # Ensure parent path exists and get the node for this page
+            node = ensure_path(parts)
+            node["title"] = title
+            node["path"] = url_path
 
-    return menu
+    # Sort keys: regular items first (alphabetically), then _ prefixed items last
+    def sort_key(key: str) -> tuple[int, str]:
+        if key.startswith("_"):
+            return (1, key)  # _ items come after regular items
+        return (0, key)
+
+    def node_to_menu(node: dict) -> list[dict]:
+        """Convert tree node to menu list format."""
+        menu = []
+        for key in sorted(node["children"].keys(), key=sort_key):
+            child = node["children"][key]
+            has_children = bool(child["children"])
+
+            if has_children:
+                entry = {
+                    "title": child["title"],
+                    "children": node_to_menu(child),
+                }
+                if child.get("path"):
+                    entry["path"] = child["path"]
+                menu.append(entry)
+            else:
+                menu.append({"title": child["title"], "path": child["path"]})
+
+        return menu
+
+    return node_to_menu(root)
 
 
 @router.get("/menu")

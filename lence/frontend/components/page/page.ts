@@ -6,8 +6,8 @@ import { LitElement, html, css, unsafeCSS } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import gridjsStyles from 'gridjs/dist/theme/mermaid.css?inline';
-import { fetchPage, executeQuery } from '../api.js';
-import { pathToPageName } from '../router.js';
+import { fetchPage, executeQuery } from '../../api.js';
+import { pathToPageName } from '../../router.js';
 import {
   parseMarkdoc,
   extractComponents,
@@ -16,8 +16,8 @@ import {
   renderToHtml,
   type QueryDefinition,
   type DataDefinition,
-} from '../markdoc/index.js';
-import type { QueryResult } from '../types.js';
+} from '../../markdoc/index.js';
+import type { QueryResult } from '../../types.js';
 
 /**
  * Page component that loads and renders Markdoc content.
@@ -31,33 +31,38 @@ export class LencePage extends LitElement {
   static styles = css`
     :host {
       display: block;
-      max-width: 1200px;
       font-family: var(--lence-font-family, system-ui);
+      font-size: var(--lence-font-size-sm, 0.875rem);
+      line-height: 1.6;
     }
 
     .loading {
       color: var(--lence-text-muted, #6b7280);
-      padding: 2rem;
+      padding: 1.5rem;
     }
 
     .error {
-      padding: 1rem;
+      padding: 0.75rem;
       background: var(--lence-negative-bg, #fef2f2);
-      border: 1px solid var(--lence-negative, #ef4444);
-      border-radius: var(--lence-radius, 8px);
-      color: var(--lence-negative, #ef4444);
-      margin: 1rem 0;
+      border: 1px solid var(--lence-negative, #dc2626);
+      border-radius: var(--lence-radius, 4px);
+      color: var(--lence-negative, #dc2626);
+      margin: 0.75rem 0;
     }
 
     .content {
-      line-height: 1.6;
-      color: var(--lence-text, #2c2c2c);
+      color: var(--lence-text, #374151);
+    }
+
+    .content p {
+      margin: 1rem 0;
     }
 
     .content h1 {
-      font-size: var(--lence-font-size-2xl, 1.5rem);
-      color: var(--lence-text-heading, #060606);
+      font-size: var(--lence-font-size-xl, 1.375rem);
+      color: var(--lence-text-heading, #111827);
       font-weight: 600;
+      margin: 0 0 1rem 0;
     }
 
     .content h1:first-child {
@@ -65,17 +70,73 @@ export class LencePage extends LitElement {
     }
 
     .content h2 {
-      font-size: var(--lence-font-size-xl, 1.25rem);
-      color: var(--lence-text-heading, #060606);
+      font-size: var(--lence-font-size-lg, 1.125rem);
+      color: var(--lence-text-heading, #111827);
       font-weight: 600;
+      margin: 1.5rem 0 0.75rem 0;
+    }
+
+    .content h3 {
+      font-size: var(--lence-font-size-base, 1rem);
+      color: var(--lence-text-heading, #111827);
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem 0;
     }
 
     .content a {
-      color: var(--lence-primary, #1d4ed8);
+      color: var(--lence-primary, #2563eb);
     }
 
     .content a:hover {
-      color: var(--lence-primary-hover, #1e40af);
+      color: var(--lence-primary-hover, #1d4ed8);
+    }
+
+    .content ul,
+    .content ol {
+      margin: 0.75rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .content li {
+      margin: 0.375rem 0;
+    }
+
+    .content pre {
+      background: var(--lence-bg-subtle, #f9fafb);
+      border: 1px solid var(--lence-border, #e5e7eb);
+      border-radius: var(--lence-radius, 4px);
+      padding: 0.75rem 1rem;
+      overflow-x: auto;
+      font-size: var(--lence-font-size-xs, 0.8125rem);
+      line-height: 1.5;
+    }
+
+    .content code {
+      font-family: var(--lence-font-mono, ui-monospace, monospace);
+      font-size: 0.9em;
+    }
+
+    .content table {
+      border-collapse: collapse;
+      margin: 0.75rem 0;
+      font-size: var(--lence-font-size-sm, 0.8125rem);
+      width: 100%;
+    }
+
+    .content th,
+    .content td {
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--lence-border, #e5e7eb);
+    }
+
+    .content th {
+      background: var(--lence-bg-subtle, #f9fafb);
+      font-weight: 500;
+      font-size: var(--lence-font-size-xs, 0.6875rem);
+      color: var(--lence-text-muted, #6b7280);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
 
     /* Style for component containers */
@@ -83,11 +144,83 @@ export class LencePage extends LitElement {
     .content lence-table,
     .content lence-grid-table {
       display: block;
-      margin: 1.5rem 0;
+      margin: 1rem 0;
     }
 
-    /* Grid.js styles */
+    /* Grid.js base styles */
     ${unsafeCSS(gridjsStyles)}
+
+    /* Grid.js overrides to match Lence theme */
+    .gridjs-wrapper {
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      overflow-x: auto;
+    }
+
+    .gridjs-wrapper:nth-last-of-type(2) {
+      border-radius: 0;
+    }
+
+    .gridjs-table {
+      font-size: var(--lence-font-size-sm, 0.8125rem);
+    }
+
+    .gridjs-thead th.gridjs-th {
+      background: var(--lence-bg-subtle, #f9fafb);
+      color: var(--lence-text-muted, #6b7280);
+      font-weight: 500;
+      font-size: var(--lence-font-size-xs, 0.6875rem);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.375rem 0.5rem;
+      border: none;
+      border-bottom: 1px solid var(--lence-border, #e5e7eb);
+    }
+
+    .gridjs-thead th.gridjs-th-sort:hover {
+      background: var(--lence-bg-muted, #f3f4f6);
+    }
+
+    .gridjs-tbody td.gridjs-td {
+      padding: 0.375rem 0.5rem;
+      border: none;
+      border-bottom: 1px solid var(--lence-border, #e5e7eb);
+      color: var(--lence-text, #374151);
+      background: transparent;
+    }
+
+    .gridjs-tbody tr:hover td {
+      background: var(--lence-bg-subtle, #f9fafb);
+    }
+
+    .gridjs-footer {
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      border-top: 1px solid var(--lence-border, #e5e7eb);
+      background: transparent;
+      padding: 0.5rem 0;
+    }
+
+    .gridjs-pagination .gridjs-pages button {
+      border-color: var(--lence-border, #e5e7eb);
+    }
+
+    .gridjs-pagination .gridjs-pages button:focus {
+      box-shadow: none;
+    }
+
+    .gridjs-search-input {
+      border-color: var(--lence-border, #e5e7eb);
+      border-radius: var(--lence-radius, 4px);
+      font-size: var(--lence-font-size-sm, 0.8125rem);
+    }
+
+    .gridjs-search-input:focus {
+      border-color: var(--lence-primary, #2563eb);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
   `;
 
   @property({ type: String })

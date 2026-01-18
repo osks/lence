@@ -27,7 +27,7 @@ dev: env ## Run dev server (backend + frontend watch)
 
 .PHONY: components
 components: ## Serve component demos
-	@npx vite --open /lence/frontend/components/__tests__/
+	@npx vite --clearScreen false /lence/frontend/components/__tests__/
 
 ##@ Environment
 .PHONY: env

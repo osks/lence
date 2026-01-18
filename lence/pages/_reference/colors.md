@@ -27,7 +27,6 @@ Lence uses a 10-color palette inspired by Evidence.dev for charts.
 
 {% chart data="colors" type="pie" x="name" y="value" title="Color Palette" /%}
 
-{% chart data="colors" type="bar" x="name" y="value" /%}
 
 ## CSS Variables
 

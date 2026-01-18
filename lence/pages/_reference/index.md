@@ -1,3 +1,7 @@
+---
+title: Reference
+---
+
 # Reference
 
 Documentation for Lence components and configuration.

@@ -6,7 +6,6 @@ export default defineConfig({
     globals: true,
     include: [
       'lence/frontend/**/__tests__/*.test.ts',
-      'lence/frontend/tests/**/*.test.ts',
     ],
   },
 });

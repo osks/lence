@@ -104,7 +104,10 @@ export class GridTable extends LitElement {
     };
 
     if (this.search) {
-      config.search = true;
+      config.search = {
+        enabled: true,
+        server: undefined,  // ensure client-side search
+      };
     }
 
     if (this.pagination !== undefined && this.pagination > 0) {
@@ -114,8 +117,10 @@ export class GridTable extends LitElement {
     }
 
     // Create and render Grid.js
+    console.log('Grid.js config:', config);
     this.grid = new Grid(config);
     this.grid.render(this.container);
+    console.log('Grid.js rendered');
   }
 
   render() {

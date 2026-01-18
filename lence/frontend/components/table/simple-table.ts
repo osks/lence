@@ -19,28 +19,28 @@ export class SimpleTable extends LitElement {
       display: block;
       overflow-x: auto;
       font-family: var(--lence-font-family, system-ui);
+      font-size: var(--lence-font-size-sm, 0.8125rem);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: var(--lence-font-size-sm, 0.875rem);
     }
 
     th,
     td {
-      padding: 0.5rem 0.75rem;
+      padding: 0.375rem 0.5rem;
       text-align: left;
       border-bottom: 1px solid var(--lence-border, #e5e7eb);
     }
 
     th {
       background: var(--lence-bg-subtle, #f9fafb);
-      font-weight: 600;
-      font-size: var(--lence-font-size-xs, 0.75rem);
+      font-weight: 500;
+      font-size: var(--lence-font-size-xs, 0.6875rem);
       color: var(--lence-text-muted, #6b7280);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.03em;
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
@@ -51,13 +51,14 @@ export class SimpleTable extends LitElement {
     }
 
     th .sort-indicator {
-      margin-left: 0.5rem;
-      opacity: 0.4;
+      margin-left: 0.25rem;
+      opacity: 0.3;
+      font-size: 0.625rem;
     }
 
     th .sort-indicator.active {
       opacity: 1;
-      color: var(--lence-primary, #1d4ed8);
+      color: var(--lence-primary, #2563eb);
     }
 
     tbody tr:hover {
@@ -65,33 +66,30 @@ export class SimpleTable extends LitElement {
     }
 
     td {
-      color: var(--lence-text, #2c2c2c);
+      color: var(--lence-text, #374151);
     }
 
     td.numeric {
       text-align: right;
       font-variant-numeric: tabular-nums;
-      font-family: var(--lence-font-mono, monospace);
+      font-family: var(--lence-font-mono, ui-monospace, monospace);
     }
 
-    .loading {
-      padding: 2rem;
-      text-align: center;
-      color: var(--lence-text-muted, #6b7280);
-    }
-
+    .loading,
     .empty {
-      padding: 2rem;
+      padding: 1.5rem;
       text-align: center;
       color: var(--lence-text-muted, #6b7280);
+      font-size: var(--lence-font-size-sm, 0.8125rem);
     }
 
     .error {
-      padding: 1rem;
+      padding: 0.75rem;
       background: var(--lence-negative-bg, #fef2f2);
-      color: var(--lence-negative, #ef4444);
-      border: 1px solid var(--lence-negative, #ef4444);
-      border-radius: var(--lence-radius, 8px);
+      color: var(--lence-negative, #dc2626);
+      border: 1px solid var(--lence-negative, #dc2626);
+      border-radius: var(--lence-radius, 4px);
+      font-size: var(--lence-font-size-sm, 0.8125rem);
     }
   `;
 
