@@ -1,0 +1,40 @@
+[defaults]
+platform = "linux/arm64"
+
+[containers.claude]
+workspace = "."
+build = { dockerfile_content = """
+FROM debian:13
+
+RUN apt-get update && apt-get install -y locales && \
+    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
+    echo "sv_SE.UTF-8 UTF-8" >> /etc/locale.gen && \
+    locale-gen && \
+    echo 'LANG="en_US.UTF-8"' > /etc/default/locale
+
+RUN apt-get update && apt-get install -y curl nodejs npm wget
+
+# Install Claude Code
+RUN npm install -g @anthropic-ai/claude-code
+
+# Install uv (used in various projects)
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_NO_MODIFY_PATH=1
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL="/usr/local/bin" sh
+
+ENV PATH="/usr/local/bin:$PATH"
+
+""" }
+#build = { dockerfile = ".ctenv/Dockerfile" }
+env = [
+    #"PS1=[ctenv] [\\[\\033[01;32m\\]\\u@\\h\\[\\033[01;34m\\] \\w\\[\\033[00m\\]]$ ",
+    "CTENV=1",
+    "DISABLE_AUTOUPDATER=1", # for claude
+]
+volumes = [
+        "~/.bash_profile",
+        "~/.bashrc",
+        "~/.claude.json",
+        "~/.claude",
+        "./claude-env/tmp:./tmp",
+        "./claude-env/node_modules:./node_modules",
+]

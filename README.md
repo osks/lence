@@ -5,8 +5,8 @@ A lightweight data visualization framework. Write markdown pages with SQL querie
 ## Quick Start
 
 ```bash
-# Install dependencies
-make install
+# Set up environment
+make env
 
 # Run development server
 make dev

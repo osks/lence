@@ -68,4 +68,5 @@ select = ["E", "F", "I", "UP"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests"]
+testpaths = ["lence/backend/tests"]
+cache_dir = "tmp/pytest_cache"

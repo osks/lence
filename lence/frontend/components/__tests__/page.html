@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lence-page Component Test</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    body {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { margin-bottom: 0.5rem; }
+    .description { color: #666; margin-bottom: 2rem; }
+    section { margin-bottom: 3rem; }
+    pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+    lence-chart {
+      --lence-chart-height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <h1>lence-page</h1>
+  <p class="description">Page component that loads Markdoc content, executes queries, and renders charts/tables.</p>
+
+  <section>
+    <h2>Rendered Page</h2>
+    <lence-page path="/"></lence-page>
+  </section>
+
+  <section>
+    <details>
+      <summary>Mock Data</summary>
+      <h4>Markdown Content</h4>
+      <pre id="markdown-content"></pre>
+      <h4>Query Result</h4>
+      <pre id="query-data"></pre>
+    </details>
+  </section>
+
+  <script type="module">
+    // Mock markdown content (Markdoc format)
+    const mockMarkdown = `# Sales Dashboard
+
+This dashboard shows monthly sales data.
+
+{% query name="sales" source="orders" %}
+SELECT month, revenue, orders FROM monthly_sales
+{% /query %}
+
+## Revenue Chart
+
+{% chart data="sales" type="line" x="month" y="revenue" /%}
+
+## Sales Table
+
+{% table data="sales" /%}
+
+---
+
+*Data updated daily*
+`;
+
+    // Mock query result
+    const mockQueryResult = {
+      columns: [
+        { name: 'month', type: 'VARCHAR' },
+        { name: 'revenue', type: 'DOUBLE' },
+        { name: 'orders', type: 'INTEGER' }
+      ],
+      data: [
+        ['Jan', 45000, 320],
+        ['Feb', 52000, 380],
+        ['Mar', 48000, 350],
+        ['Apr', 61000, 420],
+        ['May', 58000, 400],
+        ['Jun', 72000, 480]
+      ],
+      row_count: 6
+    };
+
+    // Mock fetch for page and query endpoints
+    const originalFetch = window.fetch;
+    window.fetch = async (url, options) => {
+      // Page content endpoint
+      if (url.includes('/_api/v1/pages/page/')) {
+        return new Response(mockMarkdown, {
+          status: 200,
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      }
+
+      // Query endpoint
+      if (url.includes('/_api/v1/sources/query')) {
+        return new Response(JSON.stringify(mockQueryResult), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      return originalFetch(url, options);
+    };
+
+    // Import components (after mocking)
+    await import('../charts/echarts-chart.ts');
+    await import('../tables/simple-table.ts');
+    await import('../page.ts');
+
+    // Show mock data
+    document.getElementById('markdown-content').textContent = mockMarkdown;
+    document.getElementById('query-data').textContent = JSON.stringify(mockQueryResult, null, 2);
+  </script>
+</body>
+</html>

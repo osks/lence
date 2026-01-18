@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lence-layout Component Test</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    /* Reset body margin since layout is full-page */
+    body { margin: 0; }
+
+    /* Content styling */
+    .demo-content {
+      padding: 2rem;
+    }
+    .demo-content h1 { margin-top: 0; }
+    .demo-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <lence-layout>
+    <div class="demo-content">
+      <h1>Dashboard</h1>
+      <p>This is the main content area. The sidebar is rendered by lence-layout.</p>
+
+      <div class="demo-card">
+        <h3>Content Slot</h3>
+        <p>Any content placed inside <code>&lt;lence-layout&gt;</code> appears in the main area via a slot.</p>
+        <p>Try clicking the navigation links in the sidebar - the URL will change (client-side routing).</p>
+      </div>
+
+      <div class="demo-card">
+        <h3>Menu Data</h3>
+        <pre id="menu-data"></pre>
+      </div>
+    </div>
+  </lence-layout>
+
+  <script type="module">
+    // Mock menu data
+    const mockMenu = [
+      { title: 'Dashboard', path: '/' },
+      { title: 'Reports', path: '/reports', children: [
+        { title: 'Sales', path: '/reports/sales' },
+        { title: 'Inventory', path: '/reports/inventory' },
+        { title: 'Customers', path: '/reports/customers' }
+      ]},
+      { title: 'Analytics', path: '/analytics', children: [
+        { title: 'Overview', path: '/analytics/overview' },
+        { title: 'Trends', path: '/analytics/trends' }
+      ]},
+      { title: 'Settings', path: '/settings' }
+    ];
+
+    // Mock fetch to return our menu data
+    const originalFetch = window.fetch;
+    window.fetch = async (url, options) => {
+      if (url.includes('/_api/v1/pages/menu')) {
+        return new Response(JSON.stringify(mockMenu), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      return originalFetch(url, options);
+    };
+
+    // Now import the layout component (after mocking)
+    await import('../layout.ts');
+
+    // Show menu data
+    document.getElementById('menu-data').textContent = JSON.stringify(mockMenu, null, 2);
+  </script>
+</body>
+</html>

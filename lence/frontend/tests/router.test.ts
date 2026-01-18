@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Router, pathToPageName } from '../../lence/frontend/router.js';
+import { Router, pathToPageName } from '../router.js';
 
 describe('Router', () => {
   let pushStateSpy: ReturnType<typeof vi.spyOn>;

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lence Component Demos</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    body {
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .component-list {
+      list-style: none;
+      padding: 0;
+    }
+    .component-list li {
+      margin-bottom: 1rem;
+    }
+    .component-list a {
+      display: block;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      text-decoration: none;
+      border: 1px solid #dee2e6;
+    }
+    .component-list a:hover {
+      background: #e9ecef;
+    }
+    .component-list .name {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .component-list .desc {
+      color: #666;
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+    .component-list .path {
+      color: #999;
+      font-size: 0.8rem;
+      font-family: monospace;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lence Component Demos</h1>
+  <p>Visual demos for Lence web components. Each page renders a component with static mock data.</p>
+
+  <h2>Components</h2>
+  <ul class="component-list">
+    <li>
+      <a href="../tables/__tests__/simple-table.html">
+        <div class="name">lence-table</div>
+        <div class="desc">Simple table with sorting. Displays query results in tabular format.</div>
+        <div class="path">tables/__tests__/simple-table.html</div>
+      </a>
+    </li>
+    <li>
+      <a href="../charts/__tests__/echarts-chart.html">
+        <div class="name">lence-chart</div>
+        <div class="desc">ECharts-based charts. Line, bar, area, pie, and scatter charts.</div>
+        <div class="path">charts/__tests__/echarts-chart.html</div>
+      </a>
+    </li>
+    <li>
+      <a href="layout.html">
+        <div class="name">lence-layout</div>
+        <div class="desc">App layout with sidebar navigation and content slot.</div>
+        <div class="path">__tests__/layout.html</div>
+      </a>
+    </li>
+    <li>
+      <a href="page.html">
+        <div class="name">lence-page</div>
+        <div class="desc">Markdoc page renderer with embedded charts and tables.</div>
+        <div class="path">__tests__/page.html</div>
+      </a>
+    </li>
+  </ul>
+
+  <h2>Running</h2>
+  <p>Start Vite dev server and open this page:</p>
+  <pre>npx vite --open /lence/frontend/components/__tests__/</pre>
+</body>
+</html>

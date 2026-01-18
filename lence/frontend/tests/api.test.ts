@@ -6,7 +6,7 @@ import {
   fetchMenu,
   fetchPage,
   ApiRequestError,
-} from '../../lence/frontend/api.js';
+} from '../api.js';
 
 // Mock fetch globally
 const mockFetch = vi.fn();

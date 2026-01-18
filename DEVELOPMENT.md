@@ -47,11 +47,12 @@ lence/
 ### Setup
 
 ```bash
-make install
+make env
 ```
 
 This runs:
-- `uv sync` - Install Python dependencies
+- `uv venv` - Create virtual environment (if needed)
+- `uv pip install -e '.[dev]'` - Install Python package in editable mode with dev dependencies
 - `npm install` - Install Node dependencies
 
 ### Running Development Server
@@ -113,7 +114,7 @@ This runs:
 |---------|-------------|
 | `make dev` | Run development server |
 | `make build` | Build for production |
-| `make install` | Install all dependencies |
+| `make env` | Set up development environment |
 | `make clean` | Remove build artifacts |
 | `make test` | Run tests |
 | `make lint` | Check code style |

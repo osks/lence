@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lence-chart Component Test</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    body {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { margin-bottom: 0.5rem; }
+    .description { color: #666; margin-bottom: 2rem; }
+    section { margin-bottom: 3rem; }
+    pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+    }
+    .chart-card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .chart-card h3 { margin-top: 0; }
+    lence-chart {
+      --lence-chart-height: 250px;
+    }
+  </style>
+</head>
+<body>
+  <h1>lence-chart</h1>
+  <p class="description">Chart component using ECharts. Supports line, bar, pie, scatter, and area charts.</p>
+
+  <section>
+    <h2>Chart Types</h2>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Line Chart</h3>
+        <lence-chart id="line-chart" type="line" x="month" y="revenue" title="Monthly Revenue"></lence-chart>
+      </div>
+
+      <div class="chart-card">
+        <h3>Bar Chart</h3>
+        <lence-chart id="bar-chart" type="bar" x="month" y="orders" title="Monthly Orders"></lence-chart>
+      </div>
+
+      <div class="chart-card">
+        <h3>Area Chart</h3>
+        <lence-chart id="area-chart" type="area" x="month" y="revenue" title="Revenue Trend"></lence-chart>
+      </div>
+
+      <div class="chart-card">
+        <h3>Pie Chart</h3>
+        <lence-chart id="pie-chart" type="pie" x="category" y="sales" title="Sales by Category"></lence-chart>
+      </div>
+
+      <div class="chart-card">
+        <h3>Scatter Chart</h3>
+        <lence-chart id="scatter-chart" type="scatter" x="price" y="quantity" title="Price vs Quantity"></lence-chart>
+      </div>
+    </div>
+
+    <details>
+      <summary>Data</summary>
+      <pre id="chart-data"></pre>
+    </details>
+  </section>
+
+  <section>
+    <h2>Empty Chart</h2>
+    <lence-chart id="empty-chart" type="line" x="x" y="y"></lence-chart>
+  </section>
+
+  <script type="module">
+    import '../echarts-chart.ts';
+
+    // Time series data
+    const timeSeriesData = {
+      columns: [
+        { name: 'month', type: 'VARCHAR' },
+        { name: 'revenue', type: 'DOUBLE' },
+        { name: 'orders', type: 'INTEGER' }
+      ],
+      data: [
+        ['Jan', 45000, 320],
+        ['Feb', 52000, 380],
+        ['Mar', 48000, 350],
+        ['Apr', 61000, 420],
+        ['May', 58000, 400],
+        ['Jun', 72000, 480],
+        ['Jul', 68000, 450],
+        ['Aug', 75000, 510],
+        ['Sep', 82000, 560],
+        ['Oct', 78000, 530],
+        ['Nov', 85000, 580],
+        ['Dec', 92000, 620]
+      ],
+      row_count: 12
+    };
+
+    // Category data for pie chart
+    const categoryData = {
+      columns: [
+        { name: 'category', type: 'VARCHAR' },
+        { name: 'sales', type: 'DOUBLE' }
+      ],
+      data: [
+        ['Electronics', 42000],
+        ['Clothing', 28000],
+        ['Food', 18000],
+        ['Books', 12000],
+        ['Other', 8000]
+      ],
+      row_count: 5
+    };
+
+    // Scatter data
+    const scatterData = {
+      columns: [
+        { name: 'price', type: 'DOUBLE' },
+        { name: 'quantity', type: 'INTEGER' }
+      ],
+      data: [
+        [10, 120],
+        [15, 95],
+        [20, 80],
+        [25, 72],
+        [30, 58],
+        [35, 45],
+        [40, 38],
+        [45, 30],
+        [50, 25],
+        [55, 22],
+        [60, 18],
+        [65, 15]
+      ],
+      row_count: 12
+    };
+
+    // Empty data
+    const emptyData = {
+      columns: [
+        { name: 'x', type: 'VARCHAR' },
+        { name: 'y', type: 'DOUBLE' }
+      ],
+      data: [],
+      row_count: 0
+    };
+
+    // Assign data to charts
+    document.getElementById('line-chart').data = timeSeriesData;
+    document.getElementById('bar-chart').data = timeSeriesData;
+    document.getElementById('area-chart').data = timeSeriesData;
+    document.getElementById('pie-chart').data = categoryData;
+    document.getElementById('scatter-chart').data = scatterData;
+    document.getElementById('empty-chart').data = emptyData;
+
+    // Show data in details
+    document.getElementById('chart-data').textContent = JSON.stringify({
+      timeSeriesData,
+      categoryData,
+      scatterData
+    }, null, 2);
+  </script>
+</body>
+</html>

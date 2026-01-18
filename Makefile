@@ -6,6 +6,12 @@ export PYTHONPYCACHEPREFIX := $(MAKEFILE_ABS_DIR)tmp/pycache
 # Use copy mode for uv (avoids reflink warnings on some filesystems)
 export UV_LINK_MODE := copy
 
+# Store venv in tmp directory
+export VIRTUAL_ENV := $(MAKEFILE_ABS_DIR)tmp/venv
+VENV_BIN := tmp/venv/bin
+PYTEST := $(VENV_BIN)/pytest
+RUFF := $(VENV_BIN)/ruff
+
 .DEFAULT_GOAL := help
 
 ##@ Help
@@ -16,20 +22,14 @@ help: ## Display this help
 
 ##@ Development
 .PHONY: dev
-dev: ## Run dev server (backend + frontend watch)
+dev: env ## Run dev server (backend + frontend watch)
 	@npm run dev
-
-.PHONY: install
-install: ## Install all dependencies
-	@uv sync
-	@npm install
-
 
 ##@ Environment
 .PHONY: env
 env: ## Set up development environment
 	@echo "Setting up development environment..."
-	@test -d .venv || uv venv
+	@test -d tmp/venv || uv venv tmp/venv
 	@uv pip install -e '.[dev]'
 	@npm install
 	@echo "✓ Development environment ready"
@@ -39,24 +39,23 @@ clean: ## Clean up build artifacts
 	@echo "Cleaning up..."
 	@rm -rf dist
 	@rm -rf lence.egg-info
-	@rm -rf .venv/
 	@rm -rf .ruff_cache/
-	@rm -rf node_modules/
+	@rm -rf node_modules/*
 	@rm -f lence/static/*.js lence/static/*.js.map
-	@rm -rf tmp/pycache
+	@rm -rf tmp/*
 	@find . -name "*~" -delete
 	@echo "Cleaned up"
 
 
 ##@ Compiling
 .PHONY: build-frontend
-build-frontend: ## Build frontend assets
+build-frontend: env ## Build frontend assets
 	@echo "Building frontend..."
 	@npm ci && npm run build
 	@echo "✓ Frontend built"
 
 .PHONY: build
-build: build-frontend ## Build Python package
+build: env build-frontend ## Build Python package
 	@echo "Building package..."
 	@uv build
 	@echo "✓ Package built"
@@ -64,27 +63,27 @@ build: build-frontend ## Build Python package
 
 ##@ Linting / Formatting
 .PHONY: format
-format: ## Format code with ruff
+format: env ## Format code with ruff
 	@echo "Formatting code..."
-	@uv run ruff format lence/
+	@$(RUFF) format lence/
 
 .PHONY: lint
-lint: ## Check code style with ruff
+lint: env ## Check code style with ruff
 	@echo "Checking code style..."
-	@uv run ruff check lence/
+	@$(RUFF) check lence/
 
 .PHONY: lint-fix
-lint-fix: ## Fix code style issues automatically
+lint-fix: env ## Fix code style issues automatically
 	@echo "Fixing code style..."
-	@uv run ruff check --fix lence/
+	@$(RUFF) check --fix lence/
 
 
 ##@ Testing
 .PHONY: test
-test: ## Run all tests (backend + frontend)
-	@uv run pytest
+test: env ## Run all tests (backend + frontend)
+	@$(PYTEST)
 	@npm run test
 
 .PHONY: test-watch
-test-watch: ## Run tests in watch mode
-	@uv run pytest --watch
+test-watch: env ## Run tests in watch mode
+	@$(PYTEST) --watch
