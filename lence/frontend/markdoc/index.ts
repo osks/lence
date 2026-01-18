@@ -112,6 +112,29 @@ const tags: Config['tags'] = {
     },
   },
 
+  tanstackTable: {
+    render: 'lence-tanstack-table',
+    selfClosing: true,
+    attributes: {
+      data: { type: String, required: true },
+      search: { type: Boolean, default: false },
+      pagination: { type: Number },
+      sort: { type: Boolean, default: true },
+    },
+  },
+
+  gantt: {
+    render: 'lence-gantt',
+    selfClosing: true,
+    attributes: {
+      data: { type: String, required: true },
+      label: { type: String, required: true },
+      start: { type: String, required: true },
+      end: { type: String, required: true },
+      title: { type: String },
+    },
+  },
+
   data: {
     render: 'data-block',
     attributes: {
@@ -227,7 +250,7 @@ export function extractComponents(tree: RenderableTreeNode): ComponentDefinition
 
     const tagNode = node as { name?: string; attributes?: Record<string, unknown>; children?: RenderableTreeNode[] };
 
-    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-grid-table') {
+    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-grid-table' || tagNode.name === 'lence-tanstack-table' || tagNode.name === 'lence-gantt') {
       components.push({
         type: tagNode.name,
         attributes: tagNode.attributes || {},

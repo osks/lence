@@ -10,6 +10,8 @@ import './components/page/page.js';
 import './components/chart/echarts-chart.js';
 import './components/table/simple-table.js';
 import './components/grid-table/grid-table.js';
+import './components/tanstack-table/tanstack-table.js';
+import './components/gantt/echarts-gantt.js';
 
 /**
  * Main application component.

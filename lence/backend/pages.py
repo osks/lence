@@ -51,12 +51,16 @@ def discover_pages(pages_dir: Path) -> dict[str, Path]:
     """Discover all markdown pages in a directory.
 
     Returns dict mapping URL path to file path.
+    Skips hidden files (starting with .) and backup files (ending with ~).
     """
     pages = {}
     if not pages_dir.exists():
         return pages
 
     for md_file in pages_dir.rglob("*.md"):
+        # Skip hidden files and backup files
+        if md_file.name.startswith(".") or md_file.name.endswith("~"):
+            continue
         rel_path = md_file.relative_to(pages_dir)
         # Convert file path to URL path
         if rel_path.name == "index.md":

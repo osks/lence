@@ -14,6 +14,10 @@ RUN apt-get update && apt-get install -y locales && \
 
 RUN apt-get update && apt-get install -y curl nodejs npm wget
 
+# Install playwright
+RUN npm install -g @playwright/test \
+    && npx playwright install chromium --with-deps \
+
 # Install Claude Code
 RUN npm install -g @anthropic-ai/claude-code
 

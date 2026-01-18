@@ -95,6 +95,23 @@ Response:
 }
 ```
 
+## Adding a New Component
+
+When adding a new Lit component that receives query data:
+
+1. **Create component** in `lence/frontend/components/<name>/<name>.ts`
+2. **Import** in `lence/frontend/app.ts`
+3. **Add Markdoc tag** in `lence/frontend/markdoc/index.ts` (in `tags` object)
+4. **Update extractComponents** in `markdoc/index.ts` to recognize the new tag name
+5. **Update page.ts** - add to `querySelectorAll` in `updateComponentData()` and CSS selector
+6. **Add reference docs** in `lence/pages/_reference/components/<name>.md` and update the index
+
+Components receive data via the `data` property (type `QueryResult`):
+```typescript
+@property({ attribute: false })
+data?: QueryResult;  // { columns: Column[], data: unknown[][], row_count: number }
+```
+
 ## Testing
 
 - **Backend**: `make test` or `uv run pytest` (tests/backend/)

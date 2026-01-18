@@ -31,3 +31,8 @@ sources:
   #   description: Remote API data
   #   headers:
   #     Authorization: "Bearer ${API_TOKEN}"
+
+  - id: gitlab_milestones
+    type: parquet
+    path: ./sources/milestones.parquet
+    description: Milestones
