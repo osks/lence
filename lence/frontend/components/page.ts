@@ -31,27 +31,50 @@ export class LencePage extends LitElement {
     :host {
       display: block;
       max-width: 1200px;
+      font-family: var(--lence-font-family, system-ui);
     }
 
     .loading {
-      color: var(--pico-muted-color, #6c757d);
+      color: var(--lence-text-muted, #6b7280);
       padding: 2rem;
     }
 
     .error {
       padding: 1rem;
-      background: var(--pico-del-color, #ffebee);
-      border-radius: 0.25rem;
-      color: #c62828;
+      background: var(--lence-negative-bg, #fef2f2);
+      border: 1px solid var(--lence-negative, #ef4444);
+      border-radius: var(--lence-radius, 8px);
+      color: var(--lence-negative, #ef4444);
       margin: 1rem 0;
     }
 
     .content {
       line-height: 1.6;
+      color: var(--lence-text, #2c2c2c);
+    }
+
+    .content h1 {
+      font-size: var(--lence-font-size-2xl, 1.5rem);
+      color: var(--lence-text-heading, #060606);
+      font-weight: 600;
     }
 
     .content h1:first-child {
       margin-top: 0;
+    }
+
+    .content h2 {
+      font-size: var(--lence-font-size-xl, 1.25rem);
+      color: var(--lence-text-heading, #060606);
+      font-weight: 600;
+    }
+
+    .content a {
+      color: var(--lence-primary, #1d4ed8);
+    }
+
+    .content a:hover {
+      color: var(--lence-primary-hover, #1e40af);
     }
 
     /* Style for component containers */

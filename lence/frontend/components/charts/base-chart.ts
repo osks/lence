@@ -22,6 +22,7 @@ export abstract class BaseChart extends LitElement {
       display: block;
       height: var(--lence-chart-height, 300px);
       width: 100%;
+      font-family: var(--lence-font-family, system-ui);
     }
 
     .chart-container {
@@ -34,7 +35,7 @@ export abstract class BaseChart extends LitElement {
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(--pico-muted-color, #6c757d);
+      color: var(--lence-text-muted, #6b7280);
     }
 
     .error {
@@ -42,9 +43,10 @@ export abstract class BaseChart extends LitElement {
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: #c62828;
-      background: var(--pico-del-color, #ffebee);
-      border-radius: 0.25rem;
+      color: var(--lence-negative, #ef4444);
+      background: var(--lence-negative-bg, #fef2f2);
+      border: 1px solid var(--lence-negative, #ef4444);
+      border-radius: var(--lence-radius, 8px);
       padding: 1rem;
     }
 
@@ -53,7 +55,7 @@ export abstract class BaseChart extends LitElement {
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(--pico-muted-color, #6c757d);
+      color: var(--lence-text-muted, #6b7280);
     }
   `;
 

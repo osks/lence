@@ -54,22 +54,51 @@ export class EChartsChart extends BaseChart {
     this.chart.setOption(option, true);
   }
 
+  // Evidence.dev template default palette (light mode)
+  // Source: https://github.com/evidence-dev/template/blob/main/evidence.config.yaml
+  private static readonly CHART_COLORS = [
+    '#236aa4', // Deep blue
+    '#45a1bf', // Teal
+    '#a5cdee', // Light blue
+    '#8dacbf', // Grayish blue
+    '#85c7c6', // Cyan
+    '#d2c6ac', // Tan
+    '#f4b548', // Golden amber
+    '#8f3d56', // Burgundy
+    '#71b9f4', // Sky blue
+    '#46a485', // Green
+  ];
+
   private buildOption(xValues: unknown[], yValues: unknown[]): EChartsOption {
     const baseOption: EChartsOption = {
+      color: EChartsChart.CHART_COLORS,
       title: this.title
         ? {
             text: this.title,
             left: 'center',
+            textStyle: {
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontWeight: 600,
+              fontSize: 16,
+              color: '#060606',
+            },
           }
         : undefined,
       tooltip: {
         trigger: this.type === 'pie' ? 'item' : 'axis',
+        textStyle: {
+          fontFamily: 'Inter, system-ui, sans-serif',
+        },
       },
       grid: {
         left: '3%',
         right: '4%',
         bottom: '3%',
         containLabel: true,
+      },
+      textStyle: {
+        fontFamily: 'Inter, system-ui, sans-serif',
+        color: '#6b7280',
       },
     };
 

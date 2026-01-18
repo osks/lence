@@ -1,30 +1,132 @@
 /**
  * Lence - Application Styles
  *
- * Uses Pico CSS as base + custom properties for components.
+ * Evidence.dev-inspired design system with Pico CSS as base.
  */
 
-/* Layout */
+/* ============================================
+   Design Tokens (Evidence.dev inspired)
+   ============================================ */
 :root {
+  /* Typography */
+  --lence-font-family: Inter, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --lence-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Font Sizes */
+  --lence-font-size-xs: 0.75rem;   /* 12px */
+  --lence-font-size-sm: 0.875rem;  /* 14px */
+  --lence-font-size-base: 1rem;    /* 16px */
+  --lence-font-size-lg: 1.125rem;  /* 18px */
+  --lence-font-size-xl: 1.25rem;   /* 20px */
+  --lence-font-size-2xl: 1.5rem;   /* 24px */
+
+  /* Text Colors */
+  --lence-text: #2c2c2c;
+  --lence-text-heading: #060606;
+  --lence-text-muted: #6b7280;
+  --lence-text-light: #9ca3af;
+
+  /* Background Colors */
+  --lence-bg: #ffffff;
+  --lence-bg-subtle: #f9fafb;
+  --lence-bg-muted: #f3f4f6;
+
+  /* Border Colors */
+  --lence-border: #e5e7eb;
+  --lence-border-muted: #d1d5db;
+
+  /* Primary (blue) */
+  --lence-primary: #1d4ed8;
+  --lence-primary-hover: #1e40af;
+  --lence-primary-light: #3b82f6;
+  --lence-primary-bg: #eff6ff;
+  --lence-primary-text: #1d4ed8;
+
+  /* Semantic Colors */
+  --lence-positive: #22c55e;
+  --lence-positive-bg: #f0fdf4;
+  --lence-negative: #ef4444;
+  --lence-negative-bg: #fef2f2;
+  --lence-warning: #eab308;
+  --lence-warning-bg: #fefce8;
+  --lence-info: #3b82f6;
+  --lence-info-bg: #eff6ff;
+
+  /* Chart Color Palette (Evidence.dev template default) */
+  --lence-chart-1: #236aa4;  /* Deep blue */
+  --lence-chart-2: #45a1bf;  /* Teal */
+  --lence-chart-3: #a5cdee;  /* Light blue */
+  --lence-chart-4: #8dacbf;  /* Grayish blue */
+  --lence-chart-5: #85c7c6;  /* Cyan */
+  --lence-chart-6: #d2c6ac;  /* Tan */
+  --lence-chart-7: #f4b548;  /* Golden amber */
+  --lence-chart-8: #8f3d56;  /* Burgundy */
+  --lence-chart-9: #71b9f4;  /* Sky blue */
+  --lence-chart-10: #46a485; /* Green */
+
+  /* Spacing & Radius */
+  --lence-radius: 8px;
+  --lence-radius-sm: 4px;
+  --lence-radius-lg: 12px;
+
+  /* Layout */
   --lence-sidebar-width: 250px;
   --lence-header-height: 60px;
   --lence-content-padding: 1.5rem;
-}
 
-/* Component custom properties */
-:root {
+  /* Component Tokens */
   --lence-chart-height: 300px;
-  --lence-chart-background: var(--pico-background-color, #fff);
-
-  --lence-table-stripe-color: var(--pico-secondary-background, #f8f9fa);
-  --lence-table-border-color: var(--pico-muted-border-color, #dee2e6);
-
+  --lence-chart-background: var(--lence-bg);
+  --lence-table-stripe-color: var(--lence-bg-subtle);
+  --lence-table-border-color: var(--lence-border);
   --lence-card-padding: 1rem;
-  --lence-card-background: var(--pico-card-background-color, #fff);
-  --lence-card-border-radius: 0.5rem;
+  --lence-card-background: var(--lence-bg);
+  --lence-card-border-radius: var(--lence-radius);
+
+  /* ============================================
+     Pico CSS Overrides
+     ============================================ */
+  --pico-font-family: var(--lence-font-family);
+  --pico-font-size: var(--lence-font-size-base);
+  --pico-line-height: 1.5;
+  --pico-background-color: var(--lence-bg);
+  --pico-color: var(--lence-text);
+  --pico-h1-color: var(--lence-text-heading);
+  --pico-h2-color: var(--lence-text-heading);
+  --pico-h3-color: var(--lence-text-heading);
+  --pico-h4-color: var(--lence-text-heading);
+  --pico-muted-color: var(--lence-text-muted);
+  --pico-primary: var(--lence-primary);
+  --pico-primary-hover: var(--lence-primary-hover);
+  --pico-primary-background: var(--lence-primary-bg);
+  --pico-secondary-background: var(--lence-bg-muted);
+  --pico-muted-border-color: var(--lence-border);
+  --pico-card-background-color: var(--lence-bg);
+  --pico-card-border-color: var(--lence-border);
+  --pico-border-radius: var(--lence-radius);
+  --pico-del-color: var(--lence-negative-bg);
+  --pico-ins-color: var(--lence-positive-bg);
 }
 
-/* App layout */
+/* Base typography */
+body {
+  font-family: var(--lence-font-family);
+  color: var(--lence-text);
+  background: var(--lence-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--lence-text-heading);
+  font-weight: 600;
+}
+
+code, pre {
+  font-family: var(--lence-font-mono);
+}
+
+/* ============================================
+   App Layout
+   ============================================ */
 .lence-app {
   display: flex;
   min-height: 100vh;
@@ -32,8 +134,8 @@
 
 .lence-sidebar {
   width: var(--lence-sidebar-width);
-  background: var(--pico-card-background-color, #fff);
-  border-right: 1px solid var(--pico-muted-border-color, #dee2e6);
+  background: var(--lence-bg);
+  border-right: 1px solid var(--lence-border);
   padding: 1rem;
   position: fixed;
   height: 100vh;
@@ -46,7 +148,9 @@
   padding: var(--lence-content-padding);
 }
 
-/* Sidebar navigation */
+/* ============================================
+   Sidebar Navigation
+   ============================================ */
 .lence-nav ul {
   list-style: none;
   padding: 0;
@@ -54,35 +158,42 @@
 }
 
 .lence-nav li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.125rem;
 }
 
 .lence-nav a {
   display: block;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.25rem;
+  border-radius: var(--lence-radius);
   text-decoration: none;
-  color: var(--pico-color, inherit);
+  color: var(--lence-text);
+  font-size: var(--lence-font-size-sm);
+  transition: background-color 0.15s ease;
 }
 
 .lence-nav a:hover {
-  background: var(--pico-secondary-background, #f8f9fa);
+  background: var(--lence-bg-muted);
 }
 
 .lence-nav a.active {
-  background: var(--pico-primary-background, #e3f2fd);
-  color: var(--pico-primary, #1976d2);
+  background: var(--lence-primary-bg);
+  color: var(--lence-primary);
+  font-weight: 500;
 }
 
 .lence-nav-group-title {
   font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--pico-muted-color, #6c757d);
+  font-size: var(--lence-font-size-xs);
+  color: var(--lence-text-muted);
   padding: 0.5rem 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Page content */
+/* ============================================
+   Page Content
+   ============================================ */
 .lence-page {
   max-width: 1200px;
   margin: 0 auto;
@@ -90,6 +201,7 @@
 
 .lence-page h1 {
   margin-top: 0;
+  font-size: var(--lence-font-size-2xl);
 }
 
 /* Component containers */
@@ -97,24 +209,46 @@
   margin: 1.5rem 0;
 }
 
-/* Loading state */
+/* ============================================
+   States
+   ============================================ */
 .lence-loading {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  color: var(--pico-muted-color, #6c757d);
+  color: var(--lence-text-muted);
 }
 
-/* Error state */
 .lence-error {
   padding: 1rem;
-  background: var(--pico-del-color, #ffebee);
-  border-radius: 0.25rem;
-  color: var(--pico-color, #c62828);
+  background: var(--lence-negative-bg);
+  border: 1px solid var(--lence-negative);
+  border-radius: var(--lence-radius);
+  color: var(--lence-negative);
 }
 
-/* Responsive */
+.lence-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--lence-text-muted);
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.text-positive { color: var(--lence-positive); }
+.text-negative { color: var(--lence-negative); }
+.text-warning { color: var(--lence-warning); }
+.text-muted { color: var(--lence-text-muted); }
+
+.bg-positive { background: var(--lence-positive-bg); }
+.bg-negative { background: var(--lence-negative-bg); }
+.bg-warning { background: var(--lence-warning-bg); }
+
+/* ============================================
+   Responsive
+   ============================================ */
 @media (max-width: 768px) {
   .lence-sidebar {
     display: none;

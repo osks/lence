@@ -13,3 +13,13 @@ sources:
     type: csv
     path: ./sources/customers.csv
     description: Customer information
+
+  departments:
+    type: csv
+    path: ./sources/departments.csv
+    description: Department metrics
+
+  regions:
+    type: csv
+    path: ./sources/regions.csv
+    description: Regional sales data

@@ -16,12 +16,13 @@ export class LenceLayout extends LitElement {
     :host {
       display: flex;
       min-height: 100vh;
+      font-family: var(--lence-font-family, system-ui);
     }
 
     .sidebar {
       width: 250px;
-      background: var(--pico-card-background-color, #fff);
-      border-right: 1px solid var(--pico-muted-border-color, #dee2e6);
+      background: var(--lence-bg, #fff);
+      border-right: 1px solid var(--lence-border, #e5e7eb);
       padding: 1rem;
       position: fixed;
       height: 100vh;
@@ -30,8 +31,9 @@ export class LenceLayout extends LitElement {
     }
 
     .sidebar-header {
-      font-size: 1.25rem;
+      font-size: var(--lence-font-size-xl, 1.25rem);
       font-weight: 600;
+      color: var(--lence-text-heading, #060606);
       margin-bottom: 1.5rem;
       padding: 0 0.75rem;
     }
@@ -50,36 +52,41 @@ export class LenceLayout extends LitElement {
     }
 
     nav li {
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.125rem;
     }
 
     nav a {
       display: block;
       padding: 0.5rem 0.75rem;
-      border-radius: 0.25rem;
+      border-radius: var(--lence-radius, 8px);
       text-decoration: none;
-      color: var(--pico-color, inherit);
+      color: var(--lence-text, #2c2c2c);
+      font-size: var(--lence-font-size-sm, 0.875rem);
       cursor: pointer;
+      transition: background-color 0.15s ease;
     }
 
     nav a:hover {
-      background: var(--pico-secondary-background, #f8f9fa);
+      background: var(--lence-bg-muted, #f3f4f6);
     }
 
     nav a.active {
-      background: var(--pico-primary-background, #e3f2fd);
-      color: var(--pico-primary, #1976d2);
+      background: var(--lence-primary-bg, #eff6ff);
+      color: var(--lence-primary, #1d4ed8);
+      font-weight: 500;
     }
 
     .nav-group-title {
       display: block;
       font-weight: 600;
-      font-size: 0.875rem;
-      color: var(--pico-muted-color, #6c757d);
+      font-size: var(--lence-font-size-xs, 0.75rem);
+      color: var(--lence-text-muted, #6b7280);
       padding: 0.5rem 0.75rem;
       margin-top: 0.75rem;
       text-decoration: none;
-      border-radius: 0.25rem;
+      border-radius: var(--lence-radius, 8px);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     a.nav-group-title {
@@ -87,12 +94,12 @@ export class LenceLayout extends LitElement {
     }
 
     a.nav-group-title:hover {
-      background: var(--pico-secondary-background, #f8f9fa);
+      background: var(--lence-bg-muted, #f3f4f6);
     }
 
     a.nav-group-title.active {
-      background: var(--pico-primary-background, #e3f2fd);
-      color: var(--pico-primary, #1976d2);
+      background: var(--lence-primary-bg, #eff6ff);
+      color: var(--lence-primary, #1d4ed8);
     }
 
     .nav-children {
@@ -100,7 +107,7 @@ export class LenceLayout extends LitElement {
     }
 
     .loading {
-      color: var(--pico-muted-color, #6c757d);
+      color: var(--lence-text-muted, #6b7280);
       padding: 1rem;
     }
 

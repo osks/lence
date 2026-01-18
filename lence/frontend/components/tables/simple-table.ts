@@ -18,72 +18,80 @@ export class SimpleTable extends LitElement {
     :host {
       display: block;
       overflow-x: auto;
+      font-family: var(--lence-font-family, system-ui);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.875rem;
+      font-size: var(--lence-font-size-sm, 0.875rem);
     }
 
     th,
     td {
-      padding: 0.75rem;
+      padding: 0.5rem 0.75rem;
       text-align: left;
-      border-bottom: 1px solid var(--lence-table-border-color, #dee2e6);
+      border-bottom: 1px solid var(--lence-border, #e5e7eb);
     }
 
     th {
-      background: var(--pico-secondary-background, #f8f9fa);
+      background: var(--lence-bg-subtle, #f9fafb);
       font-weight: 600;
+      font-size: var(--lence-font-size-xs, 0.75rem);
+      color: var(--lence-text-muted, #6b7280);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
     }
 
     th:hover {
-      background: var(--pico-muted-border-color, #dee2e6);
+      background: var(--lence-bg-muted, #f3f4f6);
     }
 
     th .sort-indicator {
       margin-left: 0.5rem;
-      opacity: 0.5;
+      opacity: 0.4;
     }
 
     th .sort-indicator.active {
       opacity: 1;
-    }
-
-    tbody tr:nth-child(even) {
-      background: var(--lence-table-stripe-color, #f8f9fa);
+      color: var(--lence-primary, #1d4ed8);
     }
 
     tbody tr:hover {
-      background: var(--pico-primary-background, #e3f2fd);
+      background: var(--lence-bg-subtle, #f9fafb);
+    }
+
+    td {
+      color: var(--lence-text, #2c2c2c);
     }
 
     td.numeric {
       text-align: right;
       font-variant-numeric: tabular-nums;
+      font-family: var(--lence-font-mono, monospace);
     }
 
     .loading {
       padding: 2rem;
       text-align: center;
-      color: var(--pico-muted-color, #6c757d);
+      color: var(--lence-text-muted, #6b7280);
     }
 
     .empty {
       padding: 2rem;
       text-align: center;
-      color: var(--pico-muted-color, #6c757d);
+      color: var(--lence-text-muted, #6b7280);
     }
 
     .error {
       padding: 1rem;
-      background: var(--pico-del-color, #ffebee);
-      color: #c62828;
-      border-radius: 0.25rem;
+      background: var(--lence-negative-bg, #fef2f2);
+      color: var(--lence-negative, #ef4444);
+      border: 1px solid var(--lence-negative, #ef4444);
+      border-radius: var(--lence-radius, 8px);
     }
   `;
 
