@@ -100,14 +100,23 @@ export class DataTable extends LitElement {
     }
 
     th .sort-indicator {
+      display: inline-flex;
+      flex-direction: column;
       margin-left: 0.25rem;
-      opacity: 0.3;
-      font-size: 0.625rem;
+      vertical-align: middle;
+      gap: 1px;
     }
 
-    th .sort-indicator.active {
+    th .sort-indicator svg {
+      width: 8px;
+      height: 6px;
+      fill: var(--lence-text-muted, #9ca3af);
+      opacity: 0.5;
+    }
+
+    th .sort-indicator svg.active {
+      fill: var(--lence-primary, #2563eb);
       opacity: 1;
-      color: var(--lence-primary, #2563eb);
     }
 
     tbody tr:hover {
@@ -418,8 +427,13 @@ export class DataTable extends LitElement {
                         ${flexRender(header.column.columnDef.header, header.getContext())}
                         ${this.sort
                           ? html`
-                              <span class="sort-indicator ${sortDir ? 'active' : ''}">
-                                ${sortDir === 'asc' ? '↑' : sortDir === 'desc' ? '↓' : '↕'}
+                              <span class="sort-indicator">
+                                <svg viewBox="0 0 8 6" class=${sortDir === 'asc' ? 'active' : ''}>
+                                  <path d="M4 0L8 6H0L4 0Z"/>
+                                </svg>
+                                <svg viewBox="0 0 8 6" class=${sortDir === 'desc' ? 'active' : ''}>
+                                  <path d="M4 6L0 0H8L4 6Z"/>
+                                </svg>
                               </span>
                             `
                           : nothing}

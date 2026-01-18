@@ -2,10 +2,9 @@
  * Page component - renders Markdoc content with embedded components.
  */
 
-import { LitElement, html, css, unsafeCSS } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import gridjsStyles from 'gridjs/dist/theme/mermaid.css?inline';
 import { fetchPage, executeQuery } from '../../api.js';
 import { pathToPageName } from '../../router.js';
 import {
@@ -141,87 +140,12 @@ export class LencePage extends LitElement {
 
     /* Style for component containers */
     .content lence-chart,
+    .content lence-area-chart,
     .content lence-table,
-    .content lence-grid-table,
     .content lence-data-table,
     .content lence-gantt {
       display: block;
       margin: 1rem 0;
-    }
-
-    /* Grid.js base styles */
-    ${unsafeCSS(gridjsStyles)}
-
-    /* Grid.js overrides to match Lence theme */
-    .gridjs-wrapper {
-      border-radius: 0;
-      box-shadow: none;
-      border: none;
-      overflow-x: auto;
-    }
-
-    .gridjs-wrapper:nth-last-of-type(2) {
-      border-radius: 0;
-    }
-
-    .gridjs-table {
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-    }
-
-    .gridjs-thead th.gridjs-th {
-      background: var(--lence-bg-subtle, #f9fafb);
-      color: var(--lence-text-muted, #6b7280);
-      font-weight: 500;
-      font-size: var(--lence-font-size-xs, 0.6875rem);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      padding: 0.375rem 0.5rem;
-      border: none;
-      border-bottom: 1px solid var(--lence-border, #e5e7eb);
-    }
-
-    .gridjs-thead th.gridjs-th-sort:hover {
-      background: var(--lence-bg-muted, #f3f4f6);
-    }
-
-    .gridjs-tbody td.gridjs-td {
-      padding: 0.375rem 0.5rem;
-      border: none;
-      border-bottom: 1px solid var(--lence-border, #e5e7eb);
-      color: var(--lence-text, #374151);
-      background: transparent;
-    }
-
-    .gridjs-tbody tr:hover td {
-      background: var(--lence-bg-subtle, #f9fafb);
-    }
-
-    .gridjs-footer {
-      border-radius: 0;
-      box-shadow: none;
-      border: none;
-      border-top: 1px solid var(--lence-border, #e5e7eb);
-      background: transparent;
-      padding: 0.5rem 0;
-    }
-
-    .gridjs-pagination .gridjs-pages button {
-      border-color: var(--lence-border, #e5e7eb);
-    }
-
-    .gridjs-pagination .gridjs-pages button:focus {
-      box-shadow: none;
-    }
-
-    .gridjs-search-input {
-      border-color: var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-    }
-
-    .gridjs-search-input:focus {
-      border-color: var(--lence-primary, #2563eb);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
     }
   `;
 
@@ -346,7 +270,7 @@ export class LencePage extends LitElement {
     if (!contentDiv) return;
 
     // Find chart and table components
-    const components = contentDiv.querySelectorAll('lence-chart, lence-table, lence-grid-table, lence-data-table, lence-gantt');
+    const components = contentDiv.querySelectorAll('lence-chart, lence-area-chart, lence-table, lence-data-table, lence-gantt');
 
     for (const component of components) {
       // Markdoc uses 'data' attribute, but we also check 'query' for backwards compat

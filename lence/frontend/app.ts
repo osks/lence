@@ -8,8 +8,8 @@ import { initRouter, getRouter } from './router.js';
 import './components/layout/layout.js';
 import './components/page/page.js';
 import './components/chart/echarts-chart.js';
+import './components/area-chart/area-chart.js';
 import './components/table/simple-table.js';
-import './components/grid-table/grid-table.js';
 import './components/data-table/data-table.js';
 import './components/gantt/echarts-gantt.js';
 

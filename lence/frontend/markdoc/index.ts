@@ -93,22 +93,23 @@ const tags: Config['tags'] = {
     },
   },
 
+  areaChart: {
+    render: 'lence-area-chart',
+    selfClosing: true,
+    attributes: {
+      data: { type: String, required: true },
+      x: { type: String, required: true },
+      y: { type: String, required: true },
+      title: { type: String },
+      stacked: { type: Boolean, default: false },
+    },
+  },
+
   table: {
     render: 'lence-table',
     selfClosing: true,
     attributes: {
       data: { type: String, required: true },
-    },
-  },
-
-  gridTable: {
-    render: 'lence-grid-table',
-    selfClosing: true,
-    attributes: {
-      data: { type: String, required: true },
-      search: { type: Boolean, default: false },
-      pagination: { type: Number },
-      sort: { type: Boolean, default: true },
     },
   },
 
@@ -250,7 +251,7 @@ export function extractComponents(tree: RenderableTreeNode): ComponentDefinition
 
     const tagNode = node as { name?: string; attributes?: Record<string, unknown>; children?: RenderableTreeNode[] };
 
-    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-grid-table' || tagNode.name === 'lence-data-table' || tagNode.name === 'lence-gantt') {
+    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-area-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-data-table' || tagNode.name === 'lence-gantt') {
       components.push({
         type: tagNode.name,
         attributes: tagNode.attributes || {},
