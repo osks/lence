@@ -8,7 +8,7 @@ Lence provides web components for data visualization.
 - [Gantt](/_reference/components/gantt) - Timeline/Gantt charts for milestones and tasks
 - [Table](/_reference/components/table) - Sortable data tables
 - [Grid Table](/_reference/components/grid-table) - Full-featured table with search and pagination (Grid.js)
-- [TanStack Table](/_reference/components/tanstack-table) - Full-featured table with search and pagination (shadow DOM compatible)
+- [Data Table](/_reference/components/data-table) - Full-featured table with search and pagination
 
 ## Usage
 

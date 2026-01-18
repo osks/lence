@@ -1,5 +1,5 @@
 /**
- * TanStack Table component.
+ * Data Table component.
  * Full-featured table with search, pagination, and sorting powered by TanStack Table.
  * Works correctly in shadow DOM unlike Grid.js.
  */
@@ -24,10 +24,10 @@ import type { QueryResult } from '../../types.js';
 type RowData = Record<string, unknown>;
 
 /**
- * TanStack Table component for displaying tabular data with search, pagination, and sorting.
+ * Data Table component for displaying tabular data with search, pagination, and sorting.
  */
-@customElement('lence-tanstack-table')
-export class TanstackTable extends LitElement {
+@customElement('lence-data-table')
+export class DataTable extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -528,6 +528,6 @@ export class TanstackTable extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lence-tanstack-table': TanstackTable;
+    'lence-data-table': DataTable;
   }
 }

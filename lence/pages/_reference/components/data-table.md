@@ -1,9 +1,9 @@
-# TanStack Table Component
+# Data Table Component
 
-Full-featured table powered by TanStack Table with search, pagination, and sorting. Works correctly in shadow DOM environments.
+Full-featured table with search, pagination, and sorting. Works correctly in shadow DOM environments.
 
 ``` {% process=false %}
-{% tanstackTable data="query_name" search=true pagination=10 /%}
+{% dataTable data="query_name" search=true pagination=10 /%}
 ```
 
 ## Attributes
@@ -15,7 +15,7 @@ Full-featured table powered by TanStack Table with search, pagination, and sorti
 | `pagination` | No | disabled | Set `pagination=N` to show N rows per page with pagination controls |
 | `sort` | No | `true` | Set `sort=false` to disable column sorting |
 
-## Basic TanStack Table
+## Basic Data Table
 
 {% data name="products" %}
 {
@@ -40,34 +40,34 @@ Full-featured table powered by TanStack Table with search, pagination, and sorti
 }
 {% /data %}
 
-{% tanstackTable data="products" /%}
+{% dataTable data="products" /%}
 
 ``` {% process=false %}
-{% tanstackTable data="products" /%}
+{% dataTable data="products" /%}
 ```
 
 ## With Search
 
-{% tanstackTable data="products" search=true /%}
+{% dataTable data="products" search=true /%}
 
 ``` {% process=false %}
-{% tanstackTable data="products" search=true /%}
+{% dataTable data="products" search=true /%}
 ```
 
 ## With Pagination
 
-{% tanstackTable data="products" pagination=5 /%}
+{% dataTable data="products" pagination=5 /%}
 
 ``` {% process=false %}
-{% tanstackTable data="products" pagination=5 /%}
+{% dataTable data="products" pagination=5 /%}
 ```
 
 ## Full Featured
 
 Search and pagination combined.
 
-{% tanstackTable data="products" search=true pagination=5 /%}
+{% dataTable data="products" search=true pagination=5 /%}
 
 ``` {% process=false %}
-{% tanstackTable data="products" search=true pagination=5 /%}
+{% dataTable data="products" search=true pagination=5 /%}
 ```

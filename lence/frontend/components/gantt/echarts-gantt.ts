@@ -10,6 +10,12 @@ import type { QueryResult, Column } from '../../types.js';
 type EChartsInstance = ReturnType<typeof echarts.init>;
 type EChartsOption = echarts.EChartsOption;
 
+// Height constants for auto-sizing
+const BAR_HEIGHT = 32; // pixels per bar
+const TOP_PADDING = 30; // space for axis
+const BOTTOM_PADDING = 40; // space for x-axis labels
+const TITLE_HEIGHT = 30; // additional space when title is present
+
 // Evidence.dev template default palette
 const CHART_COLORS = [
   '#236aa4', // Deep blue
@@ -32,14 +38,12 @@ export class EChartsGantt extends LitElement {
   static styles = css`
     :host {
       display: block;
-      height: var(--lence-chart-height, 400px);
       width: 100%;
       font-family: var(--lence-font-family, system-ui);
     }
 
     .chart-container {
       width: 100%;
-      height: 100%;
     }
 
     .loading {
@@ -156,16 +160,48 @@ export class EChartsGantt extends LitElement {
     return this.data.data.map((row: unknown[]) => row[index]);
   }
 
+  private countValidItems(): number {
+    if (!this.data) return 0;
+
+    const starts = this.getColumnValues(this.start);
+    const ends = this.getColumnValues(this.end);
+
+    let count = 0;
+    for (let i = 0; i < starts.length; i++) {
+      // Count items where at least one date is present
+      if (starts[i] != null || ends[i] != null) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  private calculateHeight(): number {
+    const itemCount = this.countValidItems();
+    const titlePadding = this.title ? TITLE_HEIGHT : 0;
+    return Math.max(
+      100, // minimum height
+      itemCount * BAR_HEIGHT + TOP_PADDING + BOTTOM_PADDING + titlePadding
+    );
+  }
+
   private renderChart(): void {
     if (!this.data || !this.label || !this.start || !this.end) {
       return;
     }
 
-    const container = this.shadowRoot?.querySelector('.chart-container');
+    const container = this.shadowRoot?.querySelector('.chart-container') as HTMLElement;
     if (!container) return;
 
+    // Set container height based on data
+    const height = this.calculateHeight();
+    container.style.height = `${height}px`;
+
     if (!this.chart) {
-      this.chart = echarts.init(container as HTMLElement);
+      this.chart = echarts.init(container);
+    } else {
+      // Resize if height changed
+      this.chart.resize();
     }
 
     const option = this.buildGanttOption();

@@ -56,6 +56,6 @@ Revenue over time shows our growth trajectory.
 
 {% table data="recent_orders" /%}
 
-## TanStack Table Demo
+## Data Table Demo
 
-{% tanstackTable data="recent_orders" search=true pagination=5 sort=true /%}
+{% dataTable data="recent_orders" search=true pagination=5 sort=true /%}

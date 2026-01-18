@@ -112,8 +112,8 @@ const tags: Config['tags'] = {
     },
   },
 
-  tanstackTable: {
-    render: 'lence-tanstack-table',
+  dataTable: {
+    render: 'lence-data-table',
     selfClosing: true,
     attributes: {
       data: { type: String, required: true },
@@ -250,7 +250,7 @@ export function extractComponents(tree: RenderableTreeNode): ComponentDefinition
 
     const tagNode = node as { name?: string; attributes?: Record<string, unknown>; children?: RenderableTreeNode[] };
 
-    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-grid-table' || tagNode.name === 'lence-tanstack-table' || tagNode.name === 'lence-gantt') {
+    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-grid-table' || tagNode.name === 'lence-data-table' || tagNode.name === 'lence-gantt') {
       components.push({
         type: tagNode.name,
         attributes: tagNode.attributes || {},
