@@ -11,11 +11,12 @@
 import Markdoc, { type Config, type Node, type RenderableTreeNode } from '@markdoc/markdoc';
 
 /**
- * Parsed page result with renderable tree and extracted queries.
+ * Parsed page result with renderable tree and extracted queries/data.
  */
 export interface ParsedPage {
   content: RenderableTreeNode;
   queries: QueryDefinition[];
+  data: DataDefinition[];
 }
 
 /**
@@ -25,6 +26,14 @@ export interface QueryDefinition {
   name: string;
   source: string;
   sql: string;
+}
+
+/**
+ * An inline data definition from a {% data %} tag.
+ */
+export interface DataDefinition {
+  name: string;
+  json: string;
 }
 
 /**
@@ -91,6 +100,19 @@ const tags: Config['tags'] = {
       data: { type: String, required: true },
     },
   },
+
+  data: {
+    render: 'data-block',
+    attributes: {
+      name: { type: String, required: true },
+    },
+    transform(node: Node, config: Config) {
+      const attributes = node.transformAttributes(config);
+      // Extract JSON from content
+      const json = extractTextContent(node).trim();
+      return new Markdoc.Tag('data-block', { ...attributes, json }, []);
+    },
+  },
 };
 
 /**
@@ -109,6 +131,11 @@ export function extractQueries(content: string): QueryDefinition[] {
   const queries: QueryDefinition[] = [];
 
   function walk(node: Node) {
+    // Skip code blocks - don't parse tags inside them
+    if (node.type === 'fence' || node.type === 'code') {
+      return;
+    }
+
     if (node.type === 'tag' && node.tag === 'query') {
       const attrs = node.attributes || {};
       const sql = extractTextContent(node).trim();
@@ -131,6 +158,43 @@ export function extractQueries(content: string): QueryDefinition[] {
 
   walk(ast);
   return queries;
+}
+
+/**
+ * Extract inline data definitions from Markdoc AST.
+ * Walks the tree to find all {% data %} tags.
+ */
+export function extractData(content: string): DataDefinition[] {
+  const ast = Markdoc.parse(content);
+  const dataDefinitions: DataDefinition[] = [];
+
+  function walk(node: Node) {
+    // Skip code blocks - don't parse tags inside them
+    if (node.type === 'fence' || node.type === 'code') {
+      return;
+    }
+
+    if (node.type === 'tag' && node.tag === 'data') {
+      const attrs = node.attributes || {};
+      const json = extractTextContent(node).trim();
+
+      dataDefinitions.push({
+        name: attrs.name as string,
+        json,
+      });
+    }
+
+    if (node.children) {
+      for (const child of node.children) {
+        if (typeof child === 'object' && child !== null) {
+          walk(child as Node);
+        }
+      }
+    }
+  }
+
+  walk(ast);
+  return dataDefinitions;
 }
 
 /**
@@ -192,11 +256,13 @@ export function getReferencedQueries(components: ComponentDefinition[]): string[
 export function parseMarkdoc(content: string): ParsedPage {
   const ast = Markdoc.parse(content);
   const queries = extractQueries(content);
+  const data = extractData(content);
   const transformed = Markdoc.transform(ast, config);
 
   return {
     content: transformed,
     queries,
+    data,
   };
 }
 

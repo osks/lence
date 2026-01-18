@@ -29,5 +29,8 @@ Define queries and visualizations using Markdoc tags:
 - `query` - Define a SQL query with `name` and `source` attributes
 - `chart` - Render a chart with `data`, `type`, `x`, and `y` attributes
 - `table` - Render a data table with `data` attribute
+- `data` - Define inline static data (no database needed)
 
-See the [Demo](/demo) and [Sales Dashboard](/dashboard) for working examples.
+## Reference
+
+- [Component Reference](/_reference/components) - Chart and table component documentation with examples

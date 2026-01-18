@@ -14,7 +14,8 @@ import {
   buildQueryMap,
   renderToHtml,
   type QueryDefinition,
-} from '../markdoc.js';
+  type DataDefinition,
+} from '../markdoc/index.js';
 import type { QueryResult } from '../types.js';
 
 /**
@@ -113,17 +114,42 @@ export class LencePage extends LitElement {
       this.htmlContent = renderToHtml(parsed.content);
       this.queryMap = buildQueryMap(parsed.queries);
 
+      // Process inline data definitions first
+      this.processInlineData(parsed.data);
+
       // Extract components and their query references
       const components = extractComponents(parsed.content);
       const queryNames = getReferencedQueries(components);
 
-      // Execute all referenced queries
-      await this.executeQueries(queryNames);
+      // Execute queries for data not provided inline
+      const queriesToExecute = queryNames.filter(name => !this.queryData.has(name));
+      await this.executeQueries(queriesToExecute);
     } catch (err) {
       this.error = err instanceof Error ? err.message : 'Failed to load page';
       this.htmlContent = '';
     } finally {
       this.loading = false;
+    }
+  }
+
+  /**
+   * Process inline data definitions and add to queryData.
+   */
+  private processInlineData(dataDefinitions: DataDefinition[]) {
+    for (const def of dataDefinitions) {
+      try {
+        const parsed = JSON.parse(def.json);
+        // Ensure row_count is set
+        const result: QueryResult = {
+          columns: parsed.columns || [],
+          data: parsed.data || [],
+          row_count: parsed.row_count ?? parsed.data?.length ?? 0,
+        };
+        this.queryData = new Map(this.queryData).set(def.name, result);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Invalid JSON';
+        this.queryErrors = new Map(this.queryErrors).set(def.name, `Data "${def.name}": ${message}`);
+      }
     }
   }
 

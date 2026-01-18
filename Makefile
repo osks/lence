@@ -25,6 +25,10 @@ help: ## Display this help
 dev: env ## Run dev server (backend + frontend watch)
 	@npm run dev
 
+.PHONY: components
+components: ## Serve component demos
+	@npx vite --open /lence/frontend/components/__tests__/
+
 ##@ Environment
 .PHONY: env
 env: ## Set up development environment
