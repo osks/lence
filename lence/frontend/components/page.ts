@@ -2,9 +2,10 @@
  * Page component - renders Markdoc content with embedded components.
  */
 
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import gridjsStyles from 'gridjs/dist/theme/mermaid.css?inline';
 import { fetchPage, executeQuery } from '../api.js';
 import { pathToPageName } from '../router.js';
 import {
@@ -79,10 +80,14 @@ export class LencePage extends LitElement {
 
     /* Style for component containers */
     .content lence-chart,
-    .content lence-table {
+    .content lence-table,
+    .content lence-grid-table {
       display: block;
       margin: 1.5rem 0;
     }
+
+    /* Grid.js styles */
+    ${unsafeCSS(gridjsStyles)}
   `;
 
   @property({ type: String })
@@ -206,7 +211,7 @@ export class LencePage extends LitElement {
     if (!contentDiv) return;
 
     // Find chart and table components
-    const components = contentDiv.querySelectorAll('lence-chart, lence-table');
+    const components = contentDiv.querySelectorAll('lence-chart, lence-table, lence-grid-table');
 
     for (const component of components) {
       // Markdoc uses 'data' attribute, but we also check 'query' for backwards compat

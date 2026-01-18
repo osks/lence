@@ -9,6 +9,7 @@ import './components/layout.js';
 import './components/page.js';
 import './components/charts/echarts-chart.js';
 import './components/tables/simple-table.js';
+import './components/tables/grid-table.js';
 
 /**
  * Main application component.

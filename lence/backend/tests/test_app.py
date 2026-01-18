@@ -14,9 +14,7 @@ def project_dir(tmp_path):
     (pages_dir / "index.md").write_text("---\ntitle: Welcome\n---\n# Test Page\n")
     (pages_dir / "dashboard.md").write_text("---\ntitle: Sales Dashboard\n---\n# Dashboard\n")
 
-    sources_dir = tmp_path / "sources"
-    sources_dir.mkdir()
-    (sources_dir / "sources.yaml").write_text("sources: {}\n")
+    (tmp_path / "sources.yaml").write_text("sources: []\n")
 
     return tmp_path
 

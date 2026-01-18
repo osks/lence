@@ -42,21 +42,46 @@ class Database:
         """Register a data source, making it available for queries."""
         self.sources[name] = source
 
-        # Resolve path relative to base_dir if provided
-        path = Path(source.path)
-        if base_dir and not path.is_absolute():
-            path = base_dir / path
+        # Check if this is a remote URL
+        is_remote = source.path.startswith("http://") or source.path.startswith("https://")
+
+        # Resolve path relative to base_dir if local
+        if is_remote:
+            path_str = source.path
+        else:
+            path = Path(source.path)
+            if base_dir and not path.is_absolute():
+                path = base_dir / path
+            path_str = str(path)
+
+        # Set up HTTP headers if provided (for remote sources)
+        if is_remote and source.headers:
+            # Build MAP literal for headers
+            header_items = ", ".join(
+                f"'{k}': '{v}'" for k, v in source.headers.items()
+            )
+            self.conn.execute(f"""
+                CREATE OR REPLACE SECRET {name}_http (
+                    TYPE HTTP,
+                    EXTRA_HTTP_HEADERS MAP {{{header_items}}}
+                )
+            """)
 
         # Create view/table based on source type
         if source.type == "csv":
             self.conn.execute(f"""
                 CREATE OR REPLACE VIEW {name} AS
-                SELECT * FROM read_csv_auto('{path}')
+                SELECT * FROM read_csv_auto('{path_str}')
             """)
         elif source.type == "parquet":
             self.conn.execute(f"""
                 CREATE OR REPLACE VIEW {name} AS
-                SELECT * FROM read_parquet('{path}')
+                SELECT * FROM read_parquet('{path_str}')
+            """)
+        elif source.type == "json":
+            self.conn.execute(f"""
+                CREATE OR REPLACE VIEW {name} AS
+                SELECT * FROM read_json_auto('{path_str}')
             """)
         else:
             raise ValueError(f"Unsupported source type: {source.type}")

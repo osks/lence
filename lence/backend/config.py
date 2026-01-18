@@ -1,5 +1,7 @@
 """Configuration loading for Lence."""
 
+import os
+import re
 from pathlib import Path
 from typing import Any
 import yaml
@@ -8,9 +10,11 @@ from pydantic import BaseModel
 
 class DataSource(BaseModel):
     """A data source configuration."""
+    id: str
     type: str  # csv, parquet, etc.
     path: str
     description: str = ""
+    headers: dict[str, str] = {}  # HTTP headers for remote sources
 
 
 class Config(BaseModel):
@@ -26,14 +30,32 @@ def load_yaml(file_path: Path) -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
+def interpolate_env_vars(value: str) -> str:
+    """Replace ${VAR} patterns with environment variable values."""
+    def replace(match: re.Match[str]) -> str:
+        var_name = match.group(1)
+        return os.environ.get(var_name, "")
+    return re.sub(r'\$\{([^}]+)\}', replace, value)
+
+
 def load_sources(project_dir: Path) -> dict[str, DataSource]:
-    """Load data sources from sources/sources.yaml."""
-    data = load_yaml(project_dir / "sources" / "sources.yaml")
-    sources_data = data.get("sources", {})
-    return {
-        name: DataSource(**source_config)
-        for name, source_config in sources_data.items()
-    }
+    """Load data sources from sources.yaml in project root."""
+    data = load_yaml(project_dir / "sources.yaml")
+    sources_list = data.get("sources", [])
+
+    result: dict[str, DataSource] = {}
+    for source_config in sources_list:
+        # Interpolate env vars in headers
+        if "headers" in source_config:
+            source_config["headers"] = {
+                k: interpolate_env_vars(v)
+                for k, v in source_config["headers"].items()
+            }
+
+        source = DataSource(**source_config)
+        result[source.id] = source
+
+    return result
 
 
 def load_config(project_dir: Path | str) -> Config:

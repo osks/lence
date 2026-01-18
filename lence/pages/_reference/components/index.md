@@ -6,6 +6,7 @@ Lence provides web components for data visualization.
 
 - [Chart](/_reference/components/chart) - Line, bar, pie, area, and scatter charts
 - [Table](/_reference/components/table) - Sortable data tables
+- [Grid Table](/_reference/components/grid-table) - Full-featured table with search and pagination
 
 ## Usage
 

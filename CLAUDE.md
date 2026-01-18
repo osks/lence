@@ -67,7 +67,19 @@ FROM orders GROUP BY 1
 {% chart data="monthly" type="line" x="month" y="total" /%}
 
 {% table data="monthly" /%}
+
+{% gridTable data="monthly" search=true pagination=10 /%}
 ```
+
+### Code Examples in Docs
+
+To show Markdoc tags in code blocks without them being parsed, use `{% process=false %}`:
+
+````markdown
+```markdown {% process=false %}
+{% table data="example" /%}
+```
+````
 
 ## Query API
 

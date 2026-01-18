@@ -1,25 +1,33 @@
 sources:
-  orders:
+  - id: orders
     type: csv
     path: ./sources/orders.csv
     description: Order transactions
 
-  products:
+  - id: products
     type: csv
     path: ./sources/products.csv
     description: Product catalog
 
-  customers:
+  - id: customers
     type: csv
     path: ./sources/customers.csv
     description: Customer information
 
-  departments:
+  - id: departments
     type: csv
     path: ./sources/departments.csv
     description: Department metrics
 
-  regions:
+  - id: regions
     type: csv
     path: ./sources/regions.csv
     description: Regional sales data
+
+  # Example HTTP source with auth (uncomment to use):
+  # - id: api_data
+  #   type: json
+  #   path: https://api.example.com/data.json
+  #   description: Remote API data
+  #   headers:
+  #     Authorization: "Bearer ${API_TOKEN}"

@@ -101,6 +101,17 @@ const tags: Config['tags'] = {
     },
   },
 
+  gridTable: {
+    render: 'lence-grid-table',
+    selfClosing: true,
+    attributes: {
+      data: { type: String, required: true },
+      search: { type: Boolean, default: false },
+      pagination: { type: Number },
+      sort: { type: Boolean, default: true },
+    },
+  },
+
   data: {
     render: 'data-block',
     attributes: {
@@ -216,7 +227,7 @@ export function extractComponents(tree: RenderableTreeNode): ComponentDefinition
 
     const tagNode = node as { name?: string; attributes?: Record<string, unknown>; children?: RenderableTreeNode[] };
 
-    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-table') {
+    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-grid-table') {
       components.push({
         type: tagNode.name,
         attributes: tagNode.attributes || {},
