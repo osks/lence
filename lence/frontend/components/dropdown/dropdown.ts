@@ -219,6 +219,7 @@ export class LenceDropdown extends LitElement {
 
   render() {
     const showLoading = this.data && !this.queryData;
+    const selected = this.selectedValue ?? '%';
 
     return html`
       <div class="dropdown-container">
@@ -226,16 +227,13 @@ export class LenceDropdown extends LitElement {
         ${showLoading
           ? html`<span class="loading">Loading...</span>`
           : html`
-              <select
-                @change=${this.handleChange}
-                .value=${this.selectedValue ?? '%'}
-              >
+              <select @change=${this.handleChange}>
                 ${!this.disableSelectAll
-                  ? html`<option value="%">${this.placeholder}</option>`
+                  ? html`<option value="%" ?selected=${selected === '%'}>${this.placeholder}</option>`
                   : null}
                 ${this.options.map(
                   (opt) => html`
-                    <option value=${opt.value}>${opt.label}</option>
+                    <option value=${opt.value} ?selected=${opt.value === selected}>${opt.label}</option>
                   `
                 )}
               </select>

@@ -58,7 +58,7 @@ WHERE
     url="web_url"
     title="Milestone Timeline"
     showToday=true
-    viewStartInput="time_range"
+    viewStart="${inputs.time_range.value}"
     viewEnd="+3m"
 /%}
 

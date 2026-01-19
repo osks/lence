@@ -17,9 +17,8 @@ Renders timeline data as a horizontal bar chart (Gantt chart) using ECharts.
 | `title` | No | Chart title |
 | `url` | No | Column name for URLs (makes bars clickable) |
 | `showToday` | No | Show a vertical marker for today's date (default: false) |
-| `viewStart` | No | Initial view start date (ISO date or relative: `-30d`, `-3m`, `-1y`) |
-| `viewStartInput` | No | Input name to get viewStart from (for dynamic control) |
-| `viewEnd` | No | Initial view end date (ISO date or relative: `+30d`, `+3m`, `+1y`) |
+| `viewStart` | No | View start date. Accepts ISO date, relative (`-30d`, `-3m`), or input reference (`${inputs.foo.value}`) |
+| `viewEnd` | No | View end date. Accepts ISO date, relative (`+30d`, `+3m`), or input reference (`${inputs.foo.value}`) |
 
 ## Data Model
 
@@ -199,7 +198,7 @@ Control the initial visible time range with `viewStart` and `viewEnd`. Values ca
 
 ### Dynamic View Range
 
-Use `viewStartInput` to bind the view range to a dropdown input:
+Use `${inputs.foo.value}` syntax to bind the view range to a dropdown input:
 
 ``` {% process=false %}
 {% data name="ranges" %}
@@ -225,7 +224,7 @@ Use `viewStartInput` to bind the view range to a dropdown input:
     label="task"
     start="start"
     end="end"
-    viewStartInput="range"
+    viewStart="${inputs.range.value}"
     viewEnd="+1m"
 /%}
 ```

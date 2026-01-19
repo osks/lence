@@ -136,7 +136,6 @@ const tags: Config['tags'] = {
       url: { type: String },
       showToday: { type: Boolean, default: false },
       viewStart: { type: String },
-      viewStartInput: { type: String },
       viewEnd: { type: String },
     },
   },

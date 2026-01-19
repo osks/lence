@@ -60,6 +60,9 @@ function parseDate(value: string): number {
   return new Date(value).getTime();
 }
 
+// Regex to extract input name from ${inputs.foo.value} syntax
+const INPUT_REF_REGEX = /^\$\{inputs\.(\w+)\.value\}$/;
+
 /**
  * Gantt chart component for visualizing timeline data.
  */
@@ -148,19 +151,17 @@ export class EChartsGantt extends LitElement {
   showToday = false;
 
   /**
-   * Initial view start date (ISO string or relative like "-30d", "-3m").
+   * View start date. Can be:
+   * - Literal: "-30d", "-3m", "2024-01-01"
+   * - Input reference: "${inputs.my_input.value}"
    */
   @property({ type: String })
   viewStart?: string;
 
   /**
-   * Input name to get viewStart from (overrides viewStart if set).
-   */
-  @property({ type: String })
-  viewStartInput?: string;
-
-  /**
-   * Initial view end date (ISO string or relative like "+30d", "+3m").
+   * View end date. Can be:
+   * - Literal: "+30d", "+3m", "2024-12-31"
+   * - Input reference: "${inputs.my_input.value}"
    */
   @property({ type: String })
   viewEnd?: string;
@@ -180,12 +181,23 @@ export class EChartsGantt extends LitElement {
   private resizeObserver: ResizeObserver | null = null;
   private unsubscribeInputs?: () => void;
 
+  /**
+   * Extract input name from ${inputs.foo.value} syntax, or null if not a reference.
+   */
+  private extractInputName(value: string | undefined): string | null {
+    if (!value) return null;
+    const match = value.match(INPUT_REF_REGEX);
+    return match ? match[1] : null;
+  }
+
   connectedCallback() {
     super.connectedCallback();
 
-    // Subscribe to input changes for dynamic viewStart
+    // Subscribe to input changes for dynamic viewStart/viewEnd
     this.unsubscribeInputs = inputs.onChange((name) => {
-      if (this.viewStartInput && name === this.viewStartInput && this.data) {
+      const startInputName = this.extractInputName(this.viewStart);
+      const endInputName = this.extractInputName(this.viewEnd);
+      if ((startInputName === name || endInputName === name) && this.data) {
         this.renderChart();
       }
     });
@@ -204,14 +216,46 @@ export class EChartsGantt extends LitElement {
 
   updated(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('data') && this.data) {
-      try {
-        this.error = null;
-        this.renderChart();
-      } catch (err) {
-        this.error = err instanceof Error ? err.message : 'Chart render failed';
-        this.requestUpdate();
+      // If we depend on an input that's not set yet, defer rendering
+      // to give dropdowns time to initialize
+      const pendingInput = this.hasPendingInputDependency();
+      if (pendingInput) {
+        // Wait for input to be set, then render
+        requestAnimationFrame(() => {
+          try {
+            this.error = null;
+            this.renderChart();
+          } catch (err) {
+            this.error = err instanceof Error ? err.message : 'Chart render failed';
+            this.requestUpdate();
+          }
+        });
+      } else {
+        try {
+          this.error = null;
+          this.renderChart();
+        } catch (err) {
+          this.error = err instanceof Error ? err.message : 'Chart render failed';
+          this.requestUpdate();
+        }
       }
     }
+  }
+
+  /**
+   * Check if we depend on an input that hasn't been set yet.
+   */
+  private hasPendingInputDependency(): boolean {
+    const startInputName = this.extractInputName(this.viewStart);
+    const endInputName = this.extractInputName(this.viewEnd);
+
+    if (startInputName && !inputs.get(startInputName).value) {
+      return true;
+    }
+    if (endInputName && !inputs.get(endInputName).value) {
+      return true;
+    }
+    return false;
   }
 
   disconnectedCallback() {
@@ -221,14 +265,15 @@ export class EChartsGantt extends LitElement {
   }
 
   /**
-   * Get effective viewStart value, checking input first.
+   * Resolve a value that may be a literal or ${inputs.foo.value} reference.
    */
-  private getEffectiveViewStart(): string | undefined {
-    if (this.viewStartInput) {
-      const inputValue = inputs.get(this.viewStartInput).value;
-      if (inputValue) return inputValue;
+  private resolveValue(value: string | undefined): string | undefined {
+    if (!value) return undefined;
+    const inputName = this.extractInputName(value);
+    if (inputName) {
+      return inputs.get(inputName).value ?? undefined;
     }
-    return this.viewStart;
+    return value;
   }
 
   private getColumnValues(columnName: string): unknown[] {
@@ -304,13 +349,37 @@ export class EChartsGantt extends LitElement {
     const option = this.buildGanttOption();
     this.chart.setOption(option, true);
 
-    // Explicitly set dataZoom range (setOption doesn't always apply startValue/endValue)
-    const viewStart = this.getEffectiveViewStart();
-    if (viewStart || this.viewEnd) {
+    // Apply view range after a microtask to ensure ECharts has finished rendering
+    queueMicrotask(() => this.applyViewRange());
+  }
+
+  private applyViewRange(): void {
+    if (!this.chart) return;
+
+    const viewStart = this.resolveValue(this.viewStart);
+    const viewEnd = this.resolveValue(this.viewEnd);
+
+    // Skip if neither is set
+    if (!viewStart && !viewEnd) return;
+
+    // Apply via dispatchAction (more reliable than setOption for dataZoom)
+    if (viewStart && viewEnd) {
       this.chart.dispatchAction({
         type: 'dataZoom',
-        startValue: viewStart ? parseDate(viewStart) : undefined,
-        endValue: this.viewEnd ? parseDate(this.viewEnd) : undefined,
+        startValue: parseDate(viewStart),
+        endValue: parseDate(viewEnd),
+      });
+    } else if (viewStart) {
+      this.chart.dispatchAction({
+        type: 'dataZoom',
+        startValue: parseDate(viewStart),
+        end: 100,
+      });
+    } else if (viewEnd) {
+      this.chart.dispatchAction({
+        type: 'dataZoom',
+        start: 0,
+        endValue: parseDate(viewEnd),
       });
     }
   }
@@ -466,8 +535,6 @@ export class EChartsGantt extends LitElement {
           type: 'slider',
           xAxisIndex: 0,
           filterMode: 'none',
-          startValue: this.getEffectiveViewStart() ? parseDate(this.getEffectiveViewStart()!) : undefined,
-          endValue: this.viewEnd ? parseDate(this.viewEnd) : undefined,
           height: 20,
           bottom: 10,
           borderColor: 'transparent',
@@ -487,8 +554,6 @@ export class EChartsGantt extends LitElement {
           type: 'inside',
           xAxisIndex: 0,
           filterMode: 'none',
-          startValue: this.getEffectiveViewStart() ? parseDate(this.getEffectiveViewStart()!) : undefined,
-          endValue: this.viewEnd ? parseDate(this.viewEnd) : undefined,
           zoomOnMouseWheel: false,
           moveOnMouseMove: true,
           moveOnMouseWheel: false,
