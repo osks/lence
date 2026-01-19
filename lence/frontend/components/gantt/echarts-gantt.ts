@@ -550,14 +550,6 @@ export class EChartsGantt extends LitElement {
             fontSize: 10,
           },
         },
-        {
-          type: 'inside',
-          xAxisIndex: 0,
-          filterMode: 'none',
-          zoomOnMouseWheel: false,
-          moveOnMouseMove: true,
-          moveOnMouseWheel: false,
-        },
       ],
       xAxis: {
         type: 'time',
