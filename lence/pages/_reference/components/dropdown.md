@@ -28,10 +28,20 @@ A dropdown input that filters queries reactively. When a value is selected, quer
 }
 {% /data %}
 
-{% dropdown name="cat_filter" data="categories" value="category" title="Category" /%}
+{% dropdown
+    name="cat_filter"
+    data="categories"
+    value="category"
+    title="Category"
+/%}
 
 ``` {% process=false %}
-{% dropdown name="cat_filter" data="categories" value="category" title="Category" /%}
+{% dropdown
+    name="cat_filter"
+    data="categories"
+    value="category"
+    title="Category"
+/%}
 ```
 
 ## How It Works
@@ -54,7 +64,12 @@ When user selects:
 Use `disableSelectAll=true` to require a specific selection:
 
 ``` {% process=false %}
-{% dropdown name="cat_filter" data="categories" value="category" disableSelectAll=true /%}
+{% dropdown
+    name="cat_filter"
+    data="categories"
+    value="category"
+    disableSelectAll=true
+/%}
 ```
 
 ## Full Example
@@ -64,7 +79,12 @@ Use `disableSelectAll=true` to require a specific selection:
 SELECT DISTINCT category FROM products ORDER BY category
 {% /query %}
 
-{% dropdown name="cat_filter" data="categories" value="category" title="Filter Category" /%}
+{% dropdown
+    name="cat_filter"
+    data="categories"
+    value="category"
+    title="Filter Category"
+/%}
 
 {% query name="filtered_products" source="products" %}
 SELECT * FROM products

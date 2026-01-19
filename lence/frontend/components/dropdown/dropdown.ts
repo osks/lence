@@ -6,7 +6,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { inputs } from '../../stores/inputs.js';
-import type { QueryResult } from '../../types.js';
+import { booleanConverter, type QueryResult } from '../../types.js';
 
 interface DropdownOption {
   value: string;
@@ -123,7 +123,7 @@ export class LenceDropdown extends LitElement {
   /**
    * Disable the "All" option (value="%").
    */
-  @property({ type: Boolean })
+  @property({ converter: booleanConverter })
   disableSelectAll = false;
 
   /**

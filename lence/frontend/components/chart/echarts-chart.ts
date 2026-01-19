@@ -70,6 +70,7 @@ export class EChartsChart extends BaseChart {
 
   private buildOption(xValues: unknown[], yValues: unknown[]): EChartsOption {
     const baseOption: EChartsOption = {
+      animation: false,
       color: EChartsChart.CHART_COLORS,
       title: this.title
         ? {

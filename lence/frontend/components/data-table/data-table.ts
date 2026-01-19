@@ -18,7 +18,7 @@ import {
   type ColumnFiltersState,
   type PaginationState,
 } from '@tanstack/lit-table';
-import type { QueryResult } from '../../types.js';
+import { booleanConverter, type QueryResult } from '../../types.js';
 
 // Row type is a record with column names as keys
 type RowData = Record<string, unknown>;
@@ -212,7 +212,7 @@ export class DataTable extends LitElement {
   /**
    * Enable search functionality.
    */
-  @property({ type: Boolean })
+  @property({ converter: booleanConverter })
   search = false;
 
   /**
@@ -224,7 +224,7 @@ export class DataTable extends LitElement {
   /**
    * Enable column sorting (default: true).
    */
-  @property({ type: Boolean })
+  @property({ converter: booleanConverter })
   sort = true;
 
   /**

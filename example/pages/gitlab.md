@@ -11,7 +11,30 @@ showSource: true
 SELECT DISTINCT state FROM gitlab_milestones ORDER BY state
 {% /query %}
 
-{% dropdown name="state_filter" data="states" value="state" title="Filter by State" /%}
+{% data name="time_ranges" %}
+{
+  "columns": [{"name": "value", "type": "VARCHAR"}, {"name": "label", "type": "VARCHAR"}],
+  "data": [["-1y", "1 Year"], ["-3m", "3 Months"]]
+}
+{% /data %}
+
+{% dropdown
+    name="state_filter"
+    data="states"
+    value="state"
+    title="State"
+    defaultValue="active"
+/%}
+
+{% dropdown
+    name="time_range"
+    data="time_ranges"
+    value="value"
+    label="label"
+    title="Time Range"
+    defaultValue="-3m"
+    disableSelectAll=true
+/%}
 
 {% query name="filtered_milestones" source="gitlab_milestones" %}
 SELECT
@@ -27,6 +50,19 @@ WHERE
   AND state LIKE '${inputs.state_filter.value}'
 {% /query %}
 
-{% gantt data="filtered_milestones" label="title" start="start_date" end="due_date" title="Milestone Timeline" /%}
+{% gantt
+    data="filtered_milestones"
+    label="title"
+    start="start_date"
+    end="due_date"
+    url="web_url"
+    title="Milestone Timeline"
+    showToday=true
+    viewStartInput="time_range"
+    viewEnd="+3m"
+/%}
 
-{% dataTable data="filtered_milestones" search=true /%}
+{% dataTable
+    data="filtered_milestones"
+    search=true
+/%}

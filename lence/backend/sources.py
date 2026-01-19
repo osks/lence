@@ -1,5 +1,6 @@
 """Data sources API routes for Lence."""
 
+import re
 from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -52,6 +53,13 @@ async def execute_query(request: QueryRequest) -> QueryResponse:
         raise HTTPException(
             status_code=400,
             detail=f"Unknown source: {request.source}. Available sources: {list(db.sources.keys())}",
+        )
+
+    # Security: Only allow SELECT queries
+    if not re.match(r'^\s*SELECT\s', request.sql, re.IGNORECASE):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only SELECT queries are allowed. Got: {request.sql[:100]}",
         )
 
     try:

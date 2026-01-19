@@ -7,7 +7,11 @@ showSource: true
 Full-featured table with search, pagination, and sorting. Works correctly in shadow DOM environments.
 
 ``` {% process=false %}
-{% dataTable data="query_name" search=true pagination=10 /%}
+{% dataTable
+    data="query_name"
+    search=true
+    pagination=10
+/%}
 ```
 
 ## Attributes
@@ -52,26 +56,46 @@ Full-featured table with search, pagination, and sorting. Works correctly in sha
 
 ## With Search
 
-{% dataTable data="products" search=true /%}
+{% dataTable
+    data="products"
+    search=true
+/%}
 
 ``` {% process=false %}
-{% dataTable data="products" search=true /%}
+{% dataTable
+    data="products"
+    search=true
+/%}
 ```
 
 ## With Pagination
 
-{% dataTable data="products" pagination=5 /%}
+{% dataTable
+    data="products"
+    pagination=5
+/%}
 
 ``` {% process=false %}
-{% dataTable data="products" pagination=5 /%}
+{% dataTable
+    data="products"
+    pagination=5
+/%}
 ```
 
 ## Full Featured
 
 Search and pagination combined.
 
-{% dataTable data="products" search=true pagination=5 /%}
+{% dataTable
+    data="products"
+    search=true
+    pagination=5
+/%}
 
 ``` {% process=false %}
-{% dataTable data="products" search=true pagination=5 /%}
+{% dataTable
+    data="products"
+    search=true
+    pagination=5
+/%}
 ```

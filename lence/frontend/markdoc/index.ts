@@ -133,6 +133,11 @@ const tags: Config['tags'] = {
       start: { type: String, required: true },
       end: { type: String, required: true },
       title: { type: String },
+      url: { type: String },
+      showToday: { type: Boolean, default: false },
+      viewStart: { type: String },
+      viewStartInput: { type: String },
+      viewEnd: { type: String },
     },
   },
 

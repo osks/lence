@@ -5,7 +5,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import * as echarts from 'echarts';
-import type { QueryResult, Column } from '../../types.js';
+import { booleanConverter, type QueryResult, type Column } from '../../types.js';
 
 type EChartsInstance = ReturnType<typeof echarts.init>;
 type EChartsOption = echarts.EChartsOption;
@@ -93,7 +93,7 @@ export class EChartsAreaChart extends LitElement {
   /**
    * Enable stacking for multiple series.
    */
-  @property({ type: Boolean })
+  @property({ converter: booleanConverter })
   stacked = false;
 
   /**
@@ -193,6 +193,7 @@ export class EChartsAreaChart extends LitElement {
     const showLegend = yColumns.length > 1;
 
     return {
+      animation: false,
       color: CHART_COLORS,
       title: this.title
         ? {

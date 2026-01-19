@@ -35,26 +35,60 @@ Renders data as interactive charts using ECharts.
 }
 {% /data %}
 
-{% chart data="monthly" type="line" x="month" y="revenue" title="Monthly Revenue" /%}
+{% chart
+    data="monthly"
+    type="line"
+    x="month"
+    y="revenue"
+    title="Monthly Revenue"
+/%}
 
 ``` {% process=false %}
-{% chart data="monthly" type="line" x="month" y="revenue" title="Monthly Revenue" /%}
+{% chart
+    data="monthly"
+    type="line"
+    x="month"
+    y="revenue"
+    title="Monthly Revenue"
+/%}
 ```
 
 ## Bar Chart
 
-{% chart data="monthly" type="bar" x="month" y="revenue" title="Revenue by Month" /%}
+{% chart
+    data="monthly"
+    type="bar"
+    x="month"
+    y="revenue"
+    title="Revenue by Month"
+/%}
 
 ``` {% process=false %}
-{% chart data="monthly" type="bar" x="month" y="revenue" /%}
+{% chart
+    data="monthly"
+    type="bar"
+    x="month"
+    y="revenue"
+/%}
 ```
 
 ## Area Chart
 
-{% chart data="monthly" type="area" x="month" y="revenue" title="Revenue Trend" /%}
+{% chart
+    data="monthly"
+    type="area"
+    x="month"
+    y="revenue"
+    title="Revenue Trend"
+/%}
 
 ``` {% process=false %}
-{% chart data="monthly" type="area" x="month" y="revenue" /%}
+{% chart
+    data="monthly"
+    type="area"
+    x="month"
+    y="revenue"
+/%}
 ```
 
 ## Pie Chart
@@ -75,10 +109,21 @@ Renders data as interactive charts using ECharts.
 }
 {% /data %}
 
-{% chart data="categories" type="pie" x="category" y="sales" title="Sales by Category" /%}
+{% chart
+    data="categories"
+    type="pie"
+    x="category"
+    y="sales"
+    title="Sales by Category"
+/%}
 
 ``` {% process=false %}
-{% chart data="categories" type="pie" x="category" y="sales" /%}
+{% chart
+    data="categories"
+    type="pie"
+    x="category"
+    y="sales"
+/%}
 ```
 
 ## Scatter Chart
@@ -102,8 +147,19 @@ Renders data as interactive charts using ECharts.
 }
 {% /data %}
 
-{% chart data="correlation" type="scatter" x="price" y="quantity" title="Price vs Quantity" /%}
+{% chart
+    data="correlation"
+    type="scatter"
+    x="price"
+    y="quantity"
+    title="Price vs Quantity"
+/%}
 
 ``` {% process=false %}
-{% chart data="correlation" type="scatter" x="price" y="quantity" /%}
+{% chart
+    data="correlation"
+    type="scatter"
+    x="price"
+    y="quantity"
+/%}
 ```

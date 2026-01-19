@@ -35,10 +35,20 @@ Renders data as area charts with support for multiple series and stacking.
 }
 {% /data %}
 
-{% areaChart data="monthly" x="month" y="revenue" title="Monthly Revenue" /%}
+{% areaChart
+    data="monthly"
+    x="month"
+    y="revenue"
+    title="Monthly Revenue"
+/%}
 
 ``` {% process=false %}
-{% areaChart data="monthly" x="month" y="revenue" title="Monthly Revenue" /%}
+{% areaChart
+    data="monthly"
+    x="month"
+    y="revenue"
+    title="Monthly Revenue"
+/%}
 ```
 
 ## Multiple Series (Overlapping)
@@ -62,10 +72,20 @@ Renders data as area charts with support for multiple series and stacking.
 }
 {% /data %}
 
-{% areaChart data="metrics" x="month" y="revenue,costs,profit" title="Financial Metrics" /%}
+{% areaChart
+    data="metrics"
+    x="month"
+    y="revenue,costs,profit"
+    title="Financial Metrics"
+/%}
 
 ``` {% process=false %}
-{% areaChart data="metrics" x="month" y="revenue,costs,profit" title="Financial Metrics" /%}
+{% areaChart
+    data="metrics"
+    x="month"
+    y="revenue,costs,profit"
+    title="Financial Metrics"
+/%}
 ```
 
 ## Stacked Areas
@@ -91,10 +111,21 @@ Use `stacked=true` to stack multiple series on top of each other:
 }
 {% /data %}
 
-{% areaChart data="breakdown" x="month" y="product_a,product_b,product_c" stacked=true title="Revenue by Product (Stacked)" /%}
+{% areaChart
+    data="breakdown"
+    x="month"
+    y="product_a,product_b,product_c"
+    stacked=true
+    title="Revenue by Product (Stacked)"
+/%}
 
 ``` {% process=false %}
-{% areaChart data="breakdown" x="month" y="product_a,product_b,product_c" stacked=true /%}
+{% areaChart
+    data="breakdown"
+    x="month"
+    y="product_a,product_b,product_c"
+    stacked=true
+/%}
 ```
 
 ## Features

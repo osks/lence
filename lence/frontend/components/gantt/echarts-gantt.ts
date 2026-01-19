@@ -5,7 +5,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import * as echarts from 'echarts';
-import type { QueryResult, Column } from '../../types.js';
+import { booleanConverter, type QueryResult, type Column } from '../../types.js';
+import { inputs } from '../../stores/inputs.js';
 
 type EChartsInstance = ReturnType<typeof echarts.init>;
 type EChartsOption = echarts.EChartsOption;
@@ -13,7 +14,7 @@ type EChartsOption = echarts.EChartsOption;
 // Height constants for auto-sizing
 const BAR_HEIGHT = 32; // pixels per bar
 const TOP_PADDING = 30; // space for axis
-const BOTTOM_PADDING = 40; // space for x-axis labels
+const BOTTOM_PADDING = 80; // space for x-axis labels + dataZoom slider
 const TITLE_HEIGHT = 30; // additional space when title is present
 
 // Default palette
@@ -29,6 +30,35 @@ const CHART_COLORS = [
   '#71b9f4', // Sky blue
   '#46a485', // Green
 ];
+
+/**
+ * Parse a date string, supporting relative formats like "-30d", "+3m", "-1y".
+ * Returns timestamp in milliseconds.
+ */
+function parseDate(value: string): number {
+  const relativeMatch = value.match(/^([+-]?\d+)([dmy])$/i);
+  if (relativeMatch) {
+    const amount = parseInt(relativeMatch[1], 10);
+    const unit = relativeMatch[2].toLowerCase();
+    const now = new Date();
+
+    switch (unit) {
+      case 'd':
+        now.setDate(now.getDate() + amount);
+        break;
+      case 'm':
+        now.setMonth(now.getMonth() + amount);
+        break;
+      case 'y':
+        now.setFullYear(now.getFullYear() + amount);
+        break;
+    }
+    return now.getTime();
+  }
+
+  // Try parsing as ISO date
+  return new Date(value).getTime();
+}
 
 /**
  * Gantt chart component for visualizing timeline data.
@@ -106,6 +136,36 @@ export class EChartsGantt extends LitElement {
   title = '';
 
   /**
+   * Optional column name for URLs (makes bars clickable).
+   */
+  @property({ type: String })
+  url = '';
+
+  /**
+   * Show a vertical marker for today's date.
+   */
+  @property({ converter: booleanConverter })
+  showToday = false;
+
+  /**
+   * Initial view start date (ISO string or relative like "-30d", "-3m").
+   */
+  @property({ type: String })
+  viewStart?: string;
+
+  /**
+   * Input name to get viewStart from (overrides viewStart if set).
+   */
+  @property({ type: String })
+  viewStartInput?: string;
+
+  /**
+   * Initial view end date (ISO string or relative like "+30d", "+3m").
+   */
+  @property({ type: String })
+  viewEnd?: string;
+
+  /**
    * Query result data, passed from page component.
    */
   @property({ attribute: false })
@@ -118,6 +178,18 @@ export class EChartsGantt extends LitElement {
 
   private chart: EChartsInstance | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private unsubscribeInputs?: () => void;
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    // Subscribe to input changes for dynamic viewStart
+    this.unsubscribeInputs = inputs.onChange((name) => {
+      if (this.viewStartInput && name === this.viewStartInput && this.data) {
+        this.renderChart();
+      }
+    });
+  }
 
   firstUpdated() {
     this.resizeObserver = new ResizeObserver(() => {
@@ -145,6 +217,18 @@ export class EChartsGantt extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this.destroyChart();
+    this.unsubscribeInputs?.();
+  }
+
+  /**
+   * Get effective viewStart value, checking input first.
+   */
+  private getEffectiveViewStart(): string | undefined {
+    if (this.viewStartInput) {
+      const inputValue = inputs.get(this.viewStartInput).value;
+      if (inputValue) return inputValue;
+    }
+    return this.viewStart;
   }
 
   private getColumnValues(columnName: string): unknown[] {
@@ -197,8 +281,21 @@ export class EChartsGantt extends LitElement {
     const height = this.calculateHeight();
     container.style.height = `${height}px`;
 
+    // Set cursor style based on whether URLs are present
+    if (this.url) {
+      container.style.cursor = 'pointer';
+    }
+
     if (!this.chart) {
       this.chart = echarts.init(container);
+
+      // Add click handler for URLs
+      this.chart.on('click', (params: unknown) => {
+        const p = params as { data?: { url?: string } };
+        if (p.data?.url) {
+          window.open(p.data.url, '_blank');
+        }
+      });
     } else {
       // Resize if height changed
       this.chart.resize();
@@ -206,12 +303,23 @@ export class EChartsGantt extends LitElement {
 
     const option = this.buildGanttOption();
     this.chart.setOption(option, true);
+
+    // Explicitly set dataZoom range (setOption doesn't always apply startValue/endValue)
+    const viewStart = this.getEffectiveViewStart();
+    if (viewStart || this.viewEnd) {
+      this.chart.dispatchAction({
+        type: 'dataZoom',
+        startValue: viewStart ? parseDate(viewStart) : undefined,
+        endValue: this.viewEnd ? parseDate(this.viewEnd) : undefined,
+      });
+    }
   }
 
   private buildGanttOption(): EChartsOption {
     const labels = this.getColumnValues(this.label);
     const starts = this.getColumnValues(this.start);
     const ends = this.getColumnValues(this.end);
+    const urls = this.url ? this.getColumnValues(this.url) : [];
 
     // Filter and collect valid time values for chart range
     const validTimes: number[] = [];
@@ -245,6 +353,7 @@ export class EChartsGantt extends LitElement {
       value: [number, number, number];
       name: string;
       itemStyle: { color: string; opacity: number };
+      url?: string;
     }[] = [];
 
     let validIndex = 0;
@@ -270,19 +379,27 @@ export class EChartsGantt extends LitElement {
       // Visual distinction: open-ended bars have lower opacity
       const isOpenEnded = startVal == null || endVal == null;
 
-      dataItems.push({
+      const item: typeof dataItems[number] = {
         value: [validIndex, startTime, endTime],
         name: labelVal,
         itemStyle: {
           color: CHART_COLORS[validIndex % CHART_COLORS.length],
           opacity: isOpenEnded ? 0.5 : 0.85,
         },
-      });
+      };
+
+      // Add URL if present
+      if (urls.length > 0 && urls[i] != null) {
+        item.url = String(urls[i]);
+      }
+
+      dataItems.push(item);
 
       validIndex++;
     }
 
     return {
+      animation: false,
       color: CHART_COLORS,
       title: this.title
         ? {
@@ -338,12 +455,45 @@ export class EChartsGantt extends LitElement {
         },
       },
       grid: {
-        left: '20%',
+        left: 10,
         right: '5%',
         top: this.title ? 60 : 30,
-        bottom: 40,
+        bottom: 70,
         containLabel: false,
       },
+      dataZoom: [
+        {
+          type: 'slider',
+          xAxisIndex: 0,
+          filterMode: 'none',
+          startValue: this.getEffectiveViewStart() ? parseDate(this.getEffectiveViewStart()!) : undefined,
+          endValue: this.viewEnd ? parseDate(this.viewEnd) : undefined,
+          height: 20,
+          bottom: 10,
+          borderColor: 'transparent',
+          backgroundColor: '#f3f4f6',
+          fillerColor: 'rgba(37, 99, 235, 0.15)',
+          handleStyle: {
+            color: '#2563eb',
+            borderColor: '#2563eb',
+          },
+          moveHandleSize: 0,
+          textStyle: {
+            color: '#6b7280',
+            fontSize: 10,
+          },
+        },
+        {
+          type: 'inside',
+          xAxisIndex: 0,
+          filterMode: 'none',
+          startValue: this.getEffectiveViewStart() ? parseDate(this.getEffectiveViewStart()!) : undefined,
+          endValue: this.viewEnd ? parseDate(this.viewEnd) : undefined,
+          zoomOnMouseWheel: false,
+          moveOnMouseMove: true,
+          moveOnMouseWheel: false,
+        },
+      ],
       xAxis: {
         type: 'time',
         min: paddedMin,
@@ -364,10 +514,13 @@ export class EChartsGantt extends LitElement {
         data: validLabels,
         inverse: true,
         axisLabel: {
-          fontFamily: 'Inter, system-ui, sans-serif',
-          color: '#374151',
-          overflow: 'truncate',
-          width: 150,
+          show: false,
+        },
+        axisTick: {
+          show: false,
+        },
+        axisLine: {
+          show: false,
         },
         splitLine: {
           show: false,
@@ -384,6 +537,7 @@ export class EChartsGantt extends LitElement {
             const start = api.coord([api.value(1), categoryIndex]);
             const end = api.coord([api.value(2), categoryIndex]);
             const height = (api.size?.([0, 1]) as number[])?.[1] * 0.6 || 20;
+            const barWidth = end[0] - start[0];
 
             const coordSys = params.coordSys as unknown as {
               x: number;
@@ -396,7 +550,7 @@ export class EChartsGantt extends LitElement {
               {
                 x: start[0],
                 y: start[1] - height / 2,
-                width: end[0] - start[0],
+                width: barWidth,
                 height: height,
               },
               {
@@ -407,22 +561,71 @@ export class EChartsGantt extends LitElement {
               }
             );
 
-            return (
-              rectShape && {
-                type: 'rect',
-                shape: rectShape,
-                style: {
-                  ...api.style(),
-                  fill: (api.style() as { fill?: string }).fill || CHART_COLORS[categoryIndex % CHART_COLORS.length],
+            if (!rectShape) return null;
+
+            const label = validLabels[categoryIndex] || '';
+            const fillColor = (api.style() as { fill?: string }).fill || CHART_COLORS[categoryIndex % CHART_COLORS.length];
+
+            return {
+              type: 'group',
+              children: [
+                {
+                  type: 'rect',
+                  shape: rectShape,
+                  style: {
+                    ...api.style(),
+                    fill: fillColor,
+                  },
                 },
-              }
-            );
+                {
+                  type: 'text',
+                  style: {
+                    x: rectShape.x + 6,
+                    y: rectShape.y + rectShape.height / 2,
+                    text: label,
+                    fill: '#fff',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    verticalAlign: 'middle',
+                    truncate: {
+                      outerWidth: Math.max(0, rectShape.width - 12),
+                      ellipsis: '…',
+                    },
+                  },
+                },
+              ],
+            };
           },
           encode: {
             x: [1, 2],
             y: 0,
           },
           data: dataItems,
+          markLine: this.showToday
+            ? {
+                silent: true,
+                symbol: 'none',
+                lineStyle: {
+                  color: '#ef4444',
+                  width: 2,
+                  type: 'solid',
+                },
+                label: {
+                  show: true,
+                  position: 'start',
+                  formatter: 'Today',
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                  fontSize: 11,
+                  color: '#ef4444',
+                },
+                data: [
+                  {
+                    xAxis: new Date().getTime(),
+                  },
+                ],
+              }
+            : undefined,
         },
       ],
       textStyle: {

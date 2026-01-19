@@ -15,6 +15,30 @@ Renders timeline data as a horizontal bar chart (Gantt chart) using ECharts.
 | `start` | Yes | Column name for start dates |
 | `end` | Yes | Column name for end dates |
 | `title` | No | Chart title |
+| `url` | No | Column name for URLs (makes bars clickable) |
+| `showToday` | No | Show a vertical marker for today's date (default: false) |
+| `viewStart` | No | Initial view start date (ISO date or relative: `-30d`, `-3m`, `-1y`) |
+| `viewStartInput` | No | Input name to get viewStart from (for dynamic control) |
+| `viewEnd` | No | Initial view end date (ISO date or relative: `+30d`, `+3m`, `+1y`) |
+
+## Data Model
+
+The gantt chart expects a query result with at least three columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| Label | VARCHAR | Task or item name displayed on y-axis |
+| Start | DATE/TIMESTAMP | Start date of the bar |
+| End | DATE/TIMESTAMP | End date of the bar |
+
+Dates can be in any format DuckDB returns (e.g., `2024-01-15`, `2024-01-15T09:00:00`). Null values are supported for open-ended bars.
+
+Example SQL:
+```sql
+SELECT title AS label, start_date, end_date
+FROM milestones
+ORDER BY start_date
+```
 
 ## Basic Example
 
@@ -35,10 +59,22 @@ Renders timeline data as a horizontal bar chart (Gantt chart) using ECharts.
 }
 {% /data %}
 
-{% gantt data="tasks" label="task" start="start_date" end="end_date" title="Project Timeline" /%}
+{% gantt
+    data="tasks"
+    label="task"
+    start="start_date"
+    end="end_date"
+    title="Project Timeline"
+/%}
 
 ``` {% process=false %}
-{% gantt data="tasks" label="task" start="start_date" end="end_date" title="Project Timeline" /%}
+{% gantt
+    data="tasks"
+    label="task"
+    start="start_date"
+    end="end_date"
+    title="Project Timeline"
+/%}
 ```
 
 ## Open-Ended Bars
@@ -66,10 +102,21 @@ Open-ended bars are rendered with reduced opacity (50%) for visual distinction.
 }
 {% /data %}
 
-{% gantt data="open_ended" label="milestone" start="start" end="end" title="Milestones with Open Dates" /%}
+{% gantt
+    data="open_ended"
+    label="milestone"
+    start="start"
+    end="end"
+    title="Milestones with Open Dates"
+/%}
 
 ``` {% process=false %}
-{% gantt data="open_ended" label="milestone" start="start" end="end" /%}
+{% gantt
+    data="open_ended"
+    label="milestone"
+    start="start"
+    end="end"
+/%}
 ```
 
 ## Tooltip
@@ -79,3 +126,106 @@ Hovering over a bar shows:
 - Start date (or "open" if null)
 - End date (or "open" if null)
 - Duration in days
+
+## Clickable Bars
+
+Use the `url` attribute to make bars clickable. When clicked, the URL opens in a new tab.
+
+{% data name="clickable" %}
+{
+  "columns": [
+    {"name": "task", "type": "VARCHAR"},
+    {"name": "start", "type": "DATE"},
+    {"name": "end", "type": "DATE"},
+    {"name": "link", "type": "VARCHAR"}
+  ],
+  "data": [
+    ["Documentation", "2024-01-01", "2024-01-15", "https://example.com/docs"],
+    ["Development", "2024-01-10", "2024-02-01", "https://example.com/dev"],
+    ["Testing", "2024-01-25", "2024-02-15", "https://example.com/test"]
+  ]
+}
+{% /data %}
+
+{% gantt
+    data="clickable"
+    label="task"
+    start="start"
+    end="end"
+    url="link"
+    title="Clickable Tasks"
+/%}
+
+``` {% process=false %}
+{% gantt
+    data="clickable"
+    label="task"
+    start="start"
+    end="end"
+    url="link"
+/%}
+```
+
+## Today Marker
+
+Use `showToday=true` to display a vertical red line marking today's date.
+
+``` {% process=false %}
+{% gantt
+    data="tasks"
+    label="task"
+    start="start"
+    end="end"
+    showToday=true
+/%}
+```
+
+## View Range
+
+Control the initial visible time range with `viewStart` and `viewEnd`. Values can be:
+- ISO dates: `2024-01-01`
+- Relative dates: `-30d` (30 days ago), `-3m` (3 months ago), `+1y` (1 year from now)
+
+``` {% process=false %}
+{% gantt
+    data="tasks"
+    label="task"
+    start="start"
+    end="end"
+    viewStart="-6m"
+    viewEnd="+1m"
+/%}
+```
+
+### Dynamic View Range
+
+Use `viewStartInput` to bind the view range to a dropdown input:
+
+``` {% process=false %}
+{% data name="ranges" %}
+{
+  "columns": [
+    {"name": "value", "type": "VARCHAR"},
+    {"name": "label", "type": "VARCHAR"}
+  ],
+  "data": [["-1y", "1 Year"], ["-6m", "6 Months"]]
+}
+{% /data %}
+
+{% dropdown
+    name="range"
+    data="ranges"
+    value="value"
+    label="label"
+    disableSelectAll=true
+/%}
+
+{% gantt
+    data="tasks"
+    label="task"
+    start="start"
+    end="end"
+    viewStartInput="range"
+    viewEnd="+1m"
+/%}
+```

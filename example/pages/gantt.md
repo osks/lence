@@ -17,7 +17,13 @@ WHERE start_date IS NOT NULL OR due_date IS NOT NULL
 ORDER BY COALESCE(start_date, due_date)
 {% /query %}
 
-{% gantt data="milestones" label="title" start="start_date" end="due_date" title="Project Milestones" /%}
+{% gantt
+    data="milestones"
+    label="title"
+    start="start_date"
+    end="due_date"
+    title="Project Milestones"
+/%}
 
 ## Data Table
 

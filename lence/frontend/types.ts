@@ -75,3 +75,13 @@ export function toObjects(result: QueryResult): Record<string, unknown>[] {
     return obj;
   });
 }
+
+/**
+ * Lit property converter for boolean attributes.
+ * Markdoc outputs `attr="false"` which Lit's default Boolean converter
+ * interprets as truthy. This converter handles "true"/"false" strings correctly.
+ */
+export const booleanConverter = {
+  fromAttribute: (value: string | null) => value === 'true' || value === '',
+  toAttribute: (value: boolean) => (value ? 'true' : 'false'),
+};

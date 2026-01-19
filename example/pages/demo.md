@@ -20,6 +20,11 @@ LIMIT 5
 
 ## Top 5 Products by Revenue
 
-{% chart data="top_products" type="bar" x="product_id" y="revenue" /%}
+{% chart
+    data="top_products"
+    type="bar"
+    x="product_id"
+    y="revenue"
+/%}
 
 {% table data="top_products" /%}
