@@ -8,9 +8,10 @@ version = "0.1.0"
 description = "A lightweight data visualization framework"
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 authors = [
-    { name = "Oskar Skoog" },
+    { name = "Oskar Skoog", email = "oskar@osd.se" },
 ]
 keywords = ["data", "visualization", "dashboard", "duckdb", "markdoc"]
 classifiers = [

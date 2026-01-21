@@ -45,12 +45,6 @@ FROM orders GROUP BY 1
 {% table data="monthly" /%}
 ```
 
-## Documentation
-
-- [DEVELOPMENT.md](./DEVELOPMENT.md) - Development setup, architecture, and API reference
-- [MARKDOC_SYNTAX.md](./MARKDOC_SYNTAX.md) - Markdoc syntax reference
-- [REQUIREMENTS.md](./REQUIREMENTS.md) - Project vision and requirements
-
 ## Tech Stack
 
 - **Backend**: Python, FastAPI, DuckDB

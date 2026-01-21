@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y locales && \
     locale-gen && \
     echo 'LANG="en_US.UTF-8"' > /etc/default/locale
 
-RUN apt-get update && apt-get install -y curl nodejs npm wget
+RUN apt-get update && apt-get install -y curl jq nodejs npm unzip wget
 
 # Install playwright
 RUN npm install -g @playwright/test \
@@ -20,6 +20,9 @@ RUN npm install -g @playwright/test \
 
 # Install Claude Code
 RUN npm install -g @anthropic-ai/claude-code
+
+# Install Codex
+RUN npm install -g @openai/codex
 
 # Install uv (used in various projects)
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_NO_MODIFY_PATH=1
@@ -35,10 +38,12 @@ env = [
     "DISABLE_AUTOUPDATER=1", # for claude
 ]
 volumes = [
-        "~/.bash_profile",
-        "~/.bashrc",
+        "~/.bash_profile::ro",
+        "~/.bashrc::ro",
         "~/.claude.json",
         "~/.claude",
+        "~/.codex",
         "./claude-env/tmp:./tmp",
         "./claude-env/node_modules:./node_modules",
+        "~/.ctenv.toml::ro",
 ]

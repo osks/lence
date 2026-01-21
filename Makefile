@@ -33,6 +33,7 @@ components: ## Serve component demos
 .PHONY: env
 env: ## Set up development environment
 	@echo "Setting up development environment..."
+	@command -v jq >/dev/null 2>&1 || { echo "Error: jq is required but not installed"; exit 1; }
 	@test -d tmp/venv || uv venv tmp/venv
 	@uv pip install -e '.[dev]'
 	@npm install
@@ -59,7 +60,7 @@ build-frontend: env ## Build frontend assets
 	@echo "✓ Frontend built"
 
 .PHONY: build
-build: env build-frontend ## Build Python package
+build: env build-frontend licenses-collect ## Build Python package
 	@echo "Building package..."
 	@uv build
 	@echo "✓ Package built"
@@ -91,3 +92,18 @@ test: env ## Run all tests (backend + frontend)
 .PHONY: test-watch
 test-watch: env ## Run tests in watch mode
 	@$(PYTEST) --watch
+
+
+##@ Licenses
+# Allowed licenses for bundled dependencies
+ALLOWED_LICENSES := MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD
+
+.PHONY: licenses-check
+licenses-check: env ## Verify all bundled deps use allowed licenses
+	@echo "Checking licenses against allowed list: $(ALLOWED_LICENSES)"
+	@npx license-checker --production --onlyAllow "$(ALLOWED_LICENSES)" --excludePackages "$$(jq -r '"lence@" + .version' package.json)"
+	@echo "✓ All licenses OK"
+
+.PHONY: licenses-collect
+licenses-collect: env licenses-check ## Generate THIRD-PARTY-LICENSES file for bundled npm deps
+	@./scripts/collect-licenses.sh lence/THIRD-PARTY-LICENSES
