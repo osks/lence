@@ -36,18 +36,30 @@ SELECT DISTINCT state FROM gitlab_milestones ORDER BY state
     disableSelectAll=true
 /%}
 
+{% checkbox
+    name="only_planned"
+    title="Filter"
+    label="Only with dates"
+    defaultValue=true
+/%}
+
 {% query name="filtered_milestones" source="gitlab_milestones" %}
 SELECT
   iid,
   title,
   state,
-  start_date,
+  COALESCE(start_date, created_at) AS start_date,
   due_date,
   web_url
 FROM gitlab_milestones
 WHERE
   ((group_id = 2 AND project_id IS NULL) OR (project_id = 3))
   AND state LIKE '${inputs.state_filter.value}'
+  AND (
+    '${inputs.only_planned.value}' = 'false'
+    OR (start_date IS NOT NULL OR due_date IS NOT NULL)
+  )
+ORDER BY COALESCE(start_date, created_at) DESC
 {% /query %}
 
 {% gantt

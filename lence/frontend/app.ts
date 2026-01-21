@@ -13,6 +13,7 @@ import './components/table/simple-table.js';
 import './components/data-table/data-table.js';
 import './components/gantt/echarts-gantt.js';
 import './components/dropdown/dropdown.js';
+import './components/checkbox/checkbox.js';
 
 /**
  * Main application component.

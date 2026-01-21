@@ -149,7 +149,8 @@ export class LencePage extends LitElement {
       margin: 1rem 0;
     }
 
-    .content lence-dropdown {
+    .content lence-dropdown,
+    .content lence-checkbox {
       display: inline-block;
       margin: 0.5rem 0.5rem 0.5rem 0;
     }

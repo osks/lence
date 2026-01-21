@@ -167,6 +167,12 @@ export class EChartsGantt extends LitElement {
   viewEnd?: string;
 
   /**
+   * Maximum height in pixels. If content exceeds this, a vertical scrollbar appears.
+   */
+  @property({ type: Number })
+  maxHeight?: number;
+
+  /**
    * Query result data, passed from page component.
    */
   @property({ attribute: false })
@@ -305,13 +311,18 @@ export class EChartsGantt extends LitElement {
     return count;
   }
 
-  private calculateHeight(): number {
+  private calculateHeight(): { height: number; needsYScroll: boolean } {
     const itemCount = this.countValidItems();
     const titlePadding = this.title ? TITLE_HEIGHT : 0;
-    return Math.max(
+    const naturalHeight = Math.max(
       100, // minimum height
       itemCount * BAR_HEIGHT + TOP_PADDING + BOTTOM_PADDING + titlePadding
     );
+
+    if (this.maxHeight && naturalHeight > this.maxHeight) {
+      return { height: this.maxHeight, needsYScroll: true };
+    }
+    return { height: naturalHeight, needsYScroll: false };
   }
 
   private renderChart(): void {
@@ -323,7 +334,7 @@ export class EChartsGantt extends LitElement {
     if (!container) return;
 
     // Set container height based on data
-    const height = this.calculateHeight();
+    const { height } = this.calculateHeight();
     container.style.height = `${height}px`;
 
     // Set cursor style based on whether URLs are present
@@ -385,6 +396,7 @@ export class EChartsGantt extends LitElement {
   }
 
   private buildGanttOption(): EChartsOption {
+    const { needsYScroll } = this.calculateHeight();
     const labels = this.getColumnValues(this.label);
     const starts = this.getColumnValues(this.start);
     const ends = this.getColumnValues(this.end);
@@ -525,12 +537,13 @@ export class EChartsGantt extends LitElement {
       },
       grid: {
         left: 10,
-        right: '5%',
+        right: needsYScroll ? 50 : '5%',
         top: this.title ? 60 : 30,
         bottom: 70,
         containLabel: false,
       },
       dataZoom: [
+        // X-axis slider (always present)
         {
           type: 'slider',
           xAxisIndex: 0,
@@ -550,6 +563,24 @@ export class EChartsGantt extends LitElement {
             fontSize: 10,
           },
         },
+        // Y-axis slider (only when content overflows maxHeight)
+        ...(needsYScroll ? [{
+          type: 'slider' as const,
+          yAxisIndex: 0,
+          filterMode: 'none' as const,
+          width: 20,
+          right: 10,
+          borderColor: 'transparent',
+          backgroundColor: '#f3f4f6',
+          fillerColor: 'rgba(37, 99, 235, 0.15)',
+          handleStyle: {
+            color: '#2563eb',
+            borderColor: '#2563eb',
+          },
+          moveHandleSize: 0,
+          startValue: 0,
+          endValue: Math.floor((this.maxHeight! - TOP_PADDING - BOTTOM_PADDING - (this.title ? TITLE_HEIGHT : 0)) / BAR_HEIGHT) - 1,
+        }] : []),
       ],
       xAxis: {
         type: 'time',

@@ -41,7 +41,8 @@ export class LenceDropdown extends LitElement {
     }
 
     select {
-      padding: 0.5rem 2rem 0.5rem 0.75rem;
+      height: 2.125rem;
+      padding: 0 2rem 0 0.75rem;
       font-size: var(--lence-font-size-sm, 0.875rem);
       font-family: inherit;
       border: 1px solid var(--lence-border, #e5e7eb);

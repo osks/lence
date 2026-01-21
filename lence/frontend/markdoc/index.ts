@@ -137,6 +137,7 @@ const tags: Config['tags'] = {
       showToday: { type: Boolean, default: false },
       viewStart: { type: String },
       viewEnd: { type: String },
+      maxHeight: { type: Number },
     },
   },
 
@@ -152,6 +153,17 @@ const tags: Config['tags'] = {
       defaultValue: { type: String },
       placeholder: { type: String },
       disableSelectAll: { type: Boolean, default: false },
+    },
+  },
+
+  checkbox: {
+    render: 'lence-checkbox',
+    selfClosing: true,
+    attributes: {
+      name: { type: String, required: true },
+      title: { type: String },
+      label: { type: String, required: true },
+      defaultValue: { type: Boolean, default: false },
     },
   },
 
@@ -270,7 +282,7 @@ export function extractComponents(tree: RenderableTreeNode): ComponentDefinition
 
     const tagNode = node as { name?: string; attributes?: Record<string, unknown>; children?: RenderableTreeNode[] };
 
-    if (tagNode.name === 'lence-chart' || tagNode.name === 'lence-area-chart' || tagNode.name === 'lence-table' || tagNode.name === 'lence-data-table' || tagNode.name === 'lence-gantt' || tagNode.name === 'lence-dropdown') {
+    if (tagNode.name?.startsWith('lence-')) {
       components.push({
         type: tagNode.name,
         attributes: tagNode.attributes || {},
