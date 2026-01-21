@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lence"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A lightweight data visualization framework"
 readme = "README.md"
 license = "MIT"
@@ -59,6 +59,9 @@ include = [
 ]
 # Include compiled JS (normally gitignored)
 artifacts = ["lence/static/js/"]
+
+[tool.hatch.version]
+path = "lence/version.py"
 
 [tool.ruff]
 line-length = 100
