@@ -36,6 +36,18 @@ jobs:
       id-token: write
     steps:
     - uses: actions/checkout@v4
+    - name: Verify version matches tag
+      run: |
+        TAG="${{ github.event.release.tag_name }}"
+        # Strip 'v' prefix if present
+        TAG_VERSION="${TAG#v}"
+        # Extract version from version.py
+        PKG_VERSION=$(grep -oP '__version__\s*=\s*"\K[^"]+' lence/version.py)
+        if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+          echo "Error: Tag version ($TAG_VERSION) does not match package version ($PKG_VERSION)"
+          exit 1
+        fi
+        echo "Version check passed: $PKG_VERSION"
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
       with:
