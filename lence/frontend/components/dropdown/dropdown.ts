@@ -7,6 +7,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { inputs } from '../../stores/inputs.js';
 import { booleanConverter, type QueryResult } from '../../types.js';
+import { themeDefaults } from '../../styles/theme.js';
 
 interface DropdownOption {
   value: string;
@@ -18,66 +19,69 @@ interface DropdownOption {
  */
 @customElement('lence-dropdown')
 export class LenceDropdown extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      font-family: var(--lence-font-family, system-ui);
-      font-size: var(--lence-font-size-sm, 0.875rem);
-      margin: 0.75rem 0;
-    }
+  static styles = [
+    themeDefaults,
+    css`
+      :host {
+        display: block;
+        font-family: var(--lence-font-family);
+        font-size: var(--lence-font-size-sm);
+        margin: 0.75rem 0;
+      }
 
-    .dropdown-container {
-      display: inline-flex;
-      flex-direction: column;
-      gap: 0.375rem;
-    }
+      .dropdown-container {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 0.375rem;
+      }
 
-    label {
-      font-size: var(--lence-font-size-xs, 0.75rem);
-      font-weight: 500;
-      color: var(--lence-text-muted, #6b7280);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
+      label {
+        font-size: var(--lence-font-size-xs);
+        font-weight: 500;
+        color: var(--lence-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
 
-    select {
-      height: 2.125rem;
-      padding: 0 2rem 0 0.75rem;
-      font-size: var(--lence-font-size-sm, 0.875rem);
-      font-family: inherit;
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      background: var(--lence-bg, #ffffff);
-      color: var(--lence-text, #374151);
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.5rem center;
-      min-width: 150px;
-    }
+      select {
+        height: 2.125rem;
+        padding: 0 2rem 0 0.75rem;
+        font-size: var(--lence-font-size-sm);
+        font-family: inherit;
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        background: var(--lence-bg);
+        color: var(--lence-text);
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        min-width: 150px;
+      }
 
-    select:hover {
-      border-color: var(--lence-border-hover, #d1d5db);
-    }
+      select:hover {
+        border-color: var(--lence-border-hover);
+      }
 
-    select:focus {
-      outline: none;
-      border-color: var(--lence-primary, #2563eb);
-      box-shadow: 0 0 0 2px var(--lence-primary-bg, rgba(37, 99, 235, 0.1));
-    }
+      select:focus {
+        outline: none;
+        border-color: var(--lence-primary);
+        box-shadow: 0 0 0 2px var(--lence-primary-bg);
+      }
 
-    select:disabled {
-      background: var(--lence-bg-subtle, #f9fafb);
-      color: var(--lence-text-muted, #6b7280);
-      cursor: not-allowed;
-    }
+      select:disabled {
+        background: var(--lence-bg-subtle);
+        color: var(--lence-text-muted);
+        cursor: not-allowed;
+      }
 
-    .loading {
-      color: var(--lence-text-muted, #6b7280);
-      font-style: italic;
-    }
-  `;
+      .loading {
+        color: var(--lence-text-muted);
+        font-style: italic;
+      }
+    `,
+  ];
 
   /**
    * Input name for binding (required).

@@ -53,6 +53,15 @@ export interface ApiError {
 }
 
 /**
+ * Frontend settings from backend.
+ */
+export interface Settings {
+  showHelp: boolean;
+  devMode: boolean;
+  title: string;
+}
+
+/**
  * Helper to extract a column's values from query result.
  */
 export function getColumn(result: QueryResult, columnName: string): unknown[] {

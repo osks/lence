@@ -19,6 +19,7 @@ import {
   type PaginationState,
 } from '@tanstack/lit-table';
 import { booleanConverter, type QueryResult } from '../../types.js';
+import { themeDefaults } from '../../styles/theme.js';
 
 // Row type is a record with column names as keys
 type RowData = Record<string, unknown>;
@@ -28,174 +29,177 @@ type RowData = Record<string, unknown>;
  */
 @customElement('lence-data-table')
 export class DataTable extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      font-family: var(--lence-font-family, system-ui);
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-    }
+  static styles = [
+    themeDefaults,
+    css`
+      :host {
+        display: block;
+        font-family: var(--lence-font-family);
+        font-size: var(--lence-font-size-sm);
+      }
 
-    .table-container {
-      overflow-x: auto;
-    }
+      .table-container {
+        overflow-x: auto;
+      }
 
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
 
-    .search-input {
-      padding: 0.375rem 0.625rem;
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-      min-width: 200px;
-      background: var(--lence-bg, #fff);
-      color: var(--lence-text, #374151);
-    }
+      .search-input {
+        padding: 0.375rem 0.625rem;
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        font-size: var(--lence-font-size-sm);
+        min-width: 200px;
+        background: var(--lence-bg);
+        color: var(--lence-text);
+      }
 
-    .search-input:focus {
-      outline: none;
-      border-color: var(--lence-primary, #2563eb);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-    }
+      .search-input:focus {
+        outline: none;
+        border-color: var(--lence-primary);
+        box-shadow: 0 0 0 2px var(--lence-primary-bg);
+      }
 
-    .search-input::placeholder {
-      color: var(--lence-text-muted, #9ca3af);
-    }
+      .search-input::placeholder {
+        color: var(--lence-text-muted);
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
 
-    th,
-    td {
-      padding: 0.375rem 0.5rem;
-      text-align: left;
-      border-bottom: 1px solid var(--lence-border, #e5e7eb);
-    }
+      th,
+      td {
+        padding: 0.375rem 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid var(--lence-border);
+      }
 
-    th {
-      background: var(--lence-bg-subtle, #f9fafb);
-      font-weight: 500;
-      font-size: var(--lence-font-size-xs, 0.6875rem);
-      color: var(--lence-text-muted, #6b7280);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      white-space: nowrap;
-    }
+      th {
+        background: var(--lence-bg-subtle);
+        font-weight: 500;
+        font-size: var(--lence-font-size-xs);
+        color: var(--lence-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+      }
 
-    th.sortable {
-      cursor: pointer;
-      user-select: none;
-    }
+      th.sortable {
+        cursor: pointer;
+        user-select: none;
+      }
 
-    th.sortable:hover {
-      background: var(--lence-bg-muted, #f3f4f6);
-    }
+      th.sortable:hover {
+        background: var(--lence-bg-muted);
+      }
 
-    th .sort-indicator {
-      display: inline-flex;
-      flex-direction: column;
-      margin-left: 0.25rem;
-      vertical-align: middle;
-      gap: 1px;
-    }
+      th .sort-indicator {
+        display: inline-flex;
+        flex-direction: column;
+        margin-left: 0.25rem;
+        vertical-align: middle;
+        gap: 1px;
+      }
 
-    th .sort-indicator svg {
-      width: 8px;
-      height: 6px;
-      fill: var(--lence-text-muted, #9ca3af);
-      opacity: 0.5;
-    }
+      th .sort-indicator svg {
+        width: 8px;
+        height: 6px;
+        fill: var(--lence-text-muted);
+        opacity: 0.5;
+      }
 
-    th .sort-indicator svg.active {
-      fill: var(--lence-primary, #2563eb);
-      opacity: 1;
-    }
+      th .sort-indicator svg.active {
+        fill: var(--lence-primary);
+        opacity: 1;
+      }
 
-    tbody tr:hover {
-      background: var(--lence-bg-subtle, #f9fafb);
-    }
+      tbody tr:hover {
+        background: var(--lence-bg-subtle);
+      }
 
-    td {
-      color: var(--lence-text, #374151);
-    }
+      td {
+        color: var(--lence-text);
+      }
 
-    td.numeric {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-      font-family: var(--lence-font-mono, ui-monospace, monospace);
-    }
+      td.numeric {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-family: var(--lence-font-mono);
+      }
 
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 0.75rem;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.75rem;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
 
-    .pagination-info {
-      color: var(--lence-text-muted, #6b7280);
-      font-size: var(--lence-font-size-xs, 0.75rem);
-    }
+      .pagination-info {
+        color: var(--lence-text-muted);
+        font-size: var(--lence-font-size-xs);
+      }
 
-    .pagination-buttons {
-      display: flex;
-      gap: 0.25rem;
-    }
+      .pagination-buttons {
+        display: flex;
+        gap: 0.25rem;
+      }
 
-    .pagination-btn {
-      padding: 0.25rem 0.5rem;
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      background: var(--lence-bg, #fff);
-      color: var(--lence-text, #374151);
-      font-size: var(--lence-font-size-xs, 0.75rem);
-      cursor: pointer;
-      min-width: 2rem;
-    }
+      .pagination-btn {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        background: var(--lence-bg);
+        color: var(--lence-text);
+        font-size: var(--lence-font-size-xs);
+        cursor: pointer;
+        min-width: 2rem;
+      }
 
-    .pagination-btn:hover:not(:disabled) {
-      background: var(--lence-bg-subtle, #f9fafb);
-      border-color: var(--lence-border-strong, #d1d5db);
-    }
+      .pagination-btn:hover:not(:disabled) {
+        background: var(--lence-bg-subtle);
+        border-color: var(--lence-border-strong);
+      }
 
-    .pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+      .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-    .pagination-btn.active {
-      background: var(--lence-primary, #2563eb);
-      color: white;
-      border-color: var(--lence-primary, #2563eb);
-    }
+      .pagination-btn.active {
+        background: var(--lence-primary);
+        color: white;
+        border-color: var(--lence-primary);
+      }
 
-    .page-size-select {
-      padding: 0.25rem 0.375rem;
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      font-size: var(--lence-font-size-xs, 0.75rem);
-      background: var(--lence-bg, #fff);
-      color: var(--lence-text, #374151);
-    }
+      .page-size-select {
+        padding: 0.25rem 0.375rem;
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        font-size: var(--lence-font-size-xs);
+        background: var(--lence-bg);
+        color: var(--lence-text);
+      }
 
-    .loading,
-    .empty {
-      padding: 1.5rem;
-      text-align: center;
-      color: var(--lence-text-muted, #6b7280);
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-    }
-  `;
+      .loading,
+      .empty {
+        padding: 1.5rem;
+        text-align: center;
+        color: var(--lence-text-muted);
+        font-size: var(--lence-font-size-sm);
+      }
+    `,
+  ];
 
   /**
    * Query name for this table.

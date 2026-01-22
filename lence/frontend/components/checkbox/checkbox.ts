@@ -7,66 +7,70 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { inputs } from '../../stores/inputs.js';
 import { booleanConverter } from '../../types.js';
+import { themeDefaults } from '../../styles/theme.js';
 
 /**
  * Checkbox input component that updates the global inputs store.
  */
 @customElement('lence-checkbox')
 export class LenceCheckbox extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      font-family: var(--lence-font-family, system-ui);
-      font-size: var(--lence-font-size-sm, 0.875rem);
-      margin: 0.75rem 0;
-    }
+  static styles = [
+    themeDefaults,
+    css`
+      :host {
+        display: block;
+        font-family: var(--lence-font-family);
+        font-size: var(--lence-font-size-sm);
+        margin: 0.75rem 0;
+      }
 
-    .checkbox-wrapper {
-      display: inline-flex;
-      flex-direction: column;
-      gap: 0.375rem;
-    }
+      .checkbox-wrapper {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 0.375rem;
+      }
 
-    .title {
-      font-size: var(--lence-font-size-xs, 0.75rem);
-      font-weight: 500;
-      color: var(--lence-text-muted, #6b7280);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
+      .title {
+        font-size: var(--lence-font-size-xs);
+        font-weight: 500;
+        color: var(--lence-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
 
-    .checkbox-container {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      height: 2.125rem;
-      padding: 0 0.75rem;
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      background: var(--lence-bg, #ffffff);
-      cursor: pointer;
-      user-select: none;
-      box-sizing: border-box;
-    }
+      .checkbox-container {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        height: 2.125rem;
+        padding: 0 0.75rem;
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        background: var(--lence-bg);
+        cursor: pointer;
+        user-select: none;
+        box-sizing: border-box;
+      }
 
-    .checkbox-container:hover {
-      border-color: var(--lence-border-hover, #d1d5db);
-    }
+      .checkbox-container:hover {
+        border-color: var(--lence-border-hover);
+      }
 
-    input[type="checkbox"] {
-      width: 0.875rem;
-      height: 0.875rem;
-      margin: 0;
-      cursor: pointer;
-      accent-color: var(--lence-primary, #2563eb);
-    }
+      input[type="checkbox"] {
+        width: 0.875rem;
+        height: 0.875rem;
+        margin: 0;
+        cursor: pointer;
+        accent-color: var(--lence-primary);
+      }
 
-    .label {
-      font-size: var(--lence-font-size-sm, 0.875rem);
-      color: var(--lence-text, #374151);
-      cursor: pointer;
-    }
-  `;
+      .label {
+        font-size: var(--lence-font-size-sm);
+        color: var(--lence-text);
+        cursor: pointer;
+      }
+    `,
+  ];
 
   /**
    * Input name for binding (required).

@@ -10,14 +10,14 @@ Lence provides web components for data visualization.
 
 ### Inputs
 
-- [Dropdown](/_reference/components/dropdown) - Dropdown filter for reactive query filtering
+- [Dropdown](/_docs/components/dropdown) - Dropdown filter for reactive query filtering
 
 ### Visualizations
 
-- [Chart](/_reference/components/chart) - Line, bar, pie, and scatter charts
-- [Area Chart](/_reference/components/area-chart) - Area charts with stacking support
-- [Gantt](/_reference/components/gantt) - Timeline/Gantt charts for milestones and tasks
-- [Data Table](/_reference/components/data-table) - Interactive tables with sorting, search, and pagination
+- [Chart](/_docs/components/chart) - Line, bar, pie, and scatter charts
+- [Area Chart](/_docs/components/area-chart) - Area charts with stacking support
+- [Gantt](/_docs/components/gantt) - Timeline/Gantt charts for milestones and tasks
+- [Data Table](/_docs/components/data-table) - Interactive tables with sorting, search, and pagination
 
 ## Usage
 

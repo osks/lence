@@ -17,9 +17,18 @@ class DataSource(BaseModel):
     headers: dict[str, str] = {}  # HTTP headers for remote sources
 
 
+class DocsVisibility:
+    """Enum-like constants for docs visibility."""
+    DEV = "dev"      # Show help button only in dev mode (default)
+    ALWAYS = "always"  # Always show help button
+    NEVER = "never"   # Never show help button, /_docs routes return 404
+
+
 class Config(BaseModel):
     """Application configuration."""
     sources: dict[str, DataSource] = {}
+    docs: str = DocsVisibility.DEV  # docs visibility: dev, always, never
+    title: str = "Lence"  # site title shown in header
 
 
 def load_yaml(file_path: Path) -> dict[str, Any]:
@@ -58,9 +67,18 @@ def load_sources(project_dir: Path) -> dict[str, DataSource]:
     return result
 
 
+def load_settings(project_dir: Path) -> dict[str, Any]:
+    """Load settings from settings.yaml in project root."""
+    return load_yaml(project_dir / "settings.yaml")
+
+
 def load_config(project_dir: Path | str) -> Config:
     """Load full configuration from project directory."""
     project_dir = Path(project_dir)
+    settings = load_settings(project_dir)
+
     return Config(
         sources=load_sources(project_dir),
+        docs=settings.get("docs", DocsVisibility.DEV),
+        title=settings.get("title", "Lence"),
     )

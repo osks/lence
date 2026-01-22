@@ -18,6 +18,7 @@ import {
   type DataDefinition,
 } from '../../markdoc/index.js';
 import type { QueryResult } from '../../types.js';
+import { themeDefaults } from '../../styles/theme.js';
 
 /**
  * Page component that loads and renders Markdoc content.
@@ -28,166 +29,172 @@ import type { QueryResult } from '../../types.js';
  * - Passing data to embedded components
  */
 export class LencePage extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      font-family: var(--lence-font-family, system-ui);
-      font-size: var(--lence-font-size-sm, 0.875rem);
-      line-height: 1.6;
-    }
+  static styles = [
+    themeDefaults,
+    css`
+      :host {
+        display: block;
+        position: relative;
+        font-family: var(--lence-font-family);
+        font-size: var(--lence-font-size-sm);
+        line-height: 1.6;
+      }
 
-    .loading {
-      color: var(--lence-text-muted, #6b7280);
-      padding: 1.5rem;
-    }
+      .loading {
+        color: var(--lence-text-muted);
+        padding: 1.5rem;
+      }
 
-    .error {
-      padding: 0.75rem;
-      background: var(--lence-negative-bg, #fef2f2);
-      border: 1px solid var(--lence-negative, #dc2626);
-      border-radius: var(--lence-radius, 4px);
-      color: var(--lence-negative, #dc2626);
-      margin: 0.75rem 0;
-    }
+      .error {
+        padding: 0.75rem;
+        background: var(--lence-negative-bg);
+        border: 1px solid var(--lence-negative);
+        border-radius: var(--lence-radius);
+        color: var(--lence-negative);
+        margin: 0.75rem 0;
+      }
 
-    .content {
-      color: var(--lence-text, #374151);
-    }
+      .content {
+        color: var(--lence-text);
+      }
 
-    .content p {
-      margin: 1rem 0;
-    }
+      .content p {
+        margin: 1rem 0;
+      }
 
-    .content h1 {
-      font-size: var(--lence-font-size-xl, 1.375rem);
-      color: var(--lence-text-heading, #111827);
-      font-weight: 600;
-      margin: 0 0 1rem 0;
-    }
+      .content h1 {
+        font-size: var(--lence-font-size-xl);
+        color: var(--lence-text-heading);
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+      }
 
-    .content h1:first-child {
-      margin-top: 0;
-    }
+      .content h1:first-child {
+        margin-top: 0;
+      }
 
-    .content h2 {
-      font-size: var(--lence-font-size-lg, 1.125rem);
-      color: var(--lence-text-heading, #111827);
-      font-weight: 600;
-      margin: 1.5rem 0 0.75rem 0;
-    }
+      .content h2 {
+        font-size: var(--lence-font-size-lg);
+        color: var(--lence-text-heading);
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem 0;
+      }
 
-    .content h3 {
-      font-size: var(--lence-font-size-base, 1rem);
-      color: var(--lence-text-heading, #111827);
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem 0;
-    }
+      .content h3 {
+        font-size: var(--lence-font-size-base);
+        color: var(--lence-text-heading);
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem 0;
+      }
 
-    .content a {
-      color: var(--lence-primary, #2563eb);
-    }
+      .content a {
+        color: var(--lence-primary);
+        text-decoration: none;
+      }
 
-    .content a:hover {
-      color: var(--lence-primary-hover, #1d4ed8);
-    }
+      .content a:hover {
+        text-decoration: underline;
+      }
 
-    .content ul,
-    .content ol {
-      margin: 0.75rem 0;
-      padding-left: 1.5rem;
-    }
+      .content ul,
+      .content ol {
+        margin: 0.75rem 0;
+        padding-left: 1.5rem;
+      }
 
-    .content li {
-      margin: 0.375rem 0;
-    }
+      .content li {
+        margin: 0.375rem 0;
+      }
 
-    .content pre {
-      background: var(--lence-bg-subtle, #f9fafb);
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      padding: 0.75rem 1rem;
-      overflow-x: auto;
-      font-size: var(--lence-font-size-xs, 0.8125rem);
-      line-height: 1.5;
-    }
+      .content pre {
+        background: var(--lence-bg-subtle);
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        padding: 0.75rem 1rem;
+        overflow-x: auto;
+        font-size: var(--lence-font-size-xs);
+        line-height: 1.5;
+      }
 
-    .content code {
-      font-family: var(--lence-font-mono, ui-monospace, monospace);
-      font-size: 0.9em;
-    }
+      .content code {
+        font-family: var(--lence-font-mono);
+        font-size: 0.9em;
+      }
 
-    .content table {
-      border-collapse: collapse;
-      margin: 0.75rem 0;
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-      width: 100%;
-    }
+      .content table {
+        border-collapse: collapse;
+        margin: 0.75rem 0;
+        font-size: var(--lence-font-size-sm);
+        width: 100%;
+      }
 
-    .content th,
-    .content td {
-      padding: 0.375rem 0.5rem;
-      text-align: left;
-      border-bottom: 1px solid var(--lence-border, #e5e7eb);
-    }
+      .content th,
+      .content td {
+        padding: 0.375rem 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid var(--lence-border);
+      }
 
-    .content th {
-      background: var(--lence-bg-subtle, #f9fafb);
-      font-weight: 500;
-      font-size: var(--lence-font-size-xs, 0.6875rem);
-      color: var(--lence-text-muted, #6b7280);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
+      .content th {
+        background: var(--lence-bg-subtle);
+        font-weight: 500;
+        font-size: var(--lence-font-size-xs);
+        color: var(--lence-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
 
-    /* Style for component containers */
-    .content lence-chart,
-    .content lence-area-chart,
-    .content lence-data-table,
-    .content lence-gantt {
-      display: block;
-      margin: 1rem 0;
-    }
+      /* Style for component containers */
+      .content lence-chart,
+      .content lence-area-chart,
+      .content lence-data-table,
+      .content lence-gantt {
+        display: block;
+        margin: 1rem 0;
+      }
 
-    .content lence-dropdown,
-    .content lence-checkbox {
-      display: inline-block;
-      margin: 0.5rem 0.5rem 0.5rem 0;
-    }
+      .content lence-dropdown,
+      .content lence-checkbox {
+        display: inline-block;
+        margin: 0.5rem 0.5rem 0.5rem 0;
+      }
 
-    .page-header {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 0.5rem;
-    }
+      .page-header {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 1;
+      }
 
-    .source-toggle {
-      font-size: var(--lence-font-size-xs, 0.75rem);
-      color: var(--lence-text-muted, #6b7280);
-      background: none;
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      padding: 0.25rem 0.5rem;
-      cursor: pointer;
-    }
+      .source-toggle {
+        font-size: var(--lence-font-size-xs);
+        color: var(--lence-text-muted);
+        background: none;
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+      }
 
-    .source-toggle:hover {
-      background: var(--lence-bg-subtle, #f9fafb);
-      color: var(--lence-text, #374151);
-    }
+      .source-toggle:hover {
+        background: var(--lence-bg-subtle);
+        color: var(--lence-text);
+      }
 
-    .source-view {
-      background: var(--lence-bg-subtle, #f9fafb);
-      border: 1px solid var(--lence-border, #e5e7eb);
-      border-radius: var(--lence-radius, 4px);
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--lence-font-mono, ui-monospace, monospace);
-      font-size: var(--lence-font-size-xs, 0.8125rem);
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-  `;
+      .source-view {
+        background: var(--lence-bg-subtle);
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--lence-font-mono);
+        font-size: var(--lence-font-size-xs);
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    `,
+  ];
 
   @property({ type: String })
   path = '/';

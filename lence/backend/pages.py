@@ -7,6 +7,8 @@ import yaml
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse, JSONResponse
 
+from .config import DocsVisibility
+
 
 # Package directory (where lence is installed)
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -76,7 +78,7 @@ def discover_pages(pages_dir: Path) -> dict[str, Path]:
     return pages
 
 
-def build_menu(pages_dir: Path) -> list[dict]:
+def build_menu(pages_dir: Path, exclude_docs: bool = True) -> list[dict]:
     """Build hierarchical menu structure from pages directories.
 
     Merges built-in pages with project pages (project overrides).
@@ -85,12 +87,20 @@ def build_menu(pages_dir: Path) -> list[dict]:
 
     Section titles come from index.md in the directory (e.g., sales/index.md
     defines the "Sales" section title). Falls back to directory name if no index.
+
+    Args:
+        pages_dir: Project pages directory
+        exclude_docs: If True, excludes /_docs pages from menu (default: True)
     """
     builtin_pages = discover_pages(PACKAGE_PAGES_DIR)
     project_pages = discover_pages(pages_dir)
 
     # Merge: project pages override built-in
     all_pages = {**builtin_pages, **project_pages}
+
+    # Exclude _docs pages from menu (they're accessed via help button)
+    if exclude_docs:
+        all_pages = {k: v for k, v in all_pages.items() if not k.startswith("/_docs")}
 
     # Build a tree where each node can have children
     # Node structure: {"title": str, "path": str|None, "children": {key: node}}
@@ -206,3 +216,25 @@ async def get_page(request: Request, path: str):
     frontmatter = parse_frontmatter(content)
 
     return {"content": content, "frontmatter": frontmatter}
+
+
+@router.get("/settings")
+async def get_settings(request: Request):
+    """Get frontend settings (docs visibility, etc.)."""
+    config = request.app.state.config
+    dev_mode = getattr(request.app.state, "dev_mode", False)
+
+    # Determine if help button should be shown
+    docs_config = config.docs
+    if docs_config == DocsVisibility.ALWAYS:
+        show_help = True
+    elif docs_config == DocsVisibility.NEVER:
+        show_help = False
+    else:  # dev (default)
+        show_help = dev_mode
+
+    return {
+        "showHelp": show_help,
+        "devMode": dev_mode,
+        "title": config.title,
+    }

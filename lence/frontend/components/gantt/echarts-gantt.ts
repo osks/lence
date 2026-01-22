@@ -7,6 +7,7 @@ import { customElement, property } from 'lit/decorators.js';
 import * as echarts from 'echarts';
 import { booleanConverter, type QueryResult, type Column } from '../../types.js';
 import { inputs } from '../../stores/inputs.js';
+import { themeDefaults } from '../../styles/theme.js';
 
 type EChartsInstance = ReturnType<typeof echarts.init>;
 type EChartsOption = echarts.EChartsOption;
@@ -68,45 +69,48 @@ const INPUT_REF_REGEX = /^\$\{inputs\.(\w+)\.value\}$/;
  */
 @customElement('lence-gantt')
 export class EChartsGantt extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      width: 100%;
-      font-family: var(--lence-font-family, system-ui);
-    }
+  static styles = [
+    themeDefaults,
+    css`
+      :host {
+        display: block;
+        width: 100%;
+        font-family: var(--lence-font-family);
+      }
 
-    .chart-container {
-      width: 100%;
-    }
+      .chart-container {
+        width: 100%;
+      }
 
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--lence-text-muted, #6b7280);
-    }
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--lence-text-muted);
+      }
 
-    .error {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--lence-negative, #ef4444);
-      background: var(--lence-negative-bg, #fef2f2);
-      border: 1px solid var(--lence-negative, #ef4444);
-      border-radius: var(--lence-radius, 8px);
-      padding: 1rem;
-    }
+      .error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--lence-negative);
+        background: var(--lence-negative-bg);
+        border: 1px solid var(--lence-negative);
+        border-radius: var(--lence-radius);
+        padding: 1rem;
+      }
 
-    .no-data {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--lence-text-muted, #6b7280);
-    }
-  `;
+      .no-data {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--lence-text-muted);
+      }
+    `,
+  ];
 
   /**
    * Query name to get data from.
@@ -552,10 +556,10 @@ export class EChartsGantt extends LitElement {
           bottom: 10,
           borderColor: 'transparent',
           backgroundColor: '#f3f4f6',
-          fillerColor: 'rgba(37, 99, 235, 0.15)',
+          fillerColor: 'rgba(35, 106, 164, 0.15)',
           handleStyle: {
-            color: '#2563eb',
-            borderColor: '#2563eb',
+            color: '#236aa4',
+            borderColor: '#236aa4',
           },
           moveHandleSize: 0,
           textStyle: {
@@ -572,10 +576,10 @@ export class EChartsGantt extends LitElement {
           right: 10,
           borderColor: 'transparent',
           backgroundColor: '#f3f4f6',
-          fillerColor: 'rgba(37, 99, 235, 0.15)',
+          fillerColor: 'rgba(35, 106, 164, 0.15)',
           handleStyle: {
-            color: '#2563eb',
-            borderColor: '#2563eb',
+            color: '#236aa4',
+            borderColor: '#236aa4',
           },
           moveHandleSize: 0,
           startValue: 0,

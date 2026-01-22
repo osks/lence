@@ -5,6 +5,7 @@
 import { LitElement, css } from 'lit';
 import { property } from 'lit/decorators.js';
 import type { QueryResult, Column } from '../../types.js';
+import { themeDefaults } from '../../styles/theme.js';
 
 /**
  * Chart types supported by the base chart.
@@ -17,47 +18,50 @@ export type ChartType = 'line' | 'bar' | 'pie' | 'scatter' | 'area';
  * Extend this class to implement specific chart libraries.
  */
 export abstract class BaseChart extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-      height: var(--lence-chart-height, 300px);
-      width: 100%;
-      font-family: var(--lence-font-family, system-ui);
-    }
+  static styles = [
+    themeDefaults,
+    css`
+      :host {
+        display: block;
+        height: var(--lence-chart-height);
+        width: 100%;
+        font-family: var(--lence-font-family);
+      }
 
-    .chart-container {
-      width: 100%;
-      height: 100%;
-    }
+      .chart-container {
+        width: 100%;
+        height: 100%;
+      }
 
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--lence-text-muted, #6b7280);
-    }
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--lence-text-muted);
+      }
 
-    .error {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--lence-negative, #ef4444);
-      background: var(--lence-negative-bg, #fef2f2);
-      border: 1px solid var(--lence-negative, #ef4444);
-      border-radius: var(--lence-radius, 8px);
-      padding: 1rem;
-    }
+      .error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--lence-negative);
+        background: var(--lence-negative-bg);
+        border: 1px solid var(--lence-negative);
+        border-radius: var(--lence-radius);
+        padding: 1rem;
+      }
 
-    .no-data {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--lence-text-muted, #6b7280);
-    }
-  `;
+      .no-data {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--lence-text-muted);
+      }
+    `,
+  ];
 
   /**
    * Query name to get data from.

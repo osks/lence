@@ -2,7 +2,7 @@
  * API client for Lence backend.
  */
 
-import type { QueryResult, SourceInfo, MenuItem, QueryRequest, ApiError } from './types.js';
+import type { QueryResult, SourceInfo, MenuItem, QueryRequest, ApiError, Settings } from './types.js';
 
 /**
  * Base URL for API requests.
@@ -86,6 +86,13 @@ export async function fetchSource(name: string): Promise<SourceInfo> {
  */
 export async function fetchMenu(): Promise<MenuItem[]> {
   return fetchJson<MenuItem[]>('/_api/v1/pages/menu');
+}
+
+/**
+ * Get frontend settings (docs visibility, dev mode, etc.).
+ */
+export async function fetchSettings(): Promise<Settings> {
+  return fetchJson<Settings>('/_api/v1/pages/settings');
 }
 
 /**

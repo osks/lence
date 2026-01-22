@@ -10,14 +10,16 @@ import uvicorn
 from lence.backend.app import create_app, PACKAGE_DIR
 
 
-# Environment variable for project path (used by app factory for reload)
+# Environment variables (used by app factory for reload)
 LENCE_PROJECT_ENV = "LENCE_PROJECT_DIR"
+LENCE_DEV_MODE_ENV = "LENCE_DEV_MODE"
 
 
 def _create_app_from_env():
-    """Factory function for uvicorn reload - reads project path from env."""
+    """Factory function for uvicorn reload - reads config from env."""
     project_dir = os.environ.get(LENCE_PROJECT_ENV, ".")
-    return create_app(project_dir)
+    dev_mode = os.environ.get(LENCE_DEV_MODE_ENV, "").lower() == "true"
+    return create_app(project_dir, dev_mode=dev_mode)
 
 
 @click.group()
@@ -46,8 +48,9 @@ def dev(project: str, host: str, port: int):
     click.echo(f"Starting Lence dev server for: {project_path}")
     click.echo(f"Running at: http://{host}:{port}")
 
-    # Set project path in environment for the factory function
+    # Set environment for the factory function
     os.environ[LENCE_PROJECT_ENV] = str(project_path)
+    os.environ[LENCE_DEV_MODE_ENV] = "true"
 
     # Use factory string for reload support
     try:

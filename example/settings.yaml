@@ -1,0 +1,9 @@
+# Lence settings
+# See /_docs/settings for documentation
+
+# Site title shown in header
+title: Lence Example site
+
+# Show documentation help button
+# Options: dev (default), always, never
+docs: dev

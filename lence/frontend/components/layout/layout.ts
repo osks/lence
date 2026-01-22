@@ -4,127 +4,172 @@
 
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import type { MenuItem } from '../../types.js';
-import { fetchMenu } from '../../api.js';
+import type { MenuItem, Settings } from '../../types.js';
+import { fetchMenu, fetchSettings } from '../../api.js';
 import { getRouter } from '../../router.js';
+import { themeDefaults } from '../../styles/theme.js';
 
 /**
  * Main application layout with sidebar and content area.
  */
 export class LenceLayout extends LitElement {
-  static styles = css`
-    :host {
-      display: flex;
-      min-height: 100vh;
-      padding: 0 2rem;
-      font-family: var(--lence-font-family, system-ui);
-    }
-
-    .sidebar {
-      width: 220px;
-      flex-shrink: 0;
-      background: var(--lence-bg, #fff);
-      padding: 0.75rem;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      box-sizing: border-box;
-    }
-
-    .sidebar-header {
-      font-size: var(--lence-font-size-base, 0.9375rem);
-      font-weight: 600;
-      color: var(--lence-text-heading, #111827);
-      margin-bottom: 1rem;
-      padding: 0.25rem 0.5rem;
-    }
-
-    .main {
-      flex: 1;
-      padding: 1rem 2rem;
-      min-width: 0;
-    }
-
-    .sidebar-right {
-      width: 220px;
-      flex-shrink: 0;
-    }
-
-    nav ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    nav li {
-      margin-bottom: 1px;
-    }
-
-    nav a {
-      display: block;
-      padding: 0.3rem 0.5rem;
-      border-radius: var(--lence-radius, 4px);
-      text-decoration: none;
-      color: var(--lence-text, #374151);
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-      cursor: pointer;
-      transition: background-color 0.1s ease;
-    }
-
-    nav a:hover {
-      background: var(--lence-bg-muted, #f3f4f6);
-    }
-
-    nav a.active {
-      background: var(--lence-primary-bg, #eff6ff);
-      color: var(--lence-primary, #2563eb);
-      font-weight: 500;
-    }
-
-    .nav-group-title {
-      display: block;
-      font-weight: 500;
-      font-size: var(--lence-font-size-xs, 0.6875rem);
-      color: var(--lence-text-muted, #6b7280);
-      padding: 0.3rem 0.5rem;
-      margin-top: 0.625rem;
-      text-decoration: none;
-      border-radius: var(--lence-radius, 4px);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    a.nav-group-title {
-      cursor: pointer;
-    }
-
-    a.nav-group-title:hover {
-      background: var(--lence-bg-muted, #f3f4f6);
-    }
-
-    a.nav-group-title.active {
-      background: var(--lence-primary-bg, #eff6ff);
-      color: var(--lence-primary, #2563eb);
-    }
-
-    .nav-children {
-      padding-left: 0.5rem;
-    }
-
-    .loading {
-      color: var(--lence-text-muted, #6b7280);
-      padding: 0.75rem;
-      font-size: var(--lence-font-size-sm, 0.8125rem);
-    }
-
-    @media (max-width: 768px) {
-      .sidebar,
-      .sidebar-right {
-        display: none;
+  static styles = [
+    themeDefaults,
+    css`
+      :host {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        font-family: var(--lence-font-family);
       }
-    }
-  `;
+
+      .header {
+        display: flex;
+        padding: 0 3rem;
+        border-bottom: 1px solid var(--lence-border);
+        background: var(--lence-bg);
+      }
+
+      .header-left {
+        width: 220px;
+        flex-shrink: 0;
+        padding: 0.5rem 0.75rem;
+        box-sizing: border-box;
+      }
+
+      .header-title {
+        font-size: var(--lence-font-size-base);
+        font-weight: 600;
+        color: var(--lence-text-heading);
+      }
+
+      .header-main {
+        flex: 1;
+        padding: 0.5rem 2rem;
+      }
+
+      .header-right {
+        width: 220px;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 0.5rem 0;
+      }
+
+      .docs-link {
+        color: var(--lence-text-muted);
+        font-size: var(--lence-font-size-sm);
+        text-decoration: none;
+      }
+
+      .docs-link:hover {
+        color: var(--lence-text);
+      }
+
+      .body {
+        display: flex;
+        flex: 1;
+        padding: 0 3rem;
+      }
+
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        background: var(--lence-bg);
+        padding: 0.75rem;
+        position: sticky;
+        top: 0;
+        height: calc(100vh - 3rem);
+        overflow-y: auto;
+        box-sizing: border-box;
+      }
+
+      .main {
+        flex: 1;
+        padding: 1rem 2rem;
+        min-width: 0;
+      }
+
+      .sidebar-right {
+        width: 220px;
+        flex-shrink: 0;
+      }
+
+      nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      nav li {
+        margin-bottom: 1px;
+      }
+
+      nav a {
+        display: block;
+        padding: 0.3rem 0.5rem;
+        border-radius: var(--lence-radius);
+        text-decoration: none;
+        color: var(--lence-text);
+        font-size: var(--lence-font-size-sm);
+        cursor: pointer;
+      }
+
+      nav a:hover {
+        text-decoration: underline;
+      }
+
+      nav a.active {
+        background: var(--lence-primary-bg);
+        color: var(--lence-primary);
+        font-weight: 500;
+      }
+
+      .nav-group-title {
+        display: block;
+        font-weight: 500;
+        font-size: var(--lence-font-size-xs);
+        color: var(--lence-text-muted);
+        padding: 0.3rem 0.5rem;
+        margin-top: 0.625rem;
+        text-decoration: none;
+        border-radius: var(--lence-radius);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      a.nav-group-title {
+        cursor: pointer;
+      }
+
+      a.nav-group-title:hover {
+        background: var(--lence-bg-muted);
+      }
+
+      a.nav-group-title.active {
+        background: var(--lence-primary-bg);
+        color: var(--lence-primary);
+      }
+
+      .nav-children {
+        padding-left: 0.5rem;
+      }
+
+      .loading {
+        color: var(--lence-text-muted);
+        padding: 0.75rem;
+        font-size: var(--lence-font-size-sm);
+      }
+
+      @media (max-width: 768px) {
+        .sidebar,
+        .sidebar-right {
+          display: none;
+        }
+      }
+    `,
+  ];
 
   @state()
   private menu: MenuItem[] = [];
@@ -135,11 +180,18 @@ export class LenceLayout extends LitElement {
   @state()
   private currentPath = '/';
 
+  @state()
+  private showHelp = false;
+
+  @state()
+  private siteTitle = 'Lence';
+
   private unsubscribeRouter?: () => void;
 
   connectedCallback() {
     super.connectedCallback();
     this.loadMenu();
+    this.loadSettings();
 
     // Subscribe to route changes
     const router = getRouter();
@@ -164,6 +216,16 @@ export class LenceLayout extends LitElement {
       this.menu = [];
     } finally {
       this.loading = false;
+    }
+  }
+
+  private async loadSettings() {
+    try {
+      const settings = await fetchSettings();
+      this.showHelp = settings.showHelp;
+      this.siteTitle = settings.title;
+    } catch (error) {
+      console.error('Failed to load settings:', error);
     }
   }
 
@@ -221,22 +283,40 @@ export class LenceLayout extends LitElement {
 
   render() {
     return html`
-      <aside class="sidebar">
-        <div class="sidebar-header">Lence</div>
-        <nav>
-          ${this.loading
-            ? html`<div class="loading">Loading...</div>`
-            : html`
-                <ul>
-                  ${this.menu.map((item) => this.renderMenuItem(item))}
-                </ul>
-              `}
-        </nav>
-      </aside>
-      <main class="main">
-        <slot></slot>
-      </main>
-      <aside class="sidebar-right"></aside>
+      <header class="header">
+        <div class="header-left">
+          <span class="header-title">${this.siteTitle}</span>
+        </div>
+        <div class="header-main"></div>
+        <div class="header-right">
+          ${this.showHelp
+            ? html`
+                <a
+                  href="/_docs/"
+                  class="docs-link"
+                  @click=${(e: Event) => this.handleNavClick(e, '/_docs/')}
+                >Docs</a>
+              `
+            : null}
+        </div>
+      </header>
+      <div class="body">
+        <aside class="sidebar">
+          <nav>
+            ${this.loading
+              ? html`<div class="loading">Loading...</div>`
+              : html`
+                  <ul>
+                    ${this.menu.map((item) => this.renderMenuItem(item))}
+                  </ul>
+                `}
+          </nav>
+        </aside>
+        <main class="main">
+          <slot></slot>
+        </main>
+        <aside class="sidebar-right"></aside>
+      </div>
     `;
   }
 }

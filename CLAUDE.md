@@ -104,7 +104,7 @@ When adding a new Lit component that receives query data:
 3. **Add Markdoc tag** in `lence/frontend/markdoc/index.ts` (in `tags` object)
 4. **Update extractComponents** in `markdoc/index.ts` to recognize the new tag name
 5. **Update page.ts** - add to `querySelectorAll` in `updateComponentData()` and CSS selector
-6. **Add reference docs** in `lence/pages/_reference/components/<name>.md` and update the index
+6. **Add docs** in `lence/pages/_docs/components/<name>.md` and update the index
 
 Components receive data via the `data` property (type `QueryResult`):
 ```typescript

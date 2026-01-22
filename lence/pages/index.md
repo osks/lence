@@ -20,7 +20,7 @@ my-project/
 - **Markdown** - Write content with Markdoc syntax
 - **SQL Queries** - Query Parquet, Postgres, CSV, JSON, HTTP APIs with DuckDB
 - **Charts** - Line, bar, pie, and more with ECharts
-- **Tables** - Sortable data tables
+- **Tables** - Interactive data tables with search and pagination
 
 ## Syntax
 
@@ -28,9 +28,9 @@ Define queries and visualizations using Markdoc tags:
 
 - `query` - Define a SQL query with `name` and `source` attributes
 - `chart` - Render a chart with `data`, `type`, `x`, and `y` attributes
-- `table` - Render a data table with `data` attribute
+- `dataTable` - Render a data table with `data` attribute
 - `data` - Define inline static data (no database needed)
 
-## Reference
+## Documentation
 
-- [Component Reference](/_reference/components) - Chart and table component documentation with examples
+Click the **?** button in the sidebar to access component documentation and examples.
