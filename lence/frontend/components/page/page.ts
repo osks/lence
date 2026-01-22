@@ -142,7 +142,6 @@ export class LencePage extends LitElement {
     /* Style for component containers */
     .content lence-chart,
     .content lence-area-chart,
-    .content lence-table,
     .content lence-data-table,
     .content lence-gantt {
       display: block;
@@ -399,7 +398,7 @@ export class LencePage extends LitElement {
     if (!contentDiv) return;
 
     // Find chart, table, and gantt components
-    const dataComponents = contentDiv.querySelectorAll('lence-chart, lence-area-chart, lence-table, lence-data-table, lence-gantt');
+    const dataComponents = contentDiv.querySelectorAll('lence-chart, lence-area-chart, lence-data-table, lence-gantt');
 
     for (const component of dataComponents) {
       // Markdoc uses 'data' attribute, but we also check 'query' for backwards compat

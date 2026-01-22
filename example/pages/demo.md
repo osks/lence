@@ -27,4 +27,4 @@ LIMIT 5
     y="revenue"
 /%}
 
-{% table data="top_products" /%}
+{% dataTable data="top_products" /%}

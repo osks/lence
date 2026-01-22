@@ -4,26 +4,20 @@ showSource: true
 
 # Data Table Component
 
-Full-featured table with search, pagination, and sorting. Works correctly in shadow DOM environments.
-
-``` {% process=false %}
-{% dataTable
-    data="query_name"
-    search=true
-    pagination=10
-/%}
-```
+Renders data as an interactive table with sorting, search, and pagination.
 
 ## Attributes
 
-| Attribute | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `data` | Yes | - | Name of query or data to display |
-| `search` | No | `false` | Set `search=true` to show a search box above the table |
-| `pagination` | No | disabled | Set `pagination=N` to show N rows per page with pagination controls |
-| `sort` | No | `true` | Set `sort=false` to disable column sorting |
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `data` | Yes | Name of query or data to display |
+| `search` | No | Enable search box (default: false) |
+| `pagination` | No | Rows per page (enables pagination) |
+| `sort` | No | Enable column sorting (default: true) |
 
-## Basic Data Table
+## Basic Table
+
+Click column headers to sort.
 
 {% data name="products" %}
 {
@@ -39,11 +33,7 @@ Full-featured table with search, pagination, and sorting. Works correctly in sha
     ["T-Shirt", "Clothing", 29.99, 200],
     ["Coffee Maker", "Appliances", 79.99, 35],
     ["Book", "Books", 19.99, 500],
-    ["Mouse", "Electronics", 49.99, 80],
-    ["Keyboard", "Electronics", 89.99, 65],
-    ["Jeans", "Clothing", 59.99, 150],
-    ["Blender", "Appliances", 49.99, 40],
-    ["Notebook", "Books", 9.99, 300]
+    ["Mouse", "Electronics", 49.99, 80]
   ]
 }
 {% /data %}
@@ -54,48 +44,29 @@ Full-featured table with search, pagination, and sorting. Works correctly in sha
 {% dataTable data="products" /%}
 ```
 
-## With Search
+## With Search and Pagination
 
-{% dataTable
-    data="products"
-    search=true
-/%}
+{% dataTable data="products" search=true pagination=3 /%}
 
 ``` {% process=false %}
-{% dataTable
-    data="products"
-    search=true
-/%}
+{% dataTable data="products" search=true pagination=3 /%}
 ```
 
-## With Pagination
+## Data Format
 
-{% dataTable
-    data="products"
-    pagination=5
-/%}
+Tables expect data in the standard query result format:
 
-``` {% process=false %}
-{% dataTable
-    data="products"
-    pagination=5
-/%}
+```json
+{
+  "columns": [
+    {"name": "column_name", "type": "VARCHAR"},
+    {"name": "amount", "type": "DOUBLE"}
+  ],
+  "data": [
+    ["Row 1", 100.50],
+    ["Row 2", 200.75]
+  ]
+}
 ```
 
-## Full Featured
-
-Search and pagination combined.
-
-{% dataTable
-    data="products"
-    search=true
-    pagination=5
-/%}
-
-``` {% process=false %}
-{% dataTable
-    data="products"
-    search=true
-    pagination=5
-/%}
-```
+Supported types: `VARCHAR`, `INTEGER`, `DOUBLE`, `DATE`, `BOOLEAN`

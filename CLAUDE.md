@@ -66,9 +66,9 @@ FROM orders GROUP BY 1
 
 {% chart data="monthly" type="line" x="month" y="total" /%}
 
-{% table data="monthly" /%}
+{% dataTable data="monthly" /%}
 
-{% gridTable data="monthly" search=true pagination=10 /%}
+{% dataTable data="monthly" search=true pagination=10 /%}
 ```
 
 ### Code Examples in Docs
@@ -77,7 +77,7 @@ To show Markdoc tags in code blocks without them being parsed, use `{% process=f
 
 ````markdown
 ```markdown {% process=false %}
-{% table data="example" /%}
+{% dataTable data="example" /%}
 ```
 ````
 

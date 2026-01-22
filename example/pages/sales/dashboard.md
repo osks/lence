@@ -69,11 +69,11 @@ Revenue over time shows our growth trajectory.
     title="Revenue by Region"
 /%}
 
-{% table data="by_region" /%}
+{% dataTable data="by_region" /%}
 
 ## Recent Orders
 
-{% table data="recent_orders" /%}
+{% dataTable data="recent_orders" /%}
 
 ## Data Table Demo
 

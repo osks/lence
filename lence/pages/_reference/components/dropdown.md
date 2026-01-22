@@ -91,5 +91,5 @@ SELECT * FROM products
 WHERE category LIKE '${inputs.cat_filter.value}'
 {% /query %}
 
-{% table data="filtered_products" /%}
+{% dataTable data="filtered_products" /%}
 ```

@@ -73,7 +73,7 @@ ORDER BY date DESC
 LIMIT 100
 {% /query %}
 
-{% table data="recent_orders" /%}
+{% dataTable data="recent_orders" /%}
 ```
 
 The `source` attribute must match a source `id` from your `sources.yaml`.

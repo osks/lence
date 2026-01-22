@@ -5,7 +5,7 @@
  * Supports:
  * - {% query name="..." source="..." %}SQL{% /query %} - Define SQL queries
  * - {% chart data="..." type="..." x="..." y="..." /%} - Render charts
- * - {% table data="..." /%} - Render tables
+ * - {% dataTable data="..." /%} - Render tables
  */
 
 import Markdoc, { type Config, type Node, type RenderableTreeNode } from '@markdoc/markdoc';
@@ -102,14 +102,6 @@ const tags: Config['tags'] = {
       y: { type: String, required: true },
       title: { type: String },
       stacked: { type: Boolean, default: false },
-    },
-  },
-
-  table: {
-    render: 'lence-table',
-    selfClosing: true,
-    attributes: {
-      data: { type: String, required: true },
     },
   },
 

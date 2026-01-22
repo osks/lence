@@ -101,17 +101,17 @@ SELECT * FROM orders
     expect(html).toContain('y="revenue"');
   });
 
-  it('should render table tags', () => {
+  it('should render dataTable tags', () => {
     const content = `
 # Data
 
-{% table data="sales" /%}
+{% dataTable data="sales" /%}
 `;
 
     const result = parseMarkdoc(content);
     const html = renderToHtml(result.content);
 
-    expect(html).toContain('lence-table');
+    expect(html).toContain('lence-data-table');
     expect(html).toContain('data="sales"');
   });
 });
@@ -129,27 +129,27 @@ describe('extractComponents', () => {
     expect(components[0].attributes.y).toBe('revenue');
   });
 
-  it('should extract table components', () => {
-    const content = '{% table data="products" /%}';
+  it('should extract dataTable components', () => {
+    const content = '{% dataTable data="products" /%}';
     const result = parseMarkdoc(content);
     const components = extractComponents(result.content);
 
     expect(components).toHaveLength(1);
-    expect(components[0].type).toBe('lence-table');
+    expect(components[0].type).toBe('lence-data-table');
     expect(components[0].attributes.data).toBe('products');
   });
 
   it('should extract multiple components', () => {
     const content = `
 {% chart data="sales" type="bar" x="month" y="count" /%}
-{% table data="details" /%}
+{% dataTable data="details" /%}
 `;
     const result = parseMarkdoc(content);
     const components = extractComponents(result.content);
 
     expect(components).toHaveLength(2);
     expect(components[0].type).toBe('lence-chart');
-    expect(components[1].type).toBe('lence-table');
+    expect(components[1].type).toBe('lence-data-table');
   });
 
   it('should return empty array when no components', () => {
@@ -164,7 +164,7 @@ describe('getReferencedQueries', () => {
   it('should extract unique query names from components', () => {
     const components = [
       { type: 'lence-chart', attributes: { data: 'sales', x: 'month' } },
-      { type: 'lence-table', attributes: { data: 'details' } },
+      { type: 'lence-data-table', attributes: { data: 'details' } },
     ];
 
     const queries = getReferencedQueries(components);
@@ -177,7 +177,7 @@ describe('getReferencedQueries', () => {
   it('should deduplicate query references', () => {
     const components = [
       { type: 'lence-chart', attributes: { data: 'sales' } },
-      { type: 'lence-table', attributes: { data: 'sales' } },
+      { type: 'lence-data-table', attributes: { data: 'sales' } },
     ];
 
     const queries = getReferencedQueries(components);
@@ -189,7 +189,7 @@ describe('getReferencedQueries', () => {
   it('should ignore components without data attribute', () => {
     const components = [
       { type: 'lence-chart', attributes: { x: 'month' } },
-      { type: 'lence-table', attributes: { data: 'sales' } },
+      { type: 'lence-data-table', attributes: { data: 'sales' } },
     ];
 
     const queries = getReferencedQueries(components);
