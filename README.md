@@ -1,6 +1,7 @@
 # Lence
 
-A lightweight data visualization framework. Write markdown pages with SQL queries, render charts and tables.
+Lightweight BI as code and data visualization framework. Write
+markdown pages with SQL queries, render charts and tables.
 
 ## Quick Start
 
