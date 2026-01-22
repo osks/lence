@@ -2,7 +2,7 @@
  * API client for Lence backend.
  */
 
-import type { QueryResult, SourceInfo, MenuItem, QueryRequest, ApiError, Settings } from './types.js';
+import type { QueryResult, SourceInfo, MenuItem, QueryRequest, SecureQueryRequest, ApiError, Settings } from './types.js';
 
 /**
  * Base URL for API requests.
@@ -55,6 +55,8 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
 /**
  * Execute a SQL query against a data source.
+ *
+ * @deprecated Use executeQuerySecure instead for better security.
  */
 export async function executeQuery(
   source: string,
@@ -62,6 +64,28 @@ export async function executeQuery(
 ): Promise<QueryResult> {
   const request: QueryRequest = { source, sql };
   return fetchJson<QueryResult>('/_api/v1/sources/query', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Execute a predefined query by name (secure version).
+ *
+ * Instead of sending raw SQL, this sends:
+ * - page: The page path where the query is defined
+ * - query: The query name (from {% query name="..." %})
+ * - params: Parameter values for ${inputs.X.value} placeholders
+ *
+ * The backend validates the query exists and interpolates params safely.
+ */
+export async function executeQuerySecure(
+  page: string,
+  queryName: string,
+  params: Record<string, unknown> = {},
+): Promise<QueryResult> {
+  const request: SecureQueryRequest = { page, query: queryName, params };
+  return fetchJson<QueryResult>('/_api/v1/sources/query/v2', {
     method: 'POST',
     body: JSON.stringify(request),
   });

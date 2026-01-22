@@ -38,11 +38,20 @@ export interface MenuItem {
 }
 
 /**
- * Request body for executing a query.
+ * Request body for executing a query (legacy).
  */
 export interface QueryRequest {
   source: string;
   sql: string;
+}
+
+/**
+ * Request body for secure query execution.
+ */
+export interface SecureQueryRequest {
+  page: string;
+  query: string;
+  params: Record<string, unknown>;
 }
 
 /**

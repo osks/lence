@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from .config import load_config
 from .database import init_database
+from .query_registry import init_registry
 from .sources import router as sources_router
 from .pages import router as pages_router, PACKAGE_DIR
 
@@ -41,6 +42,9 @@ def create_app(project_dir: Path | str = ".", dev_mode: bool = False) -> FastAPI
 
         db = init_database()
         db.register_sources(config.sources, base_dir=project_dir)
+
+        # Initialize query registry from markdown pages
+        init_registry(pages_dir)
 
         # Store config and paths in app state for access in routes
         app.state.config = config

@@ -5,7 +5,7 @@
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { fetchPage, executeQuery, type PageResponse } from '../../api.js';
+import { fetchPage, executeQuerySecure, type PageResponse } from '../../api.js';
 import { inputs } from '../../stores/inputs.js';
 import { pathToPageName } from '../../router.js';
 import {
@@ -225,6 +225,9 @@ export class LencePage extends LitElement {
 
   private queryMap: Map<string, QueryDefinition> = new Map();
 
+  /** Current page path for secure query API */
+  private pagePath = '';
+
   /** Maps input name -> array of query names that depend on it */
   private inputDependencies: Map<string, string[]> = new Map();
 
@@ -270,6 +273,9 @@ export class LencePage extends LitElement {
       // Fetch page content with frontmatter
       const pageName = pathToPageName(this.path);
       const page = await fetchPage(pageName);
+
+      // Store page path for secure query API (with leading slash)
+      this.pagePath = '/' + pageName + '.md';
 
       // Store raw content and frontmatter settings
       this.rawContent = page.content;
@@ -367,9 +373,10 @@ export class LencePage extends LitElement {
       }
 
       try {
-        // Interpolate SQL with current input values
-        const interpolatedSql = this.interpolateSQL(query.sql);
-        const result = await executeQuery(query.source, interpolatedSql);
+        // Collect params from inputs
+        const params = this.collectQueryParams(query);
+        // Use secure API - backend handles interpolation
+        const result = await executeQuerySecure(this.pagePath, name, params);
         this.queryData = new Map(this.queryData).set(name, result);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Query failed';
@@ -381,19 +388,21 @@ export class LencePage extends LitElement {
   }
 
   /**
-   * Interpolate SQL with current input values.
-   * Replaces ${inputs.name.value} with the escaped value (no quotes added).
-   * User provides quotes in SQL: WHERE col = '${inputs.x.value}'
+   * Collect parameter values from inputs for a query.
+   * Extracts values for all ${inputs.X.value} references in the query SQL.
    */
-  private interpolateSQL(sql: string): string {
-    return sql.replace(/\$\{inputs\.(\w+)\.value\}/g, (_, inputName) => {
-      const input = inputs.get(inputName);
-      if (input.value === null) {
-        return '';
+  private collectQueryParams(query: QueryDefinition): Record<string, unknown> {
+    const params: Record<string, unknown> = {};
+    const inputPattern = /\$\{inputs\.(\w+)\.value\}/g;
+    let match;
+    while ((match = inputPattern.exec(query.sql)) !== null) {
+      const inputName = match[1];
+      if (!(inputName in params)) {
+        const input = inputs.get(inputName);
+        params[inputName] = input.value ?? '';
       }
-      // Escape single quotes for SQL safety
-      return input.value.replace(/'/g, "''");
-    });
+    }
+    return params;
   }
 
   /**
