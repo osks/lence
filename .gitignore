@@ -41,3 +41,4 @@ htmlcov/
 # Ruff
 .ruff_cache/
 
+research/
