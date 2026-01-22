@@ -58,6 +58,10 @@ export class LenceLayout extends LitElement {
       }
 
       .docs-link {
+        display: block;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--lence-border);
         color: var(--lence-text-muted);
         font-size: var(--lence-font-size-sm);
         text-decoration: none;
@@ -288,17 +292,7 @@ export class LenceLayout extends LitElement {
           <span class="header-title">${this.siteTitle}</span>
         </div>
         <div class="header-main"></div>
-        <div class="header-right">
-          ${this.showHelp
-            ? html`
-                <a
-                  href="/_docs/"
-                  class="docs-link"
-                  @click=${(e: Event) => this.handleNavClick(e, '/_docs/')}
-                >Docs</a>
-              `
-            : null}
-        </div>
+        <div class="header-right"></div>
       </header>
       <div class="body">
         <aside class="sidebar">
@@ -311,6 +305,15 @@ export class LenceLayout extends LitElement {
                   </ul>
                 `}
           </nav>
+          ${this.showHelp
+            ? html`
+                <a
+                  href="/_docs/"
+                  class="docs-link"
+                  @click=${(e: Event) => this.handleNavClick(e, '/_docs/')}
+                >Docs</a>
+              `
+            : null}
         </aside>
         <main class="main">
           <slot></slot>

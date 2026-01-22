@@ -6,4 +6,4 @@ title: Lence Example site
 
 # Show documentation help button
 # Options: dev (default), always, never
-docs: dev
+docs: always
