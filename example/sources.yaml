@@ -32,6 +32,7 @@ sources:
   #   headers:
   #     Authorization: "Bearer ${API_TOKEN}"
 
+  # duckdb -c "COPY (SELECT * FROM 'example/sources/milestones.csv') TO 'example/sources/milestones.parquet'"
   - id: gitlab_milestones
     type: parquet
     path: ./sources/milestones.parquet

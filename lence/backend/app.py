@@ -1,5 +1,6 @@
 """FastAPI application factory for Lence."""
 
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -45,10 +46,13 @@ def create_app(project_dir: Path | str = ".") -> FastAPI:
         app.state.project_dir = project_dir
         app.state.pages_dir = pages_dir
 
-        yield
-
-        # Shutdown: Close database
-        db.close()
+        try:
+            yield
+        except asyncio.CancelledError:
+            pass  # Normal shutdown on Ctrl+C
+        finally:
+            # Shutdown: Close database
+            db.close()
 
     app = FastAPI(
         title="Lence",

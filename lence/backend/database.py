@@ -1,10 +1,13 @@
 """DuckDB database management for Lence."""
 
+import logging
 from pathlib import Path
 from typing import Any
 import duckdb
 
 from .config import DataSource
+
+logger = logging.getLogger(__name__)
 
 
 class QueryResult:
@@ -91,7 +94,10 @@ class Database:
     def register_sources(self, sources: dict[str, DataSource], base_dir: Path | None = None) -> None:
         """Register multiple data sources."""
         for name, source in sources.items():
-            self.register_source(name, source, base_dir)
+            try:
+                self.register_source(name, source, base_dir)
+            except Exception as e:
+                logger.warning(f"Failed to register source '{name}': {e}")
 
     def execute_query(self, sql: str) -> QueryResult:
         """Execute a SQL query and return results in table format."""

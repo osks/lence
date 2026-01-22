@@ -50,14 +50,17 @@ def dev(project: str, host: str, port: int):
     os.environ[LENCE_PROJECT_ENV] = str(project_path)
 
     # Use factory string for reload support
-    uvicorn.run(
-        "lence.cli:_create_app_from_env",
-        factory=True,
-        host=host,
-        port=port,
-        reload=True,
-        reload_dirs=[str(project_path / "pages")],
-    )
+    try:
+        uvicorn.run(
+            "lence.cli:_create_app_from_env",
+            factory=True,
+            host=host,
+            port=port,
+            reload=True,
+            reload_dirs=[str(project_path / "pages")],
+        )
+    except KeyboardInterrupt:
+        pass  # Clean exit on Ctrl+C
 
 
 @cli.command()
@@ -80,7 +83,10 @@ def serve(project: str, host: str, port: int, workers: int):
     click.echo(f"Running at: http://{host}:{port}")
 
     app = create_app(project_path)
-    uvicorn.run(app, host=host, port=port, workers=workers)
+    try:
+        uvicorn.run(app, host=host, port=port, workers=workers)
+    except KeyboardInterrupt:
+        pass  # Clean exit on Ctrl+C
 
 
 @cli.command()
