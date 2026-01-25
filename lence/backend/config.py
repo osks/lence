@@ -10,10 +10,9 @@ from pydantic import BaseModel
 
 class DataSource(BaseModel):
     """A data source configuration."""
-    id: str
-    type: str  # csv, parquet, etc.
+    table: str  # DuckDB table name
+    type: str  # csv, parquet, json, etc.
     path: str
-    description: str = ""
     headers: dict[str, str] = {}  # HTTP headers for remote sources
 
 
@@ -63,7 +62,7 @@ def load_sources(project_dir: Path) -> dict[str, DataSource]:
             }
 
         source = DataSource(**source_config)
-        result[source.id] = source
+        result[source.table] = source
 
     return result
 

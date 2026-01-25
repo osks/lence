@@ -14,15 +14,13 @@ router = APIRouter(tags=["sources"])
 class QueryRequest(BaseModel):
     """Request body for query execution.
 
-    The frontend always sends all fields. Backend decides what to use:
-    - Normal mode: Uses page + query to lookup in registry, ignores source/sql
-    - Edit mode: Uses provided source + sql, skips registry
+    - Normal mode: Uses page + query to lookup in registry
+    - Edit mode: Uses provided sql, skips registry
     """
     page: str
     query: str
     params: dict[str, Any] = {}
-    # These are used in edit mode (when query isn't in registry yet)
-    source: str | None = None
+    # Used in edit mode (when query isn't in registry yet)
     sql: str | None = None
 
 
@@ -41,9 +39,8 @@ class QueryResponse(BaseModel):
 
 class SourceInfo(BaseModel):
     """Information about a data source."""
-    name: str
+    table: str
     type: str
-    description: str
 
 
 class ErrorResponse(BaseModel):
@@ -62,20 +59,18 @@ async def execute_query(request: QueryRequest, req: Request) -> QueryResponse:
     - SQL is interpolated server-side with proper escaping
 
     In edit mode (--edit flag):
-    - Uses provided source and sql from request
+    - Uses provided sql from request
     - Allows authoring new pages with live query preview
     """
     registry = get_registry()
-    db = get_database()
     edit_mode = getattr(req.app.state, "edit_mode", False)
 
     # Determine query definition: from registry or from request
-    # In edit mode with source/sql provided, use those directly
+    # In edit mode with sql provided, use it directly
     # Otherwise, always use registry lookup
-    if edit_mode and request.source is not None and request.sql is not None:
+    if edit_mode and request.sql is not None:
         query = QueryDefinition(
             name=request.query,
-            source=request.source,
             sql=request.sql,
             params=extract_params(request.sql),
         )
@@ -87,13 +82,6 @@ async def execute_query(request: QueryRequest, req: Request) -> QueryResponse:
                 status_code=404,
                 detail=f"Query not found: '{request.query}' on page '{request.page}'",
             )
-
-    # Validate source exists
-    if query.source not in db.sources:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown source: {query.source}",
-        )
 
     # Validate parameters match expected
     expected_params = set(query.params)
@@ -116,6 +104,7 @@ async def execute_query(request: QueryRequest, req: Request) -> QueryResponse:
     # Interpolate parameters into SQL
     sql = registry.interpolate_sql(query, request.params)
 
+    db = get_database()
     try:
         result = db.execute_query(sql)
         return QueryResponse(
@@ -138,20 +127,19 @@ async def list_sources() -> list[SourceInfo]:
     return [SourceInfo(**source) for source in sources]
 
 
-@router.get("/{source_name}", response_model=SourceInfo)
-async def get_source(source_name: str) -> SourceInfo:
-    """Get information about a specific data source."""
+@router.get("/{table_name}", response_model=SourceInfo)
+async def get_source(table_name: str) -> SourceInfo:
+    """Get information about a specific data source by table name."""
     db = get_database()
 
-    if source_name not in db.sources:
+    if table_name not in db.sources:
         raise HTTPException(
             status_code=404,
-            detail=f"Source not found: {source_name}",
+            detail=f"Table not found: {table_name}",
         )
 
-    source = db.sources[source_name]
+    source = db.sources[table_name]
     return SourceInfo(
-        name=source_name,
+        table=table_name,
         type=source.type,
-        description=source.description,
     )

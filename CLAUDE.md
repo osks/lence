@@ -58,18 +58,18 @@ example/            # Example project for development
 
 ## Markdoc Syntax
 
-```markdown
-{% query name="monthly" source="orders" %}
+````markdown
+```sql monthly
 SELECT strftime(date, '%Y-%m') as month, SUM(amount) as total
 FROM orders GROUP BY 1
-{% /query %}
+```
 
 {% chart data="monthly" type="line" x="month" y="total" /%}
 
 {% dataTable data="monthly" /%}
 
 {% dataTable data="monthly" search=true pagination=10 /%}
-```
+````
 
 ### Code Examples in Docs
 
@@ -84,8 +84,8 @@ To show Markdoc tags in code blocks without them being parsed, use `{% process=f
 ## Query API
 
 ```
-POST /api/query
-{ "source": "orders", "sql": "SELECT ..." }
+POST /_api/v1/sources/query
+{ "page": "/sales.md", "query": "monthly", "params": {} }
 
 Response:
 {

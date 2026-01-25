@@ -3,6 +3,11 @@
 This module parses Markdoc pages to extract query definitions and provides
 a registry that maps (page, query_name) to QueryDefinition objects.
 
+Query syntax in markdown:
+    ```sql query_name
+    SELECT * FROM table WHERE id = ${inputs.filter.value}
+    ```
+
 Security model:
 - Only queries defined in markdown pages can be executed
 - Frontend sends (page, query_name, params) instead of raw SQL
@@ -24,7 +29,6 @@ class QueryDefinition:
     """Definition of a query extracted from a markdown page."""
 
     name: str
-    source: str
     sql: str
     params: list[str] = field(default_factory=list)
 
@@ -47,20 +51,29 @@ def extract_params(sql: str) -> list[str]:
 
 
 def _extract_queries_from_node(node: Markdoc.Node) -> list[QueryDefinition]:
-    """Walk AST and extract query definitions."""
+    """Walk AST and extract query definitions from sql fences.
+
+    Syntax:
+        ```sql query_name
+        SELECT * FROM table
+        ```
+    """
     queries = []
 
-    # Skip code blocks (don't parse tags in examples)
-    if node.type in ("fence", "code", "code_block"):
-        return queries
+    # Check for sql fence with query name
+    if node.type == "fence":
+        language = node.attributes.get("language", "")
+        if language.startswith("sql "):
+            name = language[4:].strip()  # Everything after "sql "
+            if name:
+                sql = (node.content or "").strip()
+                params = extract_params(sql)
+                queries.append(QueryDefinition(name=name, sql=sql, params=params))
+        return queries  # Don't recurse into fences
 
-    if node.type == "tag" and node.tag == "query":
-        name = node.attributes.get("name")
-        source = node.attributes.get("source")
-        if name and source:
-            sql = extract_text(node).strip()
-            params = extract_params(sql)
-            queries.append(QueryDefinition(name=name, source=source, sql=sql, params=params))
+    # Skip other code blocks
+    if node.type in ("code", "code_block"):
+        return queries
 
     for child in node.children:
         if isinstance(child, Markdoc.Node):

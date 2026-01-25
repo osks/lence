@@ -1,13 +1,12 @@
 ---
 title: Demo
-showSource: true
 ---
 
 # Quick Demo
 
 A simple example showing Lence basics.
 
-{% query name="top_products" source="orders" %}
+```sql top_products
 SELECT
   product_id,
   COUNT(*) as orders,
@@ -16,7 +15,7 @@ FROM orders
 GROUP BY product_id
 ORDER BY revenue DESC
 LIMIT 5
-{% /query %}
+```
 
 ## Top 5 Products by Revenue
 

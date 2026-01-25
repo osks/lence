@@ -9,14 +9,14 @@ import {
 } from '../index.js';
 
 describe('extractQueries', () => {
-  it('should extract query definitions from content', () => {
+  it('should extract query definitions from sql fences', () => {
     const content = `
 # Dashboard
 
-{% query name="monthly_sales" source="orders" %}
+\`\`\`sql monthly_sales
 SELECT strftime(order_date, '%Y-%m') as month, SUM(amount) as revenue
 FROM orders GROUP BY 1
-{% /query %}
+\`\`\`
 
 Some text here.
 `;
@@ -25,20 +25,19 @@ Some text here.
 
     expect(queries).toHaveLength(1);
     expect(queries[0].name).toBe('monthly_sales');
-    expect(queries[0].source).toBe('orders');
     expect(queries[0].sql).toContain('SELECT');
     expect(queries[0].sql).toContain('GROUP BY 1');
   });
 
   it('should extract multiple queries', () => {
     const content = `
-{% query name="sales" source="orders" %}
+\`\`\`sql sales
 SELECT * FROM orders
-{% /query %}
+\`\`\`
 
-{% query name="products" source="products" %}
+\`\`\`sql products
 SELECT * FROM products
-{% /query %}
+\`\`\`
 `;
 
     const queries = extractQueries(content);
@@ -50,6 +49,16 @@ SELECT * FROM products
 
   it('should return empty array when no queries', () => {
     const content = '# Just markdown\n\nNo queries here.';
+    const queries = extractQueries(content);
+    expect(queries).toEqual([]);
+  });
+
+  it('should not extract regular sql fences without query name', () => {
+    const content = `
+\`\`\`sql
+SELECT * FROM orders
+\`\`\`
+`;
     const queries = extractQueries(content);
     expect(queries).toEqual([]);
   });
@@ -66,13 +75,13 @@ describe('parseMarkdoc', () => {
     expect(html).toContain('<p>');
   });
 
-  it('should extract queries from content', () => {
+  it('should extract queries from sql fences', () => {
     const content = `
 # Dashboard
 
-{% query name="sales" source="orders" %}
+\`\`\`sql sales
 SELECT * FROM orders
-{% /query %}
+\`\`\`
 
 {% chart data="sales" type="line" x="month" y="revenue" /%}
 `;
@@ -82,6 +91,43 @@ SELECT * FROM orders
     // Query should be extracted
     expect(result.queries).toHaveLength(1);
     expect(result.queries[0].name).toBe('sales');
+  });
+
+  it('should hide sql query fences from output', () => {
+    const content = `
+# Dashboard
+
+\`\`\`sql sales
+SELECT * FROM orders
+\`\`\`
+
+{% chart data="sales" type="line" x="month" y="revenue" /%}
+`;
+
+    const result = parseMarkdoc(content);
+    const html = renderToHtml(result.content);
+
+    // Query fence should not appear in rendered output
+    expect(html).not.toContain('SELECT * FROM orders');
+    // But chart should render
+    expect(html).toContain('lence-chart');
+  });
+
+  it('should render regular sql fences (without query name)', () => {
+    const content = `
+# Example
+
+\`\`\`sql
+SELECT * FROM example
+\`\`\`
+`;
+
+    const result = parseMarkdoc(content);
+    const html = renderToHtml(result.content);
+
+    // Regular sql fence should render as code
+    expect(html).toContain('SELECT * FROM example');
+    expect(html).toContain('<pre');
   });
 
   it('should render chart tags', () => {
@@ -202,8 +248,8 @@ describe('getReferencedQueries', () => {
 describe('buildQueryMap', () => {
   it('should create map from query array', () => {
     const queries = [
-      { name: 'sales', source: 'orders', sql: 'SELECT * FROM orders' },
-      { name: 'products', source: 'products', sql: 'SELECT * FROM products' },
+      { name: 'sales', sql: 'SELECT * FROM orders' },
+      { name: 'products', sql: 'SELECT * FROM products' },
     ];
 
     const map = buildQueryMap(queries);

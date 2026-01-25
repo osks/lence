@@ -1,11 +1,10 @@
 ---
 title: Sales Dashboard
-showSource: true
 ---
 
 # Sales Dashboard
 
-{% query name="monthly_sales" source="orders" %}
+```sql monthly_sales
 SELECT
   strftime(order_date, '%Y-%m') as month,
   ROUND(SUM(quantity * unit_price), 2) as revenue,
@@ -13,9 +12,9 @@ SELECT
 FROM orders
 GROUP BY 1
 ORDER BY 1
-{% /query %}
+```
 
-{% query name="by_region" source="orders" %}
+```sql by_region
 SELECT
   region,
   ROUND(SUM(quantity * unit_price), 2) as revenue,
@@ -23,9 +22,9 @@ SELECT
 FROM orders
 GROUP BY 1
 ORDER BY 2 DESC
-{% /query %}
+```
 
-{% query name="recent_orders" source="orders" %}
+```sql recent_orders
 SELECT
   order_id,
   order_date,
@@ -35,7 +34,7 @@ SELECT
 FROM orders
 ORDER BY order_date DESC
 LIMIT 10
-{% /query %}
+```
 
 ## Monthly Revenue Trend
 

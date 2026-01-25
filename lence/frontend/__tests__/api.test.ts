@@ -22,7 +22,7 @@ describe('API Client', () => {
   });
 
   describe('executeQuery', () => {
-    it('should execute a query and return result', async () => {
+    it('should execute a query without sql (normal mode)', async () => {
       const mockResult = {
         columns: [{ name: 'id', type: 'INTEGER' }],
         data: [[1], [2]],
@@ -34,11 +34,36 @@ describe('API Client', () => {
         json: () => Promise.resolve(mockResult),
       });
 
+      const result = await executeQuery('/orders.md', 'all_orders', {});
+
+      expect(mockFetch).toHaveBeenCalledWith('/_api/v1/sources/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page: '/orders.md',
+          query: 'all_orders',
+          params: {},
+        }),
+      });
+      expect(result).toEqual(mockResult);
+    });
+
+    it('should execute a query with sql (edit mode)', async () => {
+      const mockResult = {
+        columns: [{ name: 'id', type: 'INTEGER' }],
+        data: [[1]],
+        row_count: 1,
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockResult),
+      });
+
       const result = await executeQuery(
         '/orders.md',
         'all_orders',
         {},
-        'orders',
         'SELECT id FROM orders',
       );
 
@@ -49,7 +74,6 @@ describe('API Client', () => {
           page: '/orders.md',
           query: 'all_orders',
           params: {},
-          source: 'orders',
           sql: 'SELECT id FROM orders',
         }),
       });
@@ -60,10 +84,10 @@ describe('API Client', () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 400,
-        json: () => Promise.resolve({ detail: 'Unknown source' }),
+        json: () => Promise.resolve({ detail: 'Query not found' }),
       });
 
-      await expect(executeQuery('/test.md', 'test', {}, 'bad', 'SELECT *'))
+      await expect(executeQuery('/test.md', 'test', {}))
         .rejects.toThrow(ApiRequestError);
     });
 
@@ -75,7 +99,7 @@ describe('API Client', () => {
       });
 
       try {
-        await executeQuery('/test.md', 'test', {}, 'orders', 'SELEKT *');
+        await executeQuery('/test.md', 'test', {}, 'SELEKT *');
         expect.fail('Should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(ApiRequestError);
@@ -88,8 +112,8 @@ describe('API Client', () => {
   describe('fetchSources', () => {
     it('should return list of sources', async () => {
       const mockSources = [
-        { name: 'orders', type: 'csv', description: 'Order data' },
-        { name: 'products', type: 'csv', description: 'Product catalog' },
+        { table: 'orders', type: 'csv' },
+        { table: 'products', type: 'csv' },
       ];
 
       mockFetch.mockResolvedValue({
@@ -108,7 +132,7 @@ describe('API Client', () => {
 
   describe('fetchSource', () => {
     it('should return a specific source', async () => {
-      const mockSource = { name: 'orders', type: 'csv', description: 'Order data' };
+      const mockSource = { table: 'orders', type: 'csv' };
 
       mockFetch.mockResolvedValue({
         ok: true,
@@ -126,7 +150,7 @@ describe('API Client', () => {
     it('should encode source name in URL', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ name: 'my source', type: 'csv', description: '' }),
+        json: () => Promise.resolve({ table: 'my source', type: 'csv' }),
       });
 
       await fetchSource('my source');

@@ -450,13 +450,12 @@ export class LencePage extends LitElement {
       try {
         // Collect params from inputs
         const params = this.collectQueryParams(query);
-        // Send all query info - backend decides what to use based on mode
+        // In edit mode, send SQL for live preview; otherwise registry lookup
         const result = await executeQuery(
           this.pagePath,
           name,
           params,
-          query.source,
-          query.sql,
+          this.editMode ? query.sql : undefined,
         );
         this.queryData = new Map(this.queryData).set(name, result);
       } catch (err) {

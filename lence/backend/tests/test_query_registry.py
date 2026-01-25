@@ -72,22 +72,21 @@ class TestParseQueries:
         content = """
 # Page
 
-{% query name="orders" source="db" %}
+```sql orders
 SELECT * FROM orders
-{% /query %}
+```
 """
         queries = parse_queries(content)
         assert len(queries) == 1
         assert queries[0].name == "orders"
-        assert queries[0].source == "db"
         assert queries[0].sql == "SELECT * FROM orders"
         assert queries[0].params == []
 
     def test_query_with_params(self):
         content = """
-{% query name="filtered" source="db" %}
+```sql filtered
 SELECT * FROM orders WHERE category = '${inputs.category.value}'
-{% /query %}
+```
 """
         queries = parse_queries(content)
         assert len(queries) == 1
@@ -96,28 +95,27 @@ SELECT * FROM orders WHERE category = '${inputs.category.value}'
 
     def test_multiple_queries(self):
         content = """
-{% query name="q1" source="db" %}
+```sql q1
 SELECT 1
-{% /query %}
+```
 
-{% query name="q2" source="db" %}
+```sql q2
 SELECT 2
-{% /query %}
+```
 """
         queries = parse_queries(content)
         assert len(queries) == 2
         assert queries[0].name == "q1"
         assert queries[1].name == "q2"
 
-    def test_skip_code_blocks(self):
+    def test_skip_regular_sql_fence(self):
         content = """
-```markdown
-{% query name="example" source="db" %}
+```sql
 SELECT * FROM example
-{% /query %}
 ```
 """
         queries = parse_queries(content)
+        # Regular sql fence without query name should not be extracted
         assert len(queries) == 0
 
     def test_self_closing_tag_not_query(self):
@@ -137,7 +135,6 @@ class TestQueryRegistry:
             "/page.md": {
                 "orders": QueryDefinition(
                     name="orders",
-                    source="db",
                     sql="SELECT * FROM orders",
                     params=[],
                 )
@@ -161,7 +158,6 @@ class TestQueryRegistry:
             "/other.md": {
                 "orders": QueryDefinition(
                     name="orders",
-                    source="db",
                     sql="SELECT * FROM orders",
                     params=[],
                 )
@@ -175,7 +171,6 @@ class TestQueryRegistry:
         registry = QueryRegistry()
         query = QueryDefinition(
             name="filtered",
-            source="db",
             sql="SELECT * FROM orders WHERE category = '${inputs.category.value}'",
             params=["category"],
         )
@@ -187,7 +182,6 @@ class TestQueryRegistry:
         registry = QueryRegistry()
         query = QueryDefinition(
             name="filtered",
-            source="db",
             sql="SELECT * FROM orders WHERE name = '${inputs.name.value}'",
             params=["name"],
         )
@@ -199,7 +193,6 @@ class TestQueryRegistry:
         registry = QueryRegistry()
         query = QueryDefinition(
             name="filtered",
-            source="db",
             sql="SELECT * FROM orders WHERE price > ${inputs.minPrice.value}",
             params=["minPrice"],
         )
@@ -209,8 +202,8 @@ class TestQueryRegistry:
 
     def test_get_page_queries(self):
         registry = QueryRegistry()
-        q1 = QueryDefinition(name="q1", source="db", sql="SELECT 1", params=[])
-        q2 = QueryDefinition(name="q2", source="db", sql="SELECT 2", params=[])
+        q1 = QueryDefinition(name="q1", sql="SELECT 1", params=[])
+        q2 = QueryDefinition(name="q2", sql="SELECT 2", params=[])
         registry._registry = {
             "/page.md": {"q1": q1, "q2": q2}
         }

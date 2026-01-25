@@ -1,12 +1,12 @@
 ---
-showSource: true
+title: Project Timeline
 ---
 
 # Project Timeline
 
 ## Milestones Gantt Chart
 
-{% query name="milestones" source="gitlab_milestones" %}
+```sql milestones
 SELECT
   title,
   start_date,
@@ -15,7 +15,7 @@ SELECT
 FROM gitlab_milestones
 WHERE start_date IS NOT NULL OR due_date IS NOT NULL
 ORDER BY COALESCE(start_date, due_date)
-{% /query %}
+```
 
 {% gantt
     data="milestones"

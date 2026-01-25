@@ -125,11 +125,10 @@ class Database:
         """List all registered sources with their metadata."""
         return [
             {
-                "name": name,
+                "table": table_name,
                 "type": source.type,
-                "description": source.description,
             }
-            for name, source in self.sources.items()
+            for table_name, source in self.sources.items()
         ]
 
     def close(self) -> None:

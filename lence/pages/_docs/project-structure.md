@@ -56,12 +56,12 @@ Data sources are configured in `sources.yaml`:
 
 ```yaml
 sources:
-  - id: orders
+  - table: orders
     type: csv
     path: sources/orders.csv
     description: Order data
 
-  - id: api_data
+  - table: api_data
     type: parquet
     path: https://example.com/data.parquet
 ```

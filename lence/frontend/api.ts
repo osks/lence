@@ -56,24 +56,25 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 /**
  * Execute a query.
  *
- * Sends all query information to the backend. The backend decides what to use:
- * - Normal mode: Uses page + query to lookup in registry, ignores source/sql
- * - Edit mode: Uses provided source + sql for live preview
+ * Backend behavior:
+ * - Normal mode: Uses page + query to lookup SQL in registry
+ * - Edit mode: Uses provided sql for live preview
  *
  * @param page - The page path where the query is defined
- * @param queryName - The query name (from {% query name="..." %})
+ * @param queryName - The query name (from ```sql query_name fence)
  * @param params - Parameter values for ${inputs.X.value} placeholders
- * @param source - The data source name
- * @param sql - The SQL query template
+ * @param sql - Optional SQL template (only used in edit mode)
  */
 export async function executeQuery(
   page: string,
   queryName: string,
   params: Record<string, unknown>,
-  source: string,
-  sql: string,
+  sql?: string,
 ): Promise<QueryResult> {
-  const request: QueryRequest = { page, query: queryName, params, source, sql };
+  const request: QueryRequest = { page, query: queryName, params };
+  if (sql !== undefined) {
+    request.sql = sql;
+  }
   return fetchJson<QueryResult>('/_api/v1/sources/query', {
     method: 'POST',
     body: JSON.stringify(request),

@@ -1,14 +1,13 @@
 ---
 title: Gitlab data
-showSource: true
 ---
 # Gitlab data
 
 ## Milestones
 
-{% query name="states" source="gitlab_milestones" %}
+```sql states
 SELECT DISTINCT state FROM gitlab_milestones ORDER BY state
-{% /query %}
+```
 
 {% data name="time_ranges" %}
 {
@@ -42,7 +41,7 @@ SELECT DISTINCT state FROM gitlab_milestones ORDER BY state
     defaultValue=true
 /%}
 
-{% query name="filtered_milestones" source="gitlab_milestones" %}
+```sql filtered_milestones
 SELECT
   iid,
   title,
@@ -59,7 +58,7 @@ WHERE
     OR (start_date IS NOT NULL OR due_date IS NOT NULL)
   )
 ORDER BY COALESCE(start_date, created_at) DESC
-{% /query %}
+```
 
 {% gantt
     data="filtered_milestones"

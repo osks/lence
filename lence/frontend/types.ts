@@ -23,9 +23,8 @@ export interface QueryResult {
  * Information about a data source.
  */
 export interface SourceInfo {
-  name: string;
+  table: string;
   type: string;
-  description: string;
 }
 
 /**
@@ -39,14 +38,14 @@ export interface MenuItem {
 
 /**
  * Request body for query execution.
- * Frontend always sends all fields. Backend decides what to use based on mode.
+ * - Normal mode: Uses page + query to lookup in registry
+ * - Edit mode: Uses provided sql for live preview
  */
 export interface QueryRequest {
   page: string;
   query: string;
   params: Record<string, unknown>;
-  source: string;
-  sql: string;
+  sql?: string;  // Used in edit mode
 }
 
 /**

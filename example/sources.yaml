@@ -1,39 +1,32 @@
 sources:
-  - id: orders
+  - table: orders
     type: csv
     path: ./sources/orders.csv
-    description: Order transactions
 
-  - id: products
+  - table: products
     type: csv
     path: ./sources/products.csv
-    description: Product catalog
 
-  - id: customers
+  - table: customers
     type: csv
     path: ./sources/customers.csv
-    description: Customer information
 
-  - id: departments
+  - table: departments
     type: csv
     path: ./sources/departments.csv
-    description: Department metrics
 
-  - id: regions
+  - table: regions
     type: csv
     path: ./sources/regions.csv
-    description: Regional sales data
 
   # Example HTTP source with auth (uncomment to use):
-  # - id: api_data
+  # - table: api_data
   #   type: json
   #   path: https://api.example.com/data.json
-  #   description: Remote API data
   #   headers:
   #     Authorization: "Bearer ${API_TOKEN}"
 
   # duckdb -c "COPY (SELECT * FROM 'example/sources/milestones.csv') TO 'example/sources/milestones.parquet'"
-  - id: gitlab_milestones
+  - table: gitlab_milestones
     type: parquet
     path: ./sources/milestones.parquet
-    description: Milestones

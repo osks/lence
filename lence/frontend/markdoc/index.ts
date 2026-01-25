@@ -3,7 +3,7 @@
  *
  * Uses Markdoc for {% tag %} syntax.
  * Supports:
- * - {% query name="..." source="..." %}SQL{% /query %} - Define SQL queries
+ * - ```sql query_name ... ``` - Define SQL queries (fenced code blocks)
  * - {% chart data="..." type="..." x="..." y="..." /%} - Render charts
  * - {% dataTable data="..." /%} - Render tables
  */
@@ -73,11 +73,10 @@ function parseFrontmatter(content: string): { frontmatter: Frontmatter; body: st
 }
 
 /**
- * A query definition from a {% query %} tag.
+ * A query definition from a ```sql query_name fence.
  */
 export interface QueryDefinition {
   name: string;
-  source: string;
   sql: string;
 }
 
@@ -119,21 +118,6 @@ function extractTextContent(node: Node): string {
  * Custom tag definitions for Lence components.
  */
 const tags: Config['tags'] = {
-  query: {
-    render: 'query-block',
-    attributes: {
-      name: { type: String, required: true },
-      source: { type: String, required: true },
-    },
-    transform(node: Node, config: Config) {
-      const attributes = node.transformAttributes(config);
-      // Extract SQL from all nested children
-      const sql = extractTextContent(node).trim();
-
-      return new Markdoc.Tag('query-block', { ...attributes, sql }, []);
-    },
-  },
-
   chart: {
     render: 'lence-chart',
     selfClosing: true,
@@ -234,40 +218,46 @@ const config: Config = {
 };
 
 /**
- * Extract query definitions from Markdoc AST.
- * Walks the tree to find all {% query %} tags.
+ * Pattern to match SQL query fences (```sql query_name ... ```)
+ * These are stripped from content before Markdoc parsing.
+ */
+const SQL_QUERY_FENCE_PATTERN = /```sql\s+\w+\s*\n[\s\S]*?```\n?/g;
+
+/**
+ * Remove SQL query fences from content before Markdoc parsing.
+ * Query fences are extracted separately and shouldn't be rendered.
+ */
+function stripQueryFences(content: string): string {
+  return content.replace(SQL_QUERY_FENCE_PATTERN, '');
+}
+
+/**
+ * Extract query definitions from markdown content.
+ * Uses regex to find ```sql query_name fenced code blocks.
+ *
+ * We use regex instead of walking the Markdoc AST because JavaScript
+ * Markdoc only captures the first word of the info string as 'language',
+ * losing the query name. The Python markdoc-py preserves the full string.
+ *
+ * Syntax:
+ *   ```sql query_name
+ *   SELECT * FROM table
+ *   ```
  */
 export function extractQueries(content: string): QueryDefinition[] {
-  const ast = Markdoc.parse(content);
   const queries: QueryDefinition[] = [];
 
-  function walk(node: Node) {
-    // Skip code blocks - don't parse tags inside them
-    if (node.type === 'fence' || node.type === 'code') {
-      return;
-    }
+  // Match: ```sql query_name followed by content until ```
+  // The info string is "sql query_name" where query_name must be present
+  const pattern = /```sql\s+(\w+)\s*\n([\s\S]*?)```/g;
+  let match;
 
-    if (node.type === 'tag' && node.tag === 'query') {
-      const attrs = node.attributes || {};
-      const sql = extractTextContent(node).trim();
-
-      queries.push({
-        name: attrs.name as string,
-        source: attrs.source as string,
-        sql,
-      });
-    }
-
-    if (node.children) {
-      for (const child of node.children) {
-        if (typeof child === 'object' && child !== null) {
-          walk(child as Node);
-        }
-      }
-    }
+  while ((match = pattern.exec(content)) !== null) {
+    const name = match[1];
+    const sql = match[2].trim();
+    queries.push({ name, sql });
   }
 
-  walk(ast);
   return queries;
 }
 
@@ -363,13 +353,16 @@ export function getReferencedQueries(components: ComponentDefinition[]): string[
 
 /**
  * Parse Markdoc content to a renderable tree.
- * Strips frontmatter before parsing Markdoc.
+ * Strips frontmatter and SQL query fences before parsing Markdoc.
  */
 export function parseMarkdoc(content: string): ParsedPage {
   const { frontmatter, body } = parseFrontmatter(content);
-  const ast = Markdoc.parse(body);
+  // Extract queries before stripping them
   const queries = extractQueries(body);
-  const data = extractData(body);
+  // Strip SQL query fences from body (they shouldn't render)
+  const bodyWithoutQueries = stripQueryFences(body);
+  const ast = Markdoc.parse(bodyWithoutQueries);
+  const data = extractData(bodyWithoutQueries);
   const transformed = Markdoc.transform(ast, config);
 
   return {
