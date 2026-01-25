@@ -1,13 +1,16 @@
-# Chart Component
+---
+title: Charts
+---
 
-Renders data as interactive charts using ECharts.
+# Chart Components
 
-## Attributes
+Renders data as interactive charts using ECharts. Each chart type has its own tag.
+
+## Common Attributes
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
 | `data` | Yes | Name of query or data to visualize |
-| `type` | No | Chart type: `line`, `bar`, `pie`, `area`, `scatter` (default: `line`) |
 | `x` | Yes | Column name for x-axis |
 | `y` | Yes | Column name for y-axis |
 | `title` | No | Chart title |
@@ -31,18 +34,16 @@ Renders data as interactive charts using ECharts.
 }
 {% /data %}
 
-{% chart
+{% line_chart
     data="monthly"
-    type="line"
     x="month"
     y="revenue"
     title="Monthly Revenue"
 /%}
 
 ``` {% process=false %}
-{% chart
+{% line_chart
     data="monthly"
-    type="line"
     x="month"
     y="revenue"
     title="Monthly Revenue"
@@ -51,18 +52,16 @@ Renders data as interactive charts using ECharts.
 
 ## Bar Chart
 
-{% chart
+{% bar_chart
     data="monthly"
-    type="bar"
     x="month"
     y="revenue"
     title="Revenue by Month"
 /%}
 
 ``` {% process=false %}
-{% chart
+{% bar_chart
     data="monthly"
-    type="bar"
     x="month"
     y="revenue"
 /%}
@@ -70,18 +69,18 @@ Renders data as interactive charts using ECharts.
 
 ## Area Chart
 
-{% chart
+For simple area charts, use `area_chart`. See the [Area Chart](/pages/_docs/components/area-chart.md) docs for stacked area charts with multiple series.
+
+{% area_chart
     data="monthly"
-    type="area"
     x="month"
     y="revenue"
     title="Revenue Trend"
 /%}
 
 ``` {% process=false %}
-{% chart
+{% area_chart
     data="monthly"
-    type="area"
     x="month"
     y="revenue"
 /%}
@@ -105,18 +104,16 @@ Renders data as interactive charts using ECharts.
 }
 {% /data %}
 
-{% chart
+{% pie_chart
     data="categories"
-    type="pie"
     x="category"
     y="sales"
     title="Sales by Category"
 /%}
 
 ``` {% process=false %}
-{% chart
+{% pie_chart
     data="categories"
-    type="pie"
     x="category"
     y="sales"
 /%}
@@ -143,18 +140,16 @@ Renders data as interactive charts using ECharts.
 }
 {% /data %}
 
-{% chart
+{% scatter_chart
     data="correlation"
-    type="scatter"
     x="price"
     y="quantity"
     title="Price vs Quantity"
 /%}
 
 ``` {% process=false %}
-{% chart
+{% scatter_chart
     data="correlation"
-    type="scatter"
     x="price"
     y="quantity"
 /%}

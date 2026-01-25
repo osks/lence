@@ -25,7 +25,7 @@ Lence uses a 10-color palette for charts.
 }
 {% /data %}
 
-{% chart data="colors" type="pie" x="name" y="value" title="Color Palette" /%}
+{% pie_chart data="colors" x="name" y="value" title="Color Palette" /%}
 
 
 ## CSS Variables

@@ -1,3 +1,3 @@
 # Data Table
 
-{% dataTable data="products" /%}
+{% table data="products" /%}

@@ -5,7 +5,7 @@
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import type { MenuItem, Settings } from '../../types.js';
-import { fetchMenu, fetchSettings } from '../../api.js';
+import { fetchMenu, fetchSettings, fetchDocsMenu } from '../../api.js';
 import { getRouter } from '../../router.js';
 import { themeDefaults } from '../../styles/theme.js';
 
@@ -67,18 +67,14 @@ export class LenceLayout extends LitElement {
         font-weight: 500;
       }
 
-      .docs-link {
-        display: block;
+      .docs-section {
         margin-top: 1.5rem;
         padding-top: 1rem;
         border-top: 1px solid var(--lence-border);
-        color: var(--lence-text-muted);
-        font-size: var(--lence-font-size-sm);
-        text-decoration: none;
       }
 
-      .docs-link:hover {
-        color: var(--lence-text);
+      .docs-section .nav-group-title {
+        margin-top: 0;
       }
 
       .body {
@@ -202,6 +198,9 @@ export class LenceLayout extends LitElement {
   private showHelp = false;
 
   @state()
+  private docsMenu: MenuItem[] = [];
+
+  @state()
   private siteTitle = 'Lence';
 
   @state()
@@ -260,6 +259,11 @@ export class LenceLayout extends LitElement {
       this.showHelp = settings.showHelp;
       this.siteTitle = settings.title;
       this.editMode = settings.editMode;
+
+      // Load docs menu if help is shown
+      if (this.showHelp) {
+        this.docsMenu = await fetchDocsMenu();
+      }
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -341,11 +345,16 @@ export class LenceLayout extends LitElement {
           </nav>
           ${this.showHelp
             ? html`
-                <a
-                  href="/_docs/"
-                  class="docs-link"
-                  @click=${(e: Event) => this.handleNavClick(e, '/_docs/')}
-                >Docs</a>
+                <nav class="docs-section">
+                  <a
+                    href="/_docs/"
+                    class="nav-group-title ${this.isExactActive('/_docs/') ? 'active' : ''}"
+                    @click=${(e: Event) => this.handleNavClick(e, '/_docs/')}
+                  >Docs</a>
+                  <ul class="nav-children">
+                    ${this.docsMenu.map((item) => this.renderMenuItem(item))}
+                  </ul>
+                </nav>
               `
             : null}
         </aside>

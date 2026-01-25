@@ -33,18 +33,18 @@ lence dev
 
 Create `pages/dashboard.md`:
 
-```markdown
+````markdown
 # Sales Dashboard
 
-{% query name="monthly" source="orders" %}
+```sql monthly
 SELECT strftime(date, '%Y-%m') as month, SUM(amount) as total
 FROM orders GROUP BY 1
-{% /query %}
+```
 
-{% chart data="monthly" type="line" x="month" y="total" /%}
+{% line_chart data="monthly" x="month" y="total" /%}
 
 {% table data="monthly" /%}
-```
+````
 
 ## Tech Stack
 

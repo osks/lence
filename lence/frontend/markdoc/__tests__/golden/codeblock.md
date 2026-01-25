@@ -1,5 +1,5 @@
 # Code Example
 
 ``` {% process=false %}
-{% chart data="sales" type="line" x="month" y="revenue" /%}
+{% line_chart data="sales" x="month" y="revenue" /%}
 ```

@@ -5,7 +5,7 @@
  * Supports:
  * - ```sql query_name ... ``` - Define SQL queries (fenced code blocks)
  * - {% chart data="..." type="..." x="..." y="..." /%} - Render charts
- * - {% dataTable data="..." /%} - Render tables
+ * - {% table data="..." /%} - Render tables
  */
 
 import Markdoc, { type Config, type Node, type RenderableTreeNode } from '@markdoc/markdoc';
@@ -118,19 +118,67 @@ function extractTextContent(node: Node): string {
  * Custom tag definitions for Lence components.
  */
 const tags: Config['tags'] = {
-  chart: {
+  line_chart: {
     render: 'lence-chart',
     selfClosing: true,
     attributes: {
       data: { type: String, required: true },
-      type: { type: String, default: 'line' },
       x: { type: String, required: true },
       y: { type: String, required: true },
       title: { type: String },
     },
+    transform(node: Node, config: Config) {
+      const attrs = node.transformAttributes(config);
+      return new Markdoc.Tag('lence-chart', { ...attrs, type: 'line' }, []);
+    },
   },
 
-  areaChart: {
+  bar_chart: {
+    render: 'lence-chart',
+    selfClosing: true,
+    attributes: {
+      data: { type: String, required: true },
+      x: { type: String, required: true },
+      y: { type: String, required: true },
+      title: { type: String },
+    },
+    transform(node: Node, config: Config) {
+      const attrs = node.transformAttributes(config);
+      return new Markdoc.Tag('lence-chart', { ...attrs, type: 'bar' }, []);
+    },
+  },
+
+  pie_chart: {
+    render: 'lence-chart',
+    selfClosing: true,
+    attributes: {
+      data: { type: String, required: true },
+      x: { type: String, required: true },
+      y: { type: String, required: true },
+      title: { type: String },
+    },
+    transform(node: Node, config: Config) {
+      const attrs = node.transformAttributes(config);
+      return new Markdoc.Tag('lence-chart', { ...attrs, type: 'pie' }, []);
+    },
+  },
+
+  scatter_chart: {
+    render: 'lence-chart',
+    selfClosing: true,
+    attributes: {
+      data: { type: String, required: true },
+      x: { type: String, required: true },
+      y: { type: String, required: true },
+      title: { type: String },
+    },
+    transform(node: Node, config: Config) {
+      const attrs = node.transformAttributes(config);
+      return new Markdoc.Tag('lence-chart', { ...attrs, type: 'scatter' }, []);
+    },
+  },
+
+  area_chart: {
     render: 'lence-area-chart',
     selfClosing: true,
     attributes: {
@@ -142,7 +190,7 @@ const tags: Config['tags'] = {
     },
   },
 
-  dataTable: {
+  table: {
     render: 'lence-data-table',
     selfClosing: true,
     attributes: {
@@ -153,7 +201,7 @@ const tags: Config['tags'] = {
     },
   },
 
-  gantt: {
+  gantt_chart: {
     render: 'lence-gantt',
     selfClosing: true,
     attributes: {

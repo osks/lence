@@ -1,3 +1,3 @@
 # Sales Chart
 
-{% chart data="sales" type="line" x="month" y="revenue" title="Monthly Revenue" /%}
+{% line_chart data="sales" x="month" y="revenue" title="Monthly Revenue" /%}

@@ -14,14 +14,13 @@ SELECT
 FROM generate_series(0, 1999) AS t(i)
 ```
 
-{% chart
+{% line_chart
     data="timeseries"
-    type="line"
     x="time"
     y="value"
 /%}
 
-{% areaChart
+{% area_chart
     data="timeseries"
     x="time"
     y="value,value2"

@@ -83,7 +83,7 @@ describe('parseMarkdoc', () => {
 SELECT * FROM orders
 \`\`\`
 
-{% chart data="sales" type="line" x="month" y="revenue" /%}
+{% line_chart data="sales" x="month" y="revenue" /%}
 `;
 
     const result = parseMarkdoc(content);
@@ -101,7 +101,7 @@ SELECT * FROM orders
 SELECT * FROM orders
 \`\`\`
 
-{% chart data="sales" type="line" x="month" y="revenue" /%}
+{% line_chart data="sales" x="month" y="revenue" /%}
 `;
 
     const result = parseMarkdoc(content);
@@ -134,7 +134,7 @@ SELECT * FROM example
     const content = `
 # Sales Report
 
-{% chart data="monthly_sales" type="line" x="month" y="revenue" /%}
+{% line_chart data="monthly_sales" x="month" y="revenue" /%}
 `;
 
     const result = parseMarkdoc(content);
@@ -147,11 +147,11 @@ SELECT * FROM example
     expect(html).toContain('y="revenue"');
   });
 
-  it('should render dataTable tags', () => {
+  it('should render table tags', () => {
     const content = `
 # Data
 
-{% dataTable data="sales" /%}
+{% table data="sales" /%}
 `;
 
     const result = parseMarkdoc(content);
@@ -164,7 +164,7 @@ SELECT * FROM example
 
 describe('extractComponents', () => {
   it('should extract chart components from rendered tree', () => {
-    const content = '{% chart data="sales" type="line" x="month" y="revenue" /%}';
+    const content = '{% line_chart data="sales" x="month" y="revenue" /%}';
     const result = parseMarkdoc(content);
     const components = extractComponents(result.content);
 
@@ -175,8 +175,8 @@ describe('extractComponents', () => {
     expect(components[0].attributes.y).toBe('revenue');
   });
 
-  it('should extract dataTable components', () => {
-    const content = '{% dataTable data="products" /%}';
+  it('should extract table components', () => {
+    const content = '{% table data="products" /%}';
     const result = parseMarkdoc(content);
     const components = extractComponents(result.content);
 
@@ -187,8 +187,8 @@ describe('extractComponents', () => {
 
   it('should extract multiple components', () => {
     const content = `
-{% chart data="sales" type="bar" x="month" y="count" /%}
-{% dataTable data="details" /%}
+{% bar_chart data="sales" x="month" y="count" /%}
+{% table data="details" /%}
 `;
     const result = parseMarkdoc(content);
     const components = extractComponents(result.content);

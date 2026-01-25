@@ -64,12 +64,14 @@ SELECT strftime(date, '%Y-%m') as month, SUM(amount) as total
 FROM orders GROUP BY 1
 ```
 
-{% chart data="monthly" type="line" x="month" y="total" /%}
+{% line_chart data="monthly" x="month" y="total" /%}
 
-{% dataTable data="monthly" /%}
+{% table data="monthly" /%}
 
-{% dataTable data="monthly" search=true pagination=10 /%}
+{% table data="monthly" search=true pagination=10 /%}
 ````
+
+Available chart types: `line_chart`, `bar_chart`, `pie_chart`, `scatter_chart`, `area_chart`
 
 ### Code Examples in Docs
 
@@ -77,7 +79,7 @@ To show Markdoc tags in code blocks without them being parsed, use `{% process=f
 
 ````markdown
 ```markdown {% process=false %}
-{% dataTable data="example" /%}
+{% table data="example" /%}
 ```
 ````
 

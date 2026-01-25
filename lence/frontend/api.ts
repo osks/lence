@@ -103,6 +103,13 @@ export async function fetchMenu(): Promise<MenuItem[]> {
 }
 
 /**
+ * Get the documentation pages menu.
+ */
+export async function fetchDocsMenu(): Promise<MenuItem[]> {
+  return fetchJson<MenuItem[]>('/_api/v1/pages/docs-menu');
+}
+
+/**
  * Get frontend settings (docs visibility, dev mode, etc.).
  */
 export async function fetchSettings(): Promise<Settings> {

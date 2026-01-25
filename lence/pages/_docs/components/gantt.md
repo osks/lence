@@ -1,3 +1,7 @@
+---
+title: Gantt Chart
+---
+
 # Gantt Chart Component
 
 Renders timeline data as a horizontal bar chart (Gantt chart) using ECharts.
@@ -54,7 +58,7 @@ ORDER BY start_date
 }
 {% /data %}
 
-{% gantt
+{% gantt_chart
     data="tasks"
     label="task"
     start="start_date"
@@ -63,7 +67,7 @@ ORDER BY start_date
 /%}
 
 ``` {% process=false %}
-{% gantt
+{% gantt_chart
     data="tasks"
     label="task"
     start="start_date"
@@ -97,7 +101,7 @@ Open-ended bars are rendered with reduced opacity (50%) for visual distinction.
 }
 {% /data %}
 
-{% gantt
+{% gantt_chart
     data="open_ended"
     label="milestone"
     start="start"
@@ -106,7 +110,7 @@ Open-ended bars are rendered with reduced opacity (50%) for visual distinction.
 /%}
 
 ``` {% process=false %}
-{% gantt
+{% gantt_chart
     data="open_ended"
     label="milestone"
     start="start"
@@ -142,7 +146,7 @@ Use the `url` attribute to make bars clickable. When clicked, the URL opens in a
 }
 {% /data %}
 
-{% gantt
+{% gantt_chart
     data="clickable"
     label="task"
     start="start"
@@ -152,7 +156,7 @@ Use the `url` attribute to make bars clickable. When clicked, the URL opens in a
 /%}
 
 ``` {% process=false %}
-{% gantt
+{% gantt_chart
     data="clickable"
     label="task"
     start="start"
@@ -166,7 +170,7 @@ Use the `url` attribute to make bars clickable. When clicked, the URL opens in a
 Use `showToday=true` to display a vertical red line marking today's date.
 
 ``` {% process=false %}
-{% gantt
+{% gantt_chart
     data="tasks"
     label="task"
     start="start"
@@ -182,7 +186,7 @@ Control the initial visible time range with `viewStart` and `viewEnd`. Values ca
 - Relative dates: `-30d` (30 days ago), `-3m` (3 months ago), `+1y` (1 year from now)
 
 ``` {% process=false %}
-{% gantt
+{% gantt_chart
     data="tasks"
     label="task"
     start="start"
@@ -215,7 +219,7 @@ Use `${inputs.foo.value}` syntax to bind the view range to a dropdown input:
     disableSelectAll=true
 /%}
 
-{% gantt
+{% gantt_chart
     data="tasks"
     label="task"
     start="start"

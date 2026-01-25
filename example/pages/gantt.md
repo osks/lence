@@ -17,7 +17,7 @@ WHERE start_date IS NOT NULL OR due_date IS NOT NULL
 ORDER BY COALESCE(start_date, due_date)
 ```
 
-{% gantt
+{% gantt_chart
     data="milestones"
     label="title"
     start="start_date"
@@ -27,4 +27,4 @@ ORDER BY COALESCE(start_date, due_date)
 
 ## Data Table
 
-{% dataTable data="milestones" /%}
+{% table data="milestones" /%}

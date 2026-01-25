@@ -170,6 +170,88 @@ async def get_menu(request: Request):
     return build_menu(pages_dir)
 
 
+# Preferred order for docs pages (items not listed appear at the end alphabetically)
+DOCS_ORDER = [
+    "getting-started",
+    "project-structure",
+    "settings",
+    "sources",
+    "colors",
+    "components",
+]
+
+
+def build_docs_menu() -> list[dict]:
+    """Build hierarchical menu for docs pages."""
+    docs_pages = discover_pages(PACKAGE_PAGES_DIR / "_docs")
+
+    # Build a tree structure (same approach as build_menu)
+    root: dict = {"children": {}}
+
+    def ensure_path(parts: list[str]) -> dict:
+        """Ensure all parent nodes exist and return the deepest one."""
+        node = root
+        for part in parts:
+            if part not in node["children"]:
+                fallback_title = part.replace("-", " ").replace("_", " ").title()
+                node["children"][part] = {
+                    "title": fallback_title,
+                    "path": None,
+                    "children": {},
+                }
+            node = node["children"][part]
+        return node
+
+    # Process all pages
+    for url_path in sorted(docs_pages.keys()):
+        # Skip the index page (it's the main docs page)
+        if url_path == "/":
+            continue
+
+        full_path = "/_docs" + url_path
+        title = get_page_title(docs_pages[url_path], url_path)
+        parts = [p for p in url_path.split("/") if p]
+
+        node = ensure_path(parts)
+        node["title"] = title
+        node["path"] = full_path
+
+    def docs_sort_key(key: str) -> tuple[int, str]:
+        """Sort by DOCS_ORDER first, then alphabetically."""
+        try:
+            return (DOCS_ORDER.index(key), key)
+        except ValueError:
+            return (len(DOCS_ORDER), key)
+
+    def node_to_menu(node: dict) -> list[dict]:
+        """Convert tree node to menu list format."""
+        menu = []
+        for key in sorted(node["children"].keys(), key=docs_sort_key):
+            child = node["children"][key]
+            has_children = bool(child["children"])
+
+            if has_children:
+                entry = {
+                    "title": child["title"],
+                    "children": node_to_menu(child),
+                }
+                if child.get("path"):
+                    entry["path"] = child["path"]
+                menu.append(entry)
+            else:
+                menu.append({"title": child["title"], "path": child["path"]})
+
+        return menu
+
+    return node_to_menu(root)
+
+
+@router.get("/docs-menu")
+async def get_docs_menu():
+    """Get menu for documentation pages."""
+    return build_docs_menu()
+
+
 def resolve_page_path(base_dir: Path, path: str) -> Path | None:
     """Resolve a URL path to a markdown file.
 

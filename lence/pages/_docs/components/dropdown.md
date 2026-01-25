@@ -1,3 +1,7 @@
+---
+title: Dropdown
+---
+
 # Dropdown Component
 
 A dropdown input that filters queries reactively. When a value is selected, queries using `${inputs.name.value}` are automatically re-executed.
@@ -45,10 +49,10 @@ A dropdown input that filters queries reactively. When a value is selected, quer
 By default, the dropdown includes an "All" option with value `%` (SQL wildcard). Use `LIKE` in your SQL:
 
 ``` {% process=false %}
-{% query name="filtered" source="products" %}
+```sql filtered
 SELECT * FROM products
 WHERE category LIKE '${inputs.cat_filter.value}'
-{% /query %}
+```
 ```
 
 When user selects:
@@ -71,9 +75,9 @@ Use `disableSelectAll=true` to require a specific selection:
 ## Full Example
 
 ``` {% process=false %}
-{% query name="categories" source="products" %}
+```sql categories
 SELECT DISTINCT category FROM products ORDER BY category
-{% /query %}
+```
 
 {% dropdown
     name="cat_filter"
@@ -82,10 +86,10 @@ SELECT DISTINCT category FROM products ORDER BY category
     title="Filter Category"
 /%}
 
-{% query name="filtered_products" source="products" %}
+```sql filtered_products
 SELECT * FROM products
 WHERE category LIKE '${inputs.cat_filter.value}'
-{% /query %}
+```
 
-{% dataTable data="filtered_products" /%}
+{% table data="filtered_products" /%}
 ```

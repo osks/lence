@@ -1,4 +1,8 @@
-# Data Table Component
+---
+title: Table
+---
+
+# Table Component
 
 Renders data as an interactive table with sorting, search, and pagination.
 
@@ -34,18 +38,18 @@ Click column headers to sort.
 }
 {% /data %}
 
-{% dataTable data="products" /%}
+{% table data="products" /%}
 
 ``` {% process=false %}
-{% dataTable data="products" /%}
+{% table data="products" /%}
 ```
 
 ## With Search and Pagination
 
-{% dataTable data="products" search=true pagination=3 /%}
+{% table data="products" search=true pagination=3 /%}
 
 ``` {% process=false %}
-{% dataTable data="products" search=true pagination=3 /%}
+{% table data="products" search=true pagination=3 /%}
 ```
 
 ## Data Format

@@ -68,7 +68,7 @@ ORDER BY date DESC
 LIMIT 100
 ```
 
-{% dataTable data="recent_orders" /%}
+{% table data="recent_orders" /%}
 ````
 
 The table name in SQL must match a `table` from your `sources.yaml`.

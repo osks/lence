@@ -60,7 +60,7 @@ WHERE
 ORDER BY COALESCE(start_date, created_at) DESC
 ```
 
-{% gantt
+{% gantt_chart
     data="filtered_milestones"
     label="title"
     start="start_date"
@@ -72,7 +72,7 @@ ORDER BY COALESCE(start_date, created_at) DESC
     viewEnd="+3m"
 /%}
 
-{% dataTable
+{% table
     data="filtered_milestones"
     search=true
 /%}

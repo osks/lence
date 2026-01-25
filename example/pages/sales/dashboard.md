@@ -40,9 +40,8 @@ LIMIT 10
 
 Revenue over time shows our growth trajectory.
 
-{% chart
+{% line_chart
     data="monthly_sales"
-    type="line"
     x="month"
     y="revenue"
     title="Monthly Revenue"
@@ -50,9 +49,8 @@ Revenue over time shows our growth trajectory.
 
 ## Orders by Month
 
-{% chart
+{% bar_chart
     data="monthly_sales"
-    type="bar"
     x="month"
     y="order_count"
     title="Orders per Month"
@@ -60,23 +58,22 @@ Revenue over time shows our growth trajectory.
 
 ## Revenue by Region
 
-{% chart
+{% pie_chart
     data="by_region"
-    type="pie"
     x="region"
     y="revenue"
     title="Revenue by Region"
 /%}
 
-{% dataTable data="by_region" /%}
+{% table data="by_region" /%}
 
 ## Recent Orders
 
-{% dataTable data="recent_orders" /%}
+{% table data="recent_orders" /%}
 
 ## Data Table Demo
 
-{% dataTable
+{% table
     data="recent_orders"
     search=true
     pagination=5

@@ -126,13 +126,13 @@ export class LenceCheckbox extends LitElement {
       <div class="checkbox-wrapper">
         ${this.title ? html`<span class="title">${this.title}</span>` : null}
         <label class="checkbox-container" for=${id}>
+          <span class="label">${this.label}</span>
           <input
             type="checkbox"
             id=${id}
             .checked=${this.checked}
             @change=${this.handleChange}
           />
-          <span class="label">${this.label}</span>
         </label>
       </div>
     `;
