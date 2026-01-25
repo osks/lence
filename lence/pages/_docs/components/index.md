@@ -1,7 +1,3 @@
----
-showSource: true
----
-
 # Component Reference
 
 Lence provides web components for data visualization.

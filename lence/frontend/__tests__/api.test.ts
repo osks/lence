@@ -34,12 +34,24 @@ describe('API Client', () => {
         json: () => Promise.resolve(mockResult),
       });
 
-      const result = await executeQuery('orders', 'SELECT id FROM orders');
+      const result = await executeQuery(
+        '/orders.md',
+        'all_orders',
+        {},
+        'orders',
+        'SELECT id FROM orders',
+      );
 
       expect(mockFetch).toHaveBeenCalledWith('/_api/v1/sources/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'orders', sql: 'SELECT id FROM orders' }),
+        body: JSON.stringify({
+          page: '/orders.md',
+          query: 'all_orders',
+          params: {},
+          source: 'orders',
+          sql: 'SELECT id FROM orders',
+        }),
       });
       expect(result).toEqual(mockResult);
     });
@@ -51,7 +63,7 @@ describe('API Client', () => {
         json: () => Promise.resolve({ detail: 'Unknown source' }),
       });
 
-      await expect(executeQuery('bad', 'SELECT *'))
+      await expect(executeQuery('/test.md', 'test', {}, 'bad', 'SELECT *'))
         .rejects.toThrow(ApiRequestError);
     });
 
@@ -63,7 +75,7 @@ describe('API Client', () => {
       });
 
       try {
-        await executeQuery('orders', 'SELEKT *');
+        await executeQuery('/test.md', 'test', {}, 'orders', 'SELEKT *');
         expect.fail('Should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(ApiRequestError);

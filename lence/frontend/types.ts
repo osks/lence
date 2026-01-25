@@ -38,20 +38,15 @@ export interface MenuItem {
 }
 
 /**
- * Request body for executing a query (legacy).
+ * Request body for query execution.
+ * Frontend always sends all fields. Backend decides what to use based on mode.
  */
 export interface QueryRequest {
-  source: string;
-  sql: string;
-}
-
-/**
- * Request body for secure query execution.
- */
-export interface SecureQueryRequest {
   page: string;
   query: string;
   params: Record<string, unknown>;
+  source: string;
+  sql: string;
 }
 
 /**
@@ -66,7 +61,9 @@ export interface ApiError {
  */
 export interface Settings {
   showHelp: boolean;
+  showSource: boolean;
   devMode: boolean;
+  editMode: boolean;
   title: string;
 }
 

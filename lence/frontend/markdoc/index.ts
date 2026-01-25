@@ -11,12 +11,65 @@
 import Markdoc, { type Config, type Node, type RenderableTreeNode } from '@markdoc/markdoc';
 
 /**
+ * Frontmatter data from a page.
+ */
+export interface Frontmatter {
+  title?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Parsed page result with renderable tree and extracted queries/data.
  */
 export interface ParsedPage {
   content: RenderableTreeNode;
   queries: QueryDefinition[];
   data: DataDefinition[];
+  frontmatter: Frontmatter;
+}
+
+/**
+ * Pattern to match YAML frontmatter at start of content.
+ */
+const FRONTMATTER_PATTERN = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+
+/**
+ * Parse simple YAML frontmatter (key: value pairs only).
+ * For full YAML support, would need a proper YAML parser.
+ */
+function parseFrontmatter(content: string): { frontmatter: Frontmatter; body: string } {
+  const match = content.match(FRONTMATTER_PATTERN);
+  if (!match) {
+    return { frontmatter: {}, body: content };
+  }
+
+  const yamlContent = match[1];
+  const body = content.slice(match[0].length);
+  const frontmatter: Frontmatter = {};
+
+  // Simple line-by-line parsing for key: value pairs
+  for (const line of yamlContent.split('\n')) {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex > 0) {
+      const key = line.slice(0, colonIndex).trim();
+      let value: unknown = line.slice(colonIndex + 1).trim();
+
+      // Parse booleans and numbers
+      if (value === 'true') value = true;
+      else if (value === 'false') value = false;
+      else if (!isNaN(Number(value)) && value !== '') value = Number(value);
+      // Remove quotes from strings
+      else if (typeof value === 'string' && value.startsWith('"') && value.endsWith('"')) {
+        value = value.slice(1, -1);
+      } else if (typeof value === 'string' && value.startsWith("'") && value.endsWith("'")) {
+        value = value.slice(1, -1);
+      }
+
+      frontmatter[key] = value;
+    }
+  }
+
+  return { frontmatter, body };
 }
 
 /**
@@ -310,17 +363,20 @@ export function getReferencedQueries(components: ComponentDefinition[]): string[
 
 /**
  * Parse Markdoc content to a renderable tree.
+ * Strips frontmatter before parsing Markdoc.
  */
 export function parseMarkdoc(content: string): ParsedPage {
-  const ast = Markdoc.parse(content);
-  const queries = extractQueries(content);
-  const data = extractData(content);
+  const { frontmatter, body } = parseFrontmatter(content);
+  const ast = Markdoc.parse(body);
+  const queries = extractQueries(body);
+  const data = extractData(body);
   const transformed = Markdoc.transform(ast, config);
 
   return {
     content: transformed,
     queries,
     data,
+    frontmatter,
   };
 }
 

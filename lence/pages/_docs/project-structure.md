@@ -41,7 +41,6 @@ Each page can have YAML frontmatter:
 ```markdown
 ---
 title: Sales Report
-showSource: true
 ---
 
 # Sales Report
@@ -49,8 +48,7 @@ showSource: true
 Page content here...
 ```
 
-- `title` - Page title (shown in menu)
-- `showSource` - Show "Source" toggle button to view raw markdown
+- `title` - Page title (shown in menu and browser tab)
 
 ## Sources
 
@@ -77,6 +75,7 @@ Optional `settings.yaml` for site configuration:
 ```yaml
 title: My Analytics
 docs: dev
+showSource: true
 ```
 
 See [Settings](/_docs/settings) for all options.

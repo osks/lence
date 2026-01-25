@@ -2,7 +2,7 @@
  * API client for Lence backend.
  */
 
-import type { QueryResult, SourceInfo, MenuItem, QueryRequest, SecureQueryRequest, ApiError, Settings } from './types.js';
+import type { QueryResult, SourceInfo, MenuItem, QueryRequest, ApiError, Settings } from './types.js';
 
 /**
  * Base URL for API requests.
@@ -54,38 +54,27 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 /**
- * Execute a SQL query against a data source.
+ * Execute a query.
  *
- * @deprecated Use executeQuerySecure instead for better security.
+ * Sends all query information to the backend. The backend decides what to use:
+ * - Normal mode: Uses page + query to lookup in registry, ignores source/sql
+ * - Edit mode: Uses provided source + sql for live preview
+ *
+ * @param page - The page path where the query is defined
+ * @param queryName - The query name (from {% query name="..." %})
+ * @param params - Parameter values for ${inputs.X.value} placeholders
+ * @param source - The data source name
+ * @param sql - The SQL query template
  */
 export async function executeQuery(
+  page: string,
+  queryName: string,
+  params: Record<string, unknown>,
   source: string,
   sql: string,
 ): Promise<QueryResult> {
-  const request: QueryRequest = { source, sql };
+  const request: QueryRequest = { page, query: queryName, params, source, sql };
   return fetchJson<QueryResult>('/_api/v1/sources/query', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  });
-}
-
-/**
- * Execute a predefined query by name (secure version).
- *
- * Instead of sending raw SQL, this sends:
- * - page: The page path where the query is defined
- * - query: The query name (from {% query name="..." %})
- * - params: Parameter values for ${inputs.X.value} placeholders
- *
- * The backend validates the query exists and interpolates params safely.
- */
-export async function executeQuerySecure(
-  page: string,
-  queryName: string,
-  params: Record<string, unknown> = {},
-): Promise<QueryResult> {
-  const request: SecureQueryRequest = { page, query: queryName, params };
-  return fetchJson<QueryResult>('/_api/v1/sources/query/v2', {
     method: 'POST',
     body: JSON.stringify(request),
   });
@@ -126,7 +115,6 @@ export interface PageResponse {
   content: string;
   frontmatter: {
     title?: string;
-    showSource?: boolean;
     [key: string]: unknown;
   };
 }

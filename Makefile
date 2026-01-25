@@ -25,6 +25,14 @@ help: ## Display this help
 dev: env ## Run dev server (backend + frontend watch)
 	@npm run dev
 
+.PHONY: edit
+edit: env ## Run dev server with edit mode enabled
+	@npm run edit
+
+.PHONY: serve
+serve: env ## Run production server
+	@$(VENV_BIN)/lence serve ./example
+
 .PHONY: components
 components: ## Serve component demos
 	@npx vite --clearScreen false /lence/frontend/components/__tests__/

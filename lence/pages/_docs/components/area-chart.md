@@ -1,7 +1,3 @@
----
-showSource: true
----
-
 # Area Chart Component
 
 Renders data as area charts with support for multiple series and stacking.

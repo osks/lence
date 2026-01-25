@@ -223,6 +223,7 @@ async def get_settings(request: Request):
     """Get frontend settings (docs visibility, etc.)."""
     config = request.app.state.config
     dev_mode = getattr(request.app.state, "dev_mode", False)
+    edit_mode = getattr(request.app.state, "edit_mode", False)
 
     # Determine if help button should be shown
     docs_config = config.docs
@@ -235,6 +236,8 @@ async def get_settings(request: Request):
 
     return {
         "showHelp": show_help,
+        "showSource": config.show_source,
         "devMode": dev_mode,
+        "editMode": edit_mode,
         "title": config.title,
     }

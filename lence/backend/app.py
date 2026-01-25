@@ -15,12 +15,17 @@ from .sources import router as sources_router
 from .pages import router as pages_router, PACKAGE_DIR
 
 
-def create_app(project_dir: Path | str = ".", dev_mode: bool = False) -> FastAPI:
+def create_app(
+    project_dir: Path | str = ".",
+    dev_mode: bool = False,
+    edit_mode: bool = False,
+) -> FastAPI:
     """Create a FastAPI application for a Lence project.
 
     Args:
         project_dir: Path to the project directory containing pages/, data/, config/
         dev_mode: Whether running in development mode (enables help button by default)
+        edit_mode: Whether to allow raw SQL queries (for web-based page authoring)
 
     Returns:
         Configured FastAPI application
@@ -51,6 +56,7 @@ def create_app(project_dir: Path | str = ".", dev_mode: bool = False) -> FastAPI
         app.state.project_dir = project_dir
         app.state.pages_dir = pages_dir
         app.state.dev_mode = dev_mode
+        app.state.edit_mode = edit_mode
 
         try:
             yield

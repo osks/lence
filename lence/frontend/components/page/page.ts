@@ -5,7 +5,7 @@
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { fetchPage, executeQuerySecure, type PageResponse } from '../../api.js';
+import { fetchPage, executeQuery, fetchSettings, type PageResponse } from '../../api.js';
 import { inputs } from '../../stores/inputs.js';
 import { pathToPageName } from '../../router.js';
 import {
@@ -164,9 +164,11 @@ export class LencePage extends LitElement {
         top: 0;
         right: 0;
         z-index: 1;
+        display: flex;
+        gap: 0.5rem;
       }
 
-      .source-toggle {
+      .header-button {
         font-size: var(--lence-font-size-xs);
         color: var(--lence-text-muted);
         background: none;
@@ -176,7 +178,7 @@ export class LencePage extends LitElement {
         cursor: pointer;
       }
 
-      .source-toggle:hover {
+      .header-button:hover {
         background: var(--lence-bg-subtle);
         color: var(--lence-text);
       }
@@ -192,6 +194,44 @@ export class LencePage extends LitElement {
         line-height: 1.5;
         white-space: pre-wrap;
         word-break: break-word;
+      }
+
+      .split-view {
+        display: flex;
+        gap: 1rem;
+        height: calc(100vh - 6rem);
+      }
+
+      .split-view .editor-pane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .split-view .preview-pane {
+        flex: 1;
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      .source-editor {
+        flex: 1;
+        width: 100%;
+        background: var(--lence-bg-subtle);
+        border: 1px solid var(--lence-border);
+        border-radius: var(--lence-radius);
+        padding: 1rem;
+        font-family: var(--lence-font-mono);
+        font-size: var(--lence-font-size-xs);
+        line-height: 1.5;
+        resize: none;
+        box-sizing: border-box;
+      }
+
+      .source-editor:focus {
+        outline: none;
+        border-color: var(--lence-primary);
       }
     `,
   ];
@@ -217,11 +257,21 @@ export class LencePage extends LitElement {
   @state()
   private queryErrors: Map<string, string> = new Map();
 
+  /** Whether source view is enabled (from frontmatter) */
   @state()
   private showSourceEnabled = false;
 
+  /** Whether we're viewing source (read-only) */
   @state()
   private viewingSource = false;
+
+  /** Whether edit mode is enabled (from server settings) */
+  @state()
+  private editMode = false;
+
+  /** Whether we're currently editing (split view active) */
+  @state()
+  private editing = false;
 
   private queryMap: Map<string, QueryDefinition> = new Map();
 
@@ -234,16 +284,33 @@ export class LencePage extends LitElement {
   /** Unsubscribe function for inputs store */
   private unsubscribeInputs?: () => void;
 
+  /** Debounce timer for edit updates */
+  private editDebounceTimer?: ReturnType<typeof setTimeout>;
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeInputs = inputs.onChange((name) => this.handleInputChange(name));
+    this.loadSettings();
     this.loadPage();
+  }
+
+  private async loadSettings() {
+    try {
+      const settings = await fetchSettings();
+      this.showSourceEnabled = settings.showSource;
+      this.editMode = settings.editMode;
+    } catch {
+      // Ignore settings errors
+    }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this.unsubscribeInputs) {
       this.unsubscribeInputs();
+    }
+    if (this.editDebounceTimer) {
+      clearTimeout(this.editDebounceTimer);
     }
   }
 
@@ -252,10 +319,17 @@ export class LencePage extends LitElement {
       this.loadPage();
     }
 
+    // Dispatch event when editing state changes
+    if (changedProperties.has('editing')) {
+      this.dispatchEvent(new CustomEvent('lence-editing-change', {
+        detail: { editing: this.editing },
+        bubbles: true,
+        composed: true,
+      }));
+    }
+
     // After render, pass data to components (use requestAnimationFrame to ensure DOM is ready)
-    // Also trigger when switching from source view back to rendered view
-    const switchedToRendered = changedProperties.has('viewingSource') && !this.viewingSource;
-    if (changedProperties.has('queryData') || changedProperties.has('htmlContent') || switchedToRendered) {
+    if (changedProperties.has('queryData') || changedProperties.has('htmlContent')) {
       requestAnimationFrame(() => this.updateComponentData());
     }
   }
@@ -267,6 +341,7 @@ export class LencePage extends LitElement {
     this.queryErrors = new Map();
     this.inputDependencies = new Map();
     this.viewingSource = false;
+    this.editing = false;
     inputs.clear();
 
     try {
@@ -277,9 +352,9 @@ export class LencePage extends LitElement {
       // Store page path for secure query API (with leading slash)
       this.pagePath = '/' + pageName + '.md';
 
-      // Store raw content and frontmatter settings
+      // Store raw content and update title from frontmatter
       this.rawContent = page.content;
-      this.showSourceEnabled = page.frontmatter.showSource === true;
+      this.updateDocumentTitle(page.frontmatter.title);
 
       // Parse Markdoc
       const parsed = parseMarkdoc(page.content);
@@ -375,8 +450,14 @@ export class LencePage extends LitElement {
       try {
         // Collect params from inputs
         const params = this.collectQueryParams(query);
-        // Use secure API - backend handles interpolation
-        const result = await executeQuerySecure(this.pagePath, name, params);
+        // Send all query info - backend decides what to use based on mode
+        const result = await executeQuery(
+          this.pagePath,
+          name,
+          params,
+          query.source,
+          query.sql,
+        );
         this.queryData = new Map(this.queryData).set(name, result);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Query failed';
@@ -410,7 +491,8 @@ export class LencePage extends LitElement {
    */
   private updateComponentData() {
     // Find all lence components in our shadow DOM
-    const contentDiv = this.shadowRoot?.querySelector('.content');
+    // When editing, look in the preview pane; otherwise in the content div
+    const contentDiv = this.shadowRoot?.querySelector('.preview-pane .content, .content');
     if (!contentDiv) return;
 
     // Find chart, table, and gantt components
@@ -451,6 +533,64 @@ export class LencePage extends LitElement {
     this.viewingSource = !this.viewingSource;
   }
 
+  private toggleEditing() {
+    this.editing = !this.editing;
+  }
+
+  private updateDocumentTitle(title?: string) {
+    document.title = title || 'Lence';
+  }
+
+  /**
+   * Handle edits to the source markdown.
+   * Debounces to avoid re-parsing on every keystroke.
+   */
+  private handleSourceEdit(e: Event) {
+    const textarea = e.target as HTMLTextAreaElement;
+    this.rawContent = textarea.value;
+
+    // Debounce re-parsing
+    if (this.editDebounceTimer) {
+      clearTimeout(this.editDebounceTimer);
+    }
+    this.editDebounceTimer = setTimeout(() => {
+      this.reprocessContent();
+    }, 300);
+  }
+
+  /**
+   * Re-parse the current rawContent and re-execute queries.
+   */
+  private async reprocessContent() {
+    try {
+      // Re-parse the markdown (includes frontmatter parsing)
+      const parsed = parseMarkdoc(this.rawContent);
+      this.htmlContent = renderToHtml(parsed.content);
+      this.queryMap = buildQueryMap(parsed.queries);
+
+      // Update document title from frontmatter
+      this.updateDocumentTitle(parsed.frontmatter.title as string | undefined);
+
+      // Rebuild input dependencies
+      this.inputDependencies = new Map();
+      this.buildInputDependencies();
+
+      // Process inline data
+      this.queryData = new Map();
+      this.queryErrors = new Map();
+      this.processInlineData(parsed.data);
+
+      // Extract and execute queries
+      const components = extractComponents(parsed.content);
+      const queryNames = getReferencedQueries(components);
+      const queriesToExecute = queryNames.filter(name => !this.queryData.has(name));
+      await this.executeQueries(queriesToExecute);
+    } catch (err) {
+      // Don't show parse errors as page errors - just log them
+      console.error('Parse error:', err);
+    }
+  }
+
   render() {
     if (this.loading) {
       return html`<div class="loading">Loading page...</div>`;
@@ -460,24 +600,58 @@ export class LencePage extends LitElement {
       return html`<div class="error">${this.error}</div>`;
     }
 
+    // Split view when editing
+    if (this.editing) {
+      return html`
+        <div class="page-header">
+          <button class="header-button" @click=${this.toggleEditing}>Done</button>
+        </div>
+        ${this.renderQueryErrors()}
+        <div class="split-view">
+          <div class="editor-pane">
+            <textarea
+              class="source-editor"
+              .value=${this.rawContent}
+              @input=${this.handleSourceEdit}
+            ></textarea>
+          </div>
+          <div class="preview-pane">
+            <article class="content">
+              ${unsafeHTML(this.htmlContent)}
+            </article>
+          </div>
+        </div>
+      `;
+    }
+
+    // Viewing source - show X to close
+    if (this.viewingSource) {
+      return html`
+        <div class="page-header">
+          <button class="header-button" @click=${this.toggleSource}>✕</button>
+        </div>
+        ${this.renderQueryErrors()}
+        <pre class="source-view">${this.rawContent}</pre>
+      `;
+    }
+
+    // Normal view
+    const showHeader = this.showSourceEnabled || this.editMode;
     return html`
-      ${this.showSourceEnabled
+      ${showHeader
         ? html`
             <div class="page-header">
-              <button class="source-toggle" @click=${this.toggleSource}>
-                ${this.viewingSource ? 'Rendered' : 'Source'}
-              </button>
+              ${this.showSourceEnabled
+                ? html`<button class="header-button" @click=${this.toggleSource}>Source</button>`
+                : null}
+              ${this.editMode
+                ? html`<button class="header-button" @click=${this.toggleEditing}>Edit</button>`
+                : null}
             </div>
           `
         : null}
       ${this.renderQueryErrors()}
-      ${this.viewingSource
-        ? html`<pre class="source-view">${this.rawContent}</pre>`
-        : html`
-            <article class="content">
-              ${unsafeHTML(this.htmlContent)}
-            </article>
-          `}
+      <article class="content">${unsafeHTML(this.htmlContent)}</article>
     `;
   }
 }

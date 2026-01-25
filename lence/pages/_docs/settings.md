@@ -12,6 +12,7 @@ Configure Lence behavior with `settings.yaml` at your project root.
 # settings.yaml
 title: Acme Analytics
 docs: dev
+showSource: true
 ```
 
 ## Options
@@ -35,6 +36,12 @@ Controls visibility of the documentation link in the header.
 **Default:** `dev`
 
 When set to `dev` (the default), the "Docs" link appears in the header when running `lence dev` but is hidden when running `lence serve`.
+
+### `showSource`
+
+Show a "Source" button on pages that lets users view the raw markdown.
+
+**Default:** `false`
 
 ## File Location
 

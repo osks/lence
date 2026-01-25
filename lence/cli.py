@@ -13,13 +13,15 @@ from lence.backend.app import create_app, PACKAGE_DIR
 # Environment variables (used by app factory for reload)
 LENCE_PROJECT_ENV = "LENCE_PROJECT_DIR"
 LENCE_DEV_MODE_ENV = "LENCE_DEV_MODE"
+LENCE_EDIT_MODE_ENV = "LENCE_EDIT_MODE"
 
 
 def _create_app_from_env():
     """Factory function for uvicorn reload - reads config from env."""
     project_dir = os.environ.get(LENCE_PROJECT_ENV, ".")
     dev_mode = os.environ.get(LENCE_DEV_MODE_ENV, "").lower() == "true"
-    return create_app(project_dir, dev_mode=dev_mode)
+    edit_mode = os.environ.get(LENCE_EDIT_MODE_ENV, "").lower() == "true"
+    return create_app(project_dir, dev_mode=dev_mode, edit_mode=edit_mode)
 
 
 @click.group()
@@ -33,7 +35,8 @@ def cli():
 @click.argument("project", default=".", type=click.Path())
 @click.option("--host", default="127.0.0.1", help="Host to bind to")
 @click.option("--port", default=8000, help="Port to bind to")
-def dev(project: str, host: str, port: int):
+@click.option("--edit", is_flag=True, help="Enable edit mode (allows raw SQL queries for page authoring)")
+def dev(project: str, host: str, port: int, edit: bool):
     """Run development server with auto-reload.
 
     PROJECT is the path to your lence project (default: current directory).
@@ -46,11 +49,14 @@ def dev(project: str, host: str, port: int):
         raise SystemExit(1)
 
     click.echo(f"Starting Lence dev server for: {project_path}")
+    if edit:
+        click.echo("Edit mode enabled - raw SQL queries allowed")
     click.echo(f"Running at: http://{host}:{port}")
 
     # Set environment for the factory function
     os.environ[LENCE_PROJECT_ENV] = str(project_path)
     os.environ[LENCE_DEV_MODE_ENV] = "true"
+    os.environ[LENCE_EDIT_MODE_ENV] = "true" if edit else "false"
 
     # Use factory string for reload support
     try:

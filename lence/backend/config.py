@@ -29,6 +29,7 @@ class Config(BaseModel):
     sources: dict[str, DataSource] = {}
     docs: str = DocsVisibility.DEV  # docs visibility: dev, always, never
     title: str = "Lence"  # site title shown in header
+    show_source: bool = False  # show source button on pages
 
 
 def load_yaml(file_path: Path) -> dict[str, Any]:
@@ -81,4 +82,5 @@ def load_config(project_dir: Path | str) -> Config:
         sources=load_sources(project_dir),
         docs=settings.get("docs", DocsVisibility.DEV),
         title=settings.get("title", "Lence"),
+        show_source=settings.get("showSource", False),
     )

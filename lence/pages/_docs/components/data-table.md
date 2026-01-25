@@ -1,7 +1,3 @@
----
-showSource: true
----
-
 # Data Table Component
 
 Renders data as an interactive table with sorting, search, and pagination.

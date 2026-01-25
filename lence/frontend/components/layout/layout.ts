@@ -57,6 +57,16 @@ export class LenceLayout extends LitElement {
         padding: 0.5rem 0;
       }
 
+      .edit-mode-badge {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: var(--lence-radius);
+        padding: 0.25rem 0.5rem;
+        font-size: var(--lence-font-size-xs);
+        color: #92400e;
+        font-weight: 500;
+      }
+
       .docs-link {
         display: block;
         margin-top: 1.5rem;
@@ -98,6 +108,10 @@ export class LenceLayout extends LitElement {
       .sidebar-right {
         width: 220px;
         flex-shrink: 0;
+      }
+
+      .body.editing .sidebar-right {
+        display: none;
       }
 
       nav ul {
@@ -190,7 +204,14 @@ export class LenceLayout extends LitElement {
   @state()
   private siteTitle = 'Lence';
 
+  @state()
+  private editMode = false;
+
+  @state()
+  private editing = false;
+
   private unsubscribeRouter?: () => void;
+  private boundEditingHandler = this.handleEditingChange.bind(this);
 
   connectedCallback() {
     super.connectedCallback();
@@ -202,7 +223,12 @@ export class LenceLayout extends LitElement {
     this.currentPath = router.getPath();
     this.unsubscribeRouter = router.onRouteChange((path) => {
       this.currentPath = path;
+      // Exit editing when navigating
+      this.editing = false;
     });
+
+    // Listen for editing state changes from page component
+    this.addEventListener('lence-editing-change', this.boundEditingHandler as EventListener);
   }
 
   disconnectedCallback() {
@@ -210,6 +236,11 @@ export class LenceLayout extends LitElement {
     if (this.unsubscribeRouter) {
       this.unsubscribeRouter();
     }
+    this.removeEventListener('lence-editing-change', this.boundEditingHandler as EventListener);
+  }
+
+  private handleEditingChange(e: CustomEvent<{ editing: boolean }>) {
+    this.editing = e.detail.editing;
   }
 
   private async loadMenu() {
@@ -228,6 +259,7 @@ export class LenceLayout extends LitElement {
       const settings = await fetchSettings();
       this.showHelp = settings.showHelp;
       this.siteTitle = settings.title;
+      this.editMode = settings.editMode;
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -291,10 +323,12 @@ export class LenceLayout extends LitElement {
         <div class="header-left">
           <span class="header-title">${this.siteTitle}</span>
         </div>
-        <div class="header-main"></div>
+        <div class="header-main">
+          ${this.editMode ? html`<span class="edit-mode-badge">Edit Mode</span>` : null}
+        </div>
         <div class="header-right"></div>
       </header>
-      <div class="body">
+      <div class="body ${this.editing ? 'editing' : ''}">
         <aside class="sidebar">
           <nav>
             ${this.loading
