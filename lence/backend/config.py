@@ -4,12 +4,14 @@ import os
 import re
 from pathlib import Path
 from typing import Any
+
 import yaml
 from pydantic import BaseModel
 
 
 class DataSource(BaseModel):
     """A data source configuration."""
+
     table: str  # DuckDB table name
     type: str  # csv, parquet, json, etc.
     path: str
@@ -18,13 +20,15 @@ class DataSource(BaseModel):
 
 class DocsVisibility:
     """Enum-like constants for docs visibility."""
-    EDIT = "edit"     # Show help button only in edit mode (default)
+
+    EDIT = "edit"  # Show help button only in edit mode (default)
     ALWAYS = "always"  # Always show help button
-    NEVER = "never"   # Never show help button, /_docs routes return 404
+    NEVER = "never"  # Never show help button, /_docs routes return 404
 
 
 class Config(BaseModel):
     """Application configuration."""
+
     sources: dict[str, DataSource] = {}
     docs: str = DocsVisibility.EDIT  # docs visibility: edit, always, never
     title: str = "Lence"  # site title shown in header
@@ -41,10 +45,12 @@ def load_yaml(file_path: Path) -> dict[str, Any]:
 
 def interpolate_env_vars(value: str) -> str:
     """Replace ${VAR} patterns with environment variable values."""
+
     def replace(match: re.Match[str]) -> str:
         var_name = match.group(1)
         return os.environ.get(var_name, "")
-    return re.sub(r'\$\{([^}]+)\}', replace, value)
+
+    return re.sub(r"\$\{([^}]+)\}", replace, value)
 
 
 def load_sources(project_dir: Path) -> dict[str, DataSource]:
@@ -57,8 +63,7 @@ def load_sources(project_dir: Path) -> dict[str, DataSource]:
         # Interpolate env vars in headers
         if "headers" in source_config:
             source_config["headers"] = {
-                k: interpolate_env_vars(v)
-                for k, v in source_config["headers"].items()
+                k: interpolate_env_vars(v) for k, v in source_config["headers"].items()
             }
 
         source = DataSource(**source_config)

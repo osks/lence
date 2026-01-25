@@ -1,13 +1,11 @@
 """Tests for query_registry module."""
 
-import pytest
-from pathlib import Path
 from lence.backend.query_registry import (
     QueryDefinition,
-    extract_params,
-    escape_sql_value,
-    parse_queries,
     QueryRegistry,
+    escape_sql_value,
+    extract_params,
+    parse_queries,
 )
 
 
@@ -19,7 +17,10 @@ class TestExtractParams:
         assert extract_params(sql) == ["category"]
 
     def test_extracts_multiple_params(self):
-        sql = "SELECT * FROM orders WHERE category = '${inputs.category.value}' AND price > ${inputs.minPrice.value}"
+        sql = (
+            "SELECT * FROM orders WHERE category = '${inputs.category.value}' "
+            "AND price > ${inputs.minPrice.value}"
+        )
         params = extract_params(sql)
         assert set(params) == {"category", "minPrice"}
 
@@ -204,9 +205,7 @@ class TestQueryRegistry:
         registry = QueryRegistry()
         q1 = QueryDefinition(name="q1", sql="SELECT 1", params=[])
         q2 = QueryDefinition(name="q2", sql="SELECT 2", params=[])
-        registry._registry = {
-            "/page.md": {"q1": q1, "q2": q2}
-        }
+        registry._registry = {"/page.md": {"q1": q1, "q2": q2}}
 
         queries = registry.get_page_queries("/page.md")
         assert len(queries) == 2

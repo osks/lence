@@ -1,12 +1,12 @@
 """Data sources API routes for Lence."""
 
 from typing import Any
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from .database import get_database
-from .query_registry import get_registry, QueryDefinition, extract_params
-
+from .query_registry import QueryDefinition, extract_params, get_registry
 
 router = APIRouter(tags=["sources"])
 
@@ -17,6 +17,7 @@ class QueryRequest(BaseModel):
     - Normal mode: Uses page + query to lookup in registry
     - Edit mode: Uses provided sql, skips registry
     """
+
     page: str
     query: str
     params: dict[str, Any] = {}
@@ -26,12 +27,14 @@ class QueryRequest(BaseModel):
 
 class ColumnInfo(BaseModel):
     """Column metadata."""
+
     name: str
     type: str
 
 
 class QueryResponse(BaseModel):
     """Response from a query execution."""
+
     columns: list[ColumnInfo]
     data: list[list[Any]]
     row_count: int
@@ -39,12 +42,14 @@ class QueryResponse(BaseModel):
 
 class SourceInfo(BaseModel):
     """Information about a data source."""
+
     table: str
     type: str
 
 
 class ErrorResponse(BaseModel):
     """Error response."""
+
     error: str
     detail: str | None = None
 

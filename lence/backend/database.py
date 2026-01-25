@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 from typing import Any
+
 import duckdb
 
 from .config import DataSource
@@ -60,9 +61,7 @@ class Database:
         # Set up HTTP headers if provided (for remote sources)
         if is_remote and source.headers:
             # Build MAP literal for headers
-            header_items = ", ".join(
-                f"'{k}': '{v}'" for k, v in source.headers.items()
-            )
+            header_items = ", ".join(f"'{k}': '{v}'" for k, v in source.headers.items())
             self.conn.execute(f"""
                 CREATE OR REPLACE SECRET {name}_http (
                     TYPE HTTP,
@@ -91,7 +90,9 @@ class Database:
 
         self._registered_tables.add(name)
 
-    def register_sources(self, sources: dict[str, DataSource], base_dir: Path | None = None) -> None:
+    def register_sources(
+        self, sources: dict[str, DataSource], base_dir: Path | None = None
+    ) -> None:
         """Register multiple data sources."""
         for name, source in sources.items():
             try:
@@ -104,10 +105,7 @@ class Database:
         result = self.conn.execute(sql)
 
         # Get column info (convert type to string)
-        columns = [
-            {"name": desc[0], "type": str(desc[1])}
-            for desc in result.description
-        ]
+        columns = [{"name": desc[0], "type": str(desc[1])} for desc in result.description]
 
         # Fetch all rows
         rows = result.fetchall()

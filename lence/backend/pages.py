@@ -5,10 +5,9 @@ from pathlib import Path
 
 import yaml
 from fastapi import APIRouter, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 
 from .config import DocsVisibility
-
 
 # Package directory (where lence is installed)
 PACKAGE_DIR = Path(__file__).parent.parent

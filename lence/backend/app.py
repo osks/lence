@@ -5,14 +5,15 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from .config import load_config
 from .database import init_database
+from .pages import PACKAGE_DIR
+from .pages import router as pages_router
 from .query_registry import init_registry
 from .sources import router as sources_router
-from .pages import router as pages_router, PACKAGE_DIR
 
 
 def create_app(
@@ -32,7 +33,6 @@ def create_app(
 
     # Project directories
     pages_dir = project_dir / "pages"
-    data_dir = project_dir / "data"
 
     # Package static directory
     package_static_dir = PACKAGE_DIR / "static"

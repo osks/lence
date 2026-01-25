@@ -7,8 +7,7 @@ from pathlib import Path
 import click
 import uvicorn
 
-from lence.backend.app import create_app, PACKAGE_DIR
-
+from lence.backend.app import PACKAGE_DIR, create_app
 
 # Environment variables (used by app factory for reload)
 LENCE_PROJECT_ENV = "LENCE_PROJECT_DIR"
@@ -42,7 +41,9 @@ def edit(project: str, host: str, port: int):
 
     if not (project_path / "pages").exists():
         click.echo(f"Error: No pages/ directory found in {project_path}", err=True)
-        click.echo("Run 'lence init' to create a new project, or specify a valid project path.", err=True)
+        click.echo(
+            "Run 'lence init' to create a new project, or specify a valid project path.", err=True
+        )
         raise SystemExit(1)
 
     click.echo(f"Starting Lence editor for: {project_path}")
