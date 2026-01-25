@@ -23,7 +23,7 @@ Dev server runs at http://localhost:8000
 
 ```
 lence/              # Python package
-  cli.py            # CLI (lence dev/serve/init)
+  cli.py            # CLI (lence edit/serve/init)
   backend/          # FastAPI backend
     app.py          # FastAPI app factory
     api.py          # Query API routes

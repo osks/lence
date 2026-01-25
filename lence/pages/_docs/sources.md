@@ -51,7 +51,7 @@ Set the environment variable before running:
 
 ```bash
 export API_TOKEN="your-secret-token"
-lence dev
+lence edit
 ```
 
 The `${VAR}` syntax is replaced with the environment variable value at startup.

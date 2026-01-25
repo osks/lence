@@ -11,7 +11,7 @@ Configure Lence behavior with `settings.yaml` at your project root.
 ```yaml
 # settings.yaml
 title: Acme Analytics
-docs: dev
+docs: edit
 showSource: true
 ```
 
@@ -29,13 +29,13 @@ Controls visibility of the documentation link in the header.
 
 | Value | Description |
 |-------|-------------|
-| `dev` | Show docs link only in development mode (default) |
+| `edit` | Show docs link only in edit mode (default) |
 | `always` | Always show docs link |
-| `never` | Never show docs link, `/_docs/` returns 404 |
+| `never` | Never show docs link |
 
-**Default:** `dev`
+**Default:** `edit`
 
-When set to `dev` (the default), the "Docs" link appears in the header when running `lence dev` but is hidden when running `lence serve`.
+When set to `edit` (the default), the "Docs" link appears in the header when running `lence edit` but is hidden when running `lence serve`.
 
 ### `showSource`
 

@@ -18,7 +18,7 @@ class DataSource(BaseModel):
 
 class DocsVisibility:
     """Enum-like constants for docs visibility."""
-    DEV = "dev"      # Show help button only in dev mode (default)
+    EDIT = "edit"     # Show help button only in edit mode (default)
     ALWAYS = "always"  # Always show help button
     NEVER = "never"   # Never show help button, /_docs routes return 404
 
@@ -26,7 +26,7 @@ class DocsVisibility:
 class Config(BaseModel):
     """Application configuration."""
     sources: dict[str, DataSource] = {}
-    docs: str = DocsVisibility.DEV  # docs visibility: dev, always, never
+    docs: str = DocsVisibility.EDIT  # docs visibility: edit, always, never
     title: str = "Lence"  # site title shown in header
     show_source: bool = False  # show source button on pages
 
@@ -79,7 +79,7 @@ def load_config(project_dir: Path | str) -> Config:
 
     return Config(
         sources=load_sources(project_dir),
-        docs=settings.get("docs", DocsVisibility.DEV),
+        docs=settings.get("docs", DocsVisibility.EDIT),
         title=settings.get("title", "Lence"),
         show_source=settings.get("showSource", False),
     )

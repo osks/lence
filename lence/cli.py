@@ -12,16 +12,14 @@ from lence.backend.app import create_app, PACKAGE_DIR
 
 # Environment variables (used by app factory for reload)
 LENCE_PROJECT_ENV = "LENCE_PROJECT_DIR"
-LENCE_DEV_MODE_ENV = "LENCE_DEV_MODE"
 LENCE_EDIT_MODE_ENV = "LENCE_EDIT_MODE"
 
 
 def _create_app_from_env():
     """Factory function for uvicorn reload - reads config from env."""
     project_dir = os.environ.get(LENCE_PROJECT_ENV, ".")
-    dev_mode = os.environ.get(LENCE_DEV_MODE_ENV, "").lower() == "true"
     edit_mode = os.environ.get(LENCE_EDIT_MODE_ENV, "").lower() == "true"
-    return create_app(project_dir, dev_mode=dev_mode, edit_mode=edit_mode)
+    return create_app(project_dir, edit_mode=edit_mode)
 
 
 @click.group()
@@ -35,9 +33,8 @@ def cli():
 @click.argument("project", default=".", type=click.Path())
 @click.option("--host", default="127.0.0.1", help="Host to bind to")
 @click.option("--port", default=8000, help="Port to bind to")
-@click.option("--edit", is_flag=True, help="Enable edit mode (allows raw SQL queries for page authoring)")
-def dev(project: str, host: str, port: int, edit: bool):
-    """Run development server with auto-reload.
+def edit(project: str, host: str, port: int):
+    """Run editor with live preview and auto-reload.
 
     PROJECT is the path to your lence project (default: current directory).
     """
@@ -48,15 +45,12 @@ def dev(project: str, host: str, port: int, edit: bool):
         click.echo("Run 'lence init' to create a new project, or specify a valid project path.", err=True)
         raise SystemExit(1)
 
-    click.echo(f"Starting Lence dev server for: {project_path}")
-    if edit:
-        click.echo("Edit mode enabled - raw SQL queries allowed")
+    click.echo(f"Starting Lence editor for: {project_path}")
     click.echo(f"Running at: http://{host}:{port}")
 
     # Set environment for the factory function
     os.environ[LENCE_PROJECT_ENV] = str(project_path)
-    os.environ[LENCE_DEV_MODE_ENV] = "true"
-    os.environ[LENCE_EDIT_MODE_ENV] = "true" if edit else "false"
+    os.environ[LENCE_EDIT_MODE_ENV] = "true"
 
     # Use factory string for reload support
     try:
@@ -144,7 +138,6 @@ sources: {}
   # example:
   #   type: csv
   #   path: data/example.csv
-  #   description: Example data source
 """)
 
     # Create menu.yaml
@@ -170,7 +163,7 @@ menu:
     click.echo("  1. Add data files to data/")
     click.echo("  2. Configure sources in config/sources.yaml")
     click.echo("  3. Edit pages in pages/")
-    click.echo("  4. Run 'lence dev' to start the development server")
+    click.echo("  4. Run 'lence edit' to start authoring")
 
 
 def main():

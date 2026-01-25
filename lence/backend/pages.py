@@ -304,22 +304,21 @@ async def get_page(request: Request, path: str):
 async def get_settings(request: Request):
     """Get frontend settings (docs visibility, etc.)."""
     config = request.app.state.config
-    dev_mode = getattr(request.app.state, "dev_mode", False)
     edit_mode = getattr(request.app.state, "edit_mode", False)
 
     # Determine if help button should be shown
+    # In edit mode, show docs unless explicitly disabled with docs: never
     docs_config = config.docs
     if docs_config == DocsVisibility.ALWAYS:
         show_help = True
     elif docs_config == DocsVisibility.NEVER:
         show_help = False
-    else:  # dev (default)
-        show_help = dev_mode
+    else:  # edit (default) - show in edit mode
+        show_help = edit_mode
 
     return {
         "showHelp": show_help,
         "showSource": config.show_source,
-        "devMode": dev_mode,
         "editMode": edit_mode,
         "title": config.title,
     }

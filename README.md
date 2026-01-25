@@ -26,7 +26,7 @@ lence init my-project
 cd my-project
 
 # Run development server
-lence dev
+lence edit
 ```
 
 ## Example Page

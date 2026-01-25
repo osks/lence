@@ -7,7 +7,7 @@ lence/
 ├── lence/                     # Python package
 │   ├── __init__.py
 │   ├── app.py                 # FastAPI app factory
-│   ├── cli.py                 # CLI (lence dev/serve/init)
+│   ├── cli.py                 # CLI (lence edit/serve/init)
 │   ├── config.py              # Config loading
 │   ├── database.py            # DuckDB wrapper
 │   ├── routes/                # API routes
@@ -90,7 +90,7 @@ This runs:
 
 - **FastAPI** serves the application
 - **DuckDB** executes SQL queries
-- **CLI** provides `lence dev`, `lence serve`, `lence init` commands
+- **CLI** provides `lence edit`, `lence serve`, `lence init` commands
 
 ### Request Flow
 
@@ -126,11 +126,11 @@ This runs:
 # Initialize new project
 lence init my-project
 
-# Run development server (current directory)
-lence dev
+# Run editor (current directory)
+lence edit
 
-# Run development server (specific project)
-lence dev ./my-project
+# Run editor (specific project)
+lence edit ./my-project
 
 # Run production server
 lence serve ./my-project --host 0.0.0.0 --port 8000

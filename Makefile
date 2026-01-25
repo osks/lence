@@ -22,12 +22,8 @@ help: ## Display this help
 
 ##@ Development
 .PHONY: dev
-dev: env ## Run dev server (backend + frontend watch)
+dev: env ## Run dev server with edit mode (backend + frontend watch)
 	@npm run dev
-
-.PHONY: edit
-edit: env ## Run dev server with edit mode enabled
-	@npm run edit
 
 .PHONY: serve
 serve: env ## Run production server

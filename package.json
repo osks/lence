@@ -6,8 +6,7 @@
   "scripts": {
     "build": "vite build",
     "watch": "vite build --watch",
-    "dev": "concurrently -n vite,lence -c blue,green \"vite build --watch\" \"uv run lence dev ./example\"",
-    "edit": "concurrently -n vite,lence -c blue,green \"vite build --watch\" \"uv run lence dev --edit ./example\"",
+    "dev": "concurrently -n vite,lence -c blue,green \"vite build --watch\" \"uv run lence edit ./example\"",
     "test": "vitest run",
     "test:watch": "vitest"
   },

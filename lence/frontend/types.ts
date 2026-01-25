@@ -61,7 +61,6 @@ export interface ApiError {
 export interface Settings {
   showHelp: boolean;
   showSource: boolean;
-  devMode: boolean;
   editMode: boolean;
   title: string;
 }
