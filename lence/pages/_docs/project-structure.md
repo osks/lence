@@ -59,7 +59,6 @@ sources:
   - table: orders
     type: csv
     path: sources/orders.csv
-    description: Order data
 
   - table: api_data
     type: parquet
