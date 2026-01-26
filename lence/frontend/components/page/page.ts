@@ -5,9 +5,9 @@
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { fetchPage, executeQuery, fetchSettings, type PageResponse } from '../../api.js';
+import { fetchPage, executeQuery, fetchSettings, savePage, type PageResponse } from '../../api.js';
 import { inputs } from '../../stores/inputs.js';
-import { pathToPageName } from '../../router.js';
+import { pathToPageName, getRouter } from '../../router.js';
 import {
   parseMarkdoc,
   extractComponents,
@@ -183,6 +183,21 @@ export class LencePage extends LitElement {
         color: var(--lence-text);
       }
 
+      .header-button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+
+      .header-button:disabled:hover {
+        background: none;
+        color: var(--lence-text-muted);
+      }
+
+      .save-button:not(:disabled) {
+        color: var(--lence-primary);
+        border-color: var(--lence-primary);
+      }
+
       .source-view {
         background: var(--lence-bg-subtle);
         border: 1px solid var(--lence-border);
@@ -273,6 +288,17 @@ export class LencePage extends LitElement {
   @state()
   private editing = false;
 
+  /** Whether there are unsaved changes */
+  @state()
+  private isDirty = false;
+
+  /** Whether we're currently saving */
+  @state()
+  private saving = false;
+
+  /** Original content when editing started (for dirty detection) */
+  private originalContent = '';
+
   private queryMap: Map<string, QueryDefinition> = new Map();
 
   /** Current page path for secure query API */
@@ -287,11 +313,23 @@ export class LencePage extends LitElement {
   /** Debounce timer for edit updates */
   private editDebounceTimer?: ReturnType<typeof setTimeout>;
 
+  /** Bound handler for edit request events */
+  private boundRequestEditHandler = this.handleRequestEdit.bind(this);
+
+  /** Bound handler for beforeunload */
+  private boundBeforeUnload = this.handleBeforeUnload.bind(this);
+
+  /** Unsubscribe function for navigation guard */
+  private clearNavigationGuard?: () => void;
+
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeInputs = inputs.onChange((name) => this.handleInputChange(name));
     this.loadSettings();
     this.loadPage();
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+    document.addEventListener('keydown', this.handleKeyDown);
+    document.addEventListener('lence-request-edit', this.boundRequestEditHandler);
   }
 
   private async loadSettings() {
@@ -312,6 +350,29 @@ export class LencePage extends LitElement {
     if (this.editDebounceTimer) {
       clearTimeout(this.editDebounceTimer);
     }
+    if (this.clearNavigationGuard) {
+      this.clearNavigationGuard();
+    }
+    document.removeEventListener('keydown', this.handleKeyDown);
+    document.removeEventListener('lence-request-edit', this.boundRequestEditHandler);
+    window.removeEventListener('beforeunload', this.boundBeforeUnload);
+  }
+
+  private handleRequestEdit() {
+    if (this.editMode && !this.editing) {
+      this.originalContent = this.rawContent;
+      this.isDirty = false;
+      this.editing = true;
+    }
+  }
+
+  private handleBeforeUnload(e: BeforeUnloadEvent) {
+    if (this.isDirty) {
+      e.preventDefault();
+      // Modern browsers ignore custom messages, but we need to set returnValue
+      e.returnValue = '';
+      return '';
+    }
   }
 
   updated(changedProperties: Map<string, unknown>) {
@@ -328,8 +389,25 @@ export class LencePage extends LitElement {
       }));
     }
 
+    // Manage beforeunload listener and navigation guard based on dirty state
+    if (changedProperties.has('isDirty')) {
+      if (this.isDirty) {
+        window.addEventListener('beforeunload', this.boundBeforeUnload);
+        this.clearNavigationGuard = getRouter().setNavigationGuard(() => {
+          return confirm('You have unsaved changes. Are you sure you want to leave?');
+        });
+      } else {
+        window.removeEventListener('beforeunload', this.boundBeforeUnload);
+        if (this.clearNavigationGuard) {
+          this.clearNavigationGuard();
+          this.clearNavigationGuard = undefined;
+        }
+      }
+    }
+
     // After render, pass data to components (use requestAnimationFrame to ensure DOM is ready)
-    if (changedProperties.has('queryData') || changedProperties.has('htmlContent')) {
+    // Also update when exiting edit mode since DOM structure changes
+    if (changedProperties.has('queryData') || changedProperties.has('htmlContent') || changedProperties.has('editing')) {
       requestAnimationFrame(() => this.updateComponentData());
     }
   }
@@ -533,7 +611,39 @@ export class LencePage extends LitElement {
   }
 
   private toggleEditing() {
+    if (!this.editing) {
+      // Starting to edit - save original content
+      this.originalContent = this.rawContent;
+      this.isDirty = false;
+    }
     this.editing = !this.editing;
+  }
+
+  private handleKeyDown(e: KeyboardEvent) {
+    // Ctrl+S or Cmd+S to save
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      if (this.editing && this.isDirty) {
+        e.preventDefault();
+        this.handleSave();
+      }
+    }
+  }
+
+  private async handleSave() {
+    if (this.saving || !this.isDirty) return;
+
+    this.saving = true;
+    try {
+      const pageName = pathToPageName(this.path);
+      await savePage(pageName, this.rawContent);
+      this.originalContent = this.rawContent;
+      this.isDirty = false;
+    } catch (err) {
+      console.error('Save failed:', err);
+      // Could show error notification here
+    } finally {
+      this.saving = false;
+    }
   }
 
   private updateDocumentTitle(title?: string) {
@@ -547,6 +657,7 @@ export class LencePage extends LitElement {
   private handleSourceEdit(e: Event) {
     const textarea = e.target as HTMLTextAreaElement;
     this.rawContent = textarea.value;
+    this.isDirty = this.rawContent !== this.originalContent;
 
     // Debounce re-parsing
     if (this.editDebounceTimer) {
@@ -603,7 +714,14 @@ export class LencePage extends LitElement {
     if (this.editing) {
       return html`
         <div class="page-header">
-          <button class="header-button" @click=${this.toggleEditing}>Done</button>
+          <button
+            class="header-button save-button"
+            @click=${this.handleSave}
+            ?disabled=${!this.isDirty || this.saving}
+          >
+            ${this.saving ? 'Saving...' : this.isDirty ? 'Save' : 'Saved'}
+          </button>
+          <button class="header-button" @click=${this.toggleEditing}>Close</button>
         </div>
         ${this.renderQueryErrors()}
         <div class="split-view">

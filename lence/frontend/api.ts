@@ -142,3 +142,58 @@ export async function fetchPage(path: string): Promise<PageResponse> {
 
   return fetchJson<PageResponse>(`/_api/v1/pages/page/${pagePath}`);
 }
+
+/**
+ * Response from page save/create operations.
+ */
+export interface PageSaveResponse {
+  success: boolean;
+  path: string;
+}
+
+/**
+ * Save changes to an existing page. Requires edit mode.
+ */
+export async function savePage(path: string, content: string): Promise<PageSaveResponse> {
+  let pagePath = path;
+  if (pagePath.startsWith('/')) {
+    pagePath = pagePath.slice(1);
+  }
+  if (!pagePath) {
+    pagePath = 'index';
+  }
+
+  return fetchJson<PageSaveResponse>(`/_api/v1/pages/page/${pagePath}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content }),
+  });
+}
+
+/**
+ * Create a new page. Requires edit mode.
+ */
+export async function createPage(path: string, content: string): Promise<PageSaveResponse> {
+  let pagePath = path;
+  if (pagePath.startsWith('/')) {
+    pagePath = pagePath.slice(1);
+  }
+
+  return fetchJson<PageSaveResponse>(`/_api/v1/pages/page/${pagePath}`, {
+    method: 'POST',
+    body: JSON.stringify({ content }),
+  });
+}
+
+/**
+ * Delete a page. Requires edit mode.
+ */
+export async function deletePage(path: string): Promise<{ success: boolean }> {
+  let pagePath = path;
+  if (pagePath.startsWith('/')) {
+    pagePath = pagePath.slice(1);
+  }
+
+  return fetchJson<{ success: boolean }>(`/_api/v1/pages/page/${pagePath}`, {
+    method: 'DELETE',
+  });
+}

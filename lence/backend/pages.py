@@ -6,8 +6,49 @@ from pathlib import Path
 import yaml
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from .config import DocsVisibility
+
+
+class PageContent(BaseModel):
+    """Request body for saving page content."""
+
+    content: str
+
+
+def validate_page_path(path: str) -> str | None:
+    """Validate and normalize a page path.
+
+    Returns normalized path if valid, None if invalid.
+    Prevents path traversal attacks and invalid characters.
+    """
+    # Reject empty paths
+    if not path or not path.strip():
+        return None
+
+    # Reject paths with ..
+    if ".." in path:
+        return None
+
+    # Reject absolute paths
+    if path.startswith("/"):
+        path = path[1:]
+
+    # Reject paths starting with _docs (bundled pages)
+    if path.startswith("_docs"):
+        return None
+
+    # Reject hidden files/directories
+    parts = path.split("/")
+    if any(part.startswith(".") for part in parts):
+        return None
+
+    # Reject paths with special characters (allow alphanumeric, -, _, /)
+    if not re.match(r"^[\w\-/]+$", path):
+        return None
+
+    return path
 
 # Package directory (where lence is installed)
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -321,3 +362,135 @@ async def get_settings(request: Request):
         "editMode": edit_mode,
         "title": config.title,
     }
+
+
+@router.put("/page/{path:path}")
+async def save_page(request: Request, path: str, body: PageContent):
+    """Save changes to an existing page. Requires edit mode."""
+    edit_mode = getattr(request.app.state, "edit_mode", False)
+    if not edit_mode:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Edit mode not enabled"},
+        )
+
+    # Validate path
+    safe_path = validate_page_path(path)
+    if not safe_path:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid page path"},
+        )
+
+    pages_dir = request.app.state.pages_dir
+    file_path = pages_dir / safe_path
+    if not file_path.suffix:
+        file_path = file_path.with_suffix(".md")
+
+    # Only allow saving existing project pages
+    if not file_path.exists():
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Page not found"},
+        )
+
+    # Ensure file is within project pages directory
+    try:
+        file_path.resolve().relative_to(pages_dir.resolve())
+    except ValueError:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid page path"},
+        )
+
+    file_path.write_text(body.content)
+    return {"success": True, "path": str(file_path.relative_to(pages_dir))}
+
+
+@router.post("/page/{path:path}")
+async def create_page(request: Request, path: str, body: PageContent):
+    """Create a new page. Requires edit mode."""
+    edit_mode = getattr(request.app.state, "edit_mode", False)
+    if not edit_mode:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Edit mode not enabled"},
+        )
+
+    # Validate path
+    safe_path = validate_page_path(path)
+    if not safe_path:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid page path"},
+        )
+
+    pages_dir = request.app.state.pages_dir
+    file_path = pages_dir / safe_path
+    if not file_path.suffix:
+        file_path = file_path.with_suffix(".md")
+
+    # Don't overwrite existing pages
+    if file_path.exists():
+        return JSONResponse(
+            status_code=409,
+            content={"error": "Page already exists"},
+        )
+
+    # Ensure file would be within project pages directory
+    try:
+        file_path.resolve().relative_to(pages_dir.resolve())
+    except ValueError:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid page path"},
+        )
+
+    # Create parent directories if needed
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    file_path.write_text(body.content)
+    return {"success": True, "path": str(file_path.relative_to(pages_dir))}
+
+
+@router.delete("/page/{path:path}")
+async def delete_page(request: Request, path: str):
+    """Delete a page. Requires edit mode."""
+    edit_mode = getattr(request.app.state, "edit_mode", False)
+    if not edit_mode:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Edit mode not enabled"},
+        )
+
+    # Validate path
+    safe_path = validate_page_path(path)
+    if not safe_path:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid page path"},
+        )
+
+    pages_dir = request.app.state.pages_dir
+    file_path = pages_dir / safe_path
+    if not file_path.suffix:
+        file_path = file_path.with_suffix(".md")
+
+    # Only allow deleting existing project pages
+    if not file_path.exists():
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Page not found"},
+        )
+
+    # Ensure file is within project pages directory
+    try:
+        file_path.resolve().relative_to(pages_dir.resolve())
+    except ValueError:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid page path"},
+        )
+
+    file_path.unlink()
+    return {"success": True}
