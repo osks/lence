@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from .config import DocsVisibility
+from ..version import __version__
 
 
 class PageContent(BaseModel):
@@ -363,6 +364,7 @@ async def get_settings(request: Request):
         "showSource": config.show_source,
         "editMode": edit_mode,
         "title": config.title,
+        "version": __version__,
     }
 
 

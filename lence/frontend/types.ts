@@ -63,6 +63,7 @@ export interface Settings {
   showSource: boolean;
   editMode: boolean;
   title: string;
+  version: string;
 }
 
 /**

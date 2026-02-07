@@ -92,6 +92,8 @@ export class LenceLayout extends LitElement {
         top: 0;
         height: calc(100vh - 3rem);
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
         box-sizing: border-box;
       }
 
@@ -373,6 +375,22 @@ export class LenceLayout extends LitElement {
         background: var(--lence-negative-bg);
       }
 
+      .version {
+        margin-top: auto;
+        padding: 0.75rem;
+        font-size: var(--lence-font-size-xs);
+        color: var(--lence-text-muted);
+      }
+
+      .version a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .version a:hover {
+        text-decoration: underline;
+      }
+
       @media (max-width: 768px) {
         .sidebar,
         .sidebar-right {
@@ -399,6 +417,9 @@ export class LenceLayout extends LitElement {
 
   @state()
   private siteTitle = 'Lence';
+
+  @state()
+  private version = '';
 
   @state()
   private editMode = false;
@@ -477,6 +498,7 @@ export class LenceLayout extends LitElement {
       this.showHelp = settings.showHelp;
       this.siteTitle = settings.title;
       this.editMode = settings.editMode;
+      this.version = settings.version;
 
       // Load docs menu if help is shown
       if (this.showHelp) {
@@ -712,6 +734,9 @@ export class LenceLayout extends LitElement {
                   </ul>
                 </nav>
               `
+            : null}
+          ${this.version
+            ? html`<div class="version"><a href="https://github.com/osks/lence" target="_blank">Lence</a> ${this.version}</div>`
             : null}
         </aside>
         <main class="main">
