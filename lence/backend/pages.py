@@ -216,8 +216,10 @@ DOCS_ORDER = [
     "project-structure",
     "settings",
     "sources",
+    "charts",
+    "inputs",
+    "data",
     "colors",
-    "components",
 ]
 
 

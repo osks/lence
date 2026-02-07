@@ -8,7 +8,7 @@
  * - {% table data="..." /%} - Render tables
  */
 
-import Markdoc, { type Config, type Node, type RenderableTreeNode } from '@markdoc/markdoc';
+import Markdoc, { type Config, type Node, type RenderableTreeNode, type ValidateError } from '@markdoc/markdoc';
 
 /**
  * Frontmatter data from a page.
@@ -26,6 +26,7 @@ export interface ParsedPage {
   queries: QueryDefinition[];
   data: DataDefinition[];
   frontmatter: Frontmatter;
+  errors: ValidateError[];
 }
 
 /**
@@ -410,6 +411,7 @@ export function parseMarkdoc(content: string): ParsedPage {
   // Strip SQL query fences from body (they shouldn't render)
   const bodyWithoutQueries = stripQueryFences(body);
   const ast = Markdoc.parse(bodyWithoutQueries);
+  const errors = Markdoc.validate(ast, config);
   const data = extractData(bodyWithoutQueries);
   const transformed = Markdoc.transform(ast, config);
 
@@ -418,6 +420,7 @@ export function parseMarkdoc(content: string): ParsedPage {
     queries,
     data,
     frontmatter,
+    errors,
   };
 }
 

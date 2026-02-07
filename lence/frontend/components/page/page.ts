@@ -18,6 +18,7 @@ import {
   type DataDefinition,
 } from '../../markdoc/index.js';
 import type { QueryResult } from '../../types.js';
+import type { ValidateError } from '@markdoc/markdoc';
 import { themeDefaults } from '../../styles/theme.js';
 
 /**
@@ -224,6 +225,23 @@ export class LencePage extends LitElement {
         min-width: 0;
       }
 
+      .editor-pane .error {
+        flex-shrink: 0;
+        margin: 0.5rem 0 0 0;
+        padding: 0.5rem 0.75rem;
+        font-size: var(--lence-font-size-xs);
+      }
+
+      .error-notice {
+        font-size: var(--lence-font-size-xs);
+        background: var(--lence-negative-bg);
+        border: 1px solid var(--lence-negative);
+        border-radius: var(--lence-radius);
+        color: var(--lence-negative);
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+
       .split-view .preview-pane {
         flex: 1;
         overflow-y: auto;
@@ -271,6 +289,9 @@ export class LencePage extends LitElement {
 
   @state()
   private queryErrors: Map<string, string> = new Map();
+
+  @state()
+  private parseErrors: ValidateError[] = [];
 
   /** Whether source view is enabled (from frontmatter) */
   @state()
@@ -417,6 +438,7 @@ export class LencePage extends LitElement {
     this.error = null;
     this.queryData = new Map();
     this.queryErrors = new Map();
+    this.parseErrors = [];
     this.inputDependencies = new Map();
     this.viewingSource = false;
     this.editing = false;
@@ -438,6 +460,7 @@ export class LencePage extends LitElement {
       const parsed = parseMarkdoc(page.content);
       this.htmlContent = renderToHtml(parsed.content);
       this.queryMap = buildQueryMap(parsed.queries);
+      this.parseErrors = parsed.errors;
 
       // Build input dependency map from queries
       this.buildInputDependencies();
@@ -606,6 +629,38 @@ export class LencePage extends LitElement {
     `;
   }
 
+  private renderParseErrors() {
+    if (!this.editing || this.parseErrors.length === 0) return null;
+
+    return html`
+      ${this.parseErrors.map(
+        (err) => html`
+          <div class="error">
+            Line ${err.lines?.[0] ?? '?'}: ${err.error.message}
+          </div>
+        `
+      )}
+    `;
+  }
+
+  private renderErrorNotice() {
+    if (this.editing) return null;
+
+    const hasParseErrors = this.parseErrors.length > 0;
+    const hasQueryErrors = this.queryErrors.size > 0;
+    if (!hasParseErrors && !hasQueryErrors) return null;
+
+    const parts: string[] = [];
+    if (hasParseErrors) parts.push(`${this.parseErrors.length} syntax`);
+    if (hasQueryErrors) parts.push(`${this.queryErrors.size} query`);
+
+    return html`
+      <div class="error-notice">
+        ${parts.join(', ')} error${(this.parseErrors.length + this.queryErrors.size) > 1 ? 's' : ''}
+      </div>
+    `;
+  }
+
   private toggleSource() {
     this.viewingSource = !this.viewingSource;
   }
@@ -677,6 +732,7 @@ export class LencePage extends LitElement {
       const parsed = parseMarkdoc(this.rawContent);
       this.htmlContent = renderToHtml(parsed.content);
       this.queryMap = buildQueryMap(parsed.queries);
+      this.parseErrors = parsed.errors;
 
       // Update document title from frontmatter
       this.updateDocumentTitle(parsed.frontmatter.title as string | undefined);
@@ -723,7 +779,6 @@ export class LencePage extends LitElement {
           </button>
           <button class="header-button" @click=${this.toggleEditing}>Close</button>
         </div>
-        ${this.renderQueryErrors()}
         <div class="split-view">
           <div class="editor-pane">
             <textarea
@@ -731,6 +786,8 @@ export class LencePage extends LitElement {
               .value=${this.rawContent}
               @input=${this.handleSourceEdit}
             ></textarea>
+            ${this.renderParseErrors()}
+            ${this.renderQueryErrors()}
           </div>
           <div class="preview-pane">
             <article class="content">
@@ -767,7 +824,7 @@ export class LencePage extends LitElement {
             </div>
           `
         : null}
-      ${this.renderQueryErrors()}
+      ${this.renderErrorNotice()}
       <article class="content">${unsafeHTML(this.htmlContent)}</article>
     `;
   }
