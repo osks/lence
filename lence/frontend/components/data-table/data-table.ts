@@ -477,7 +477,7 @@ export class DataTable extends LitElement {
     }
     // Reset state and update cached data when data changes
     if (changedProperties.has('data')) {
-      this.sortableing = [];
+      this.sorting = [];
       this.globalFilter = '';
       this.paginationState = {
         pageIndex: 0,
@@ -504,12 +504,12 @@ export class DataTable extends LitElement {
       data: this.cachedRowData,
       columns: this.cachedColumns,
       state: {
-        sorting: this.sortableing,
+        sorting: this.sorting,
         globalFilter: this.globalFilter,
         pagination: this.paginationState,
       },
       onSortingChange: (updater) => {
-        this.sortableing = typeof updater === 'function' ? updater(this.sortableing) : updater;
+        this.sorting = typeof updater === 'function' ? updater(this.sorting) : updater;
       },
       onGlobalFilterChange: (updater) => {
         this.globalFilter = typeof updater === 'function' ? updater(this.globalFilter) : updater;
@@ -518,7 +518,7 @@ export class DataTable extends LitElement {
         this.paginationState = typeof updater === 'function' ? updater(this.paginationState) : updater;
       },
       getCoreRowModel: this.coreRowModel,
-      getSortedRowModel: this.sortable ? this.sortableedRowModel : undefined,
+      getSortedRowModel: this.sortable ? this.sortedRowModel : undefined,
       getFilteredRowModel: this.search ? this.filteredRowModel : undefined,
       getPaginationRowModel: this.paginationEnabled ? this.paginationRowModel : undefined,
       enableSorting: this.sortable,
