@@ -5,7 +5,7 @@
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import type { MenuItem, Settings } from '../../types.js';
-import { fetchMenu, fetchSettings, fetchDocsMenu, createPage, deletePage } from '../../api.js';
+import { fetchMenu, fetchSettings, fetchDocsMenu, createPage, deletePage, fetchQueries, createQuery, deleteQuery, type QueryMenuItem } from '../../api.js';
 import { getRouter } from '../../router.js';
 import { themeDefaults } from '../../styles/theme.js';
 
@@ -448,6 +448,30 @@ export class LenceLayout extends LitElement {
   @state()
   private menuOpenPath: string | null = null;
 
+  @state()
+  private queries: QueryMenuItem[] = [];
+
+  @state()
+  private showNewQueryDialog = false;
+
+  @state()
+  private newQueryPath = '';
+
+  @state()
+  private newQueryError = '';
+
+  @state()
+  private showDeleteQueryDialog = false;
+
+  @state()
+  private deletingQuery = false;
+
+  @state()
+  private deleteQueryTargetPath = '';
+
+  @state()
+  private queryMenuOpenPath: string | null = null;
+
   private unsubscribeRouter?: () => void;
   private boundEditingHandler = this.handleEditingChange.bind(this);
 
@@ -455,6 +479,7 @@ export class LenceLayout extends LitElement {
     super.connectedCallback();
     this.loadMenu();
     this.loadSettings();
+    this.loadQueries();
 
     // Subscribe to route changes
     const router = getRouter();
@@ -506,6 +531,15 @@ export class LenceLayout extends LitElement {
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
+    }
+  }
+
+  private async loadQueries() {
+    try {
+      this.queries = await fetchQueries();
+    } catch (error) {
+      console.error('Failed to load queries:', error);
+      this.queries = [];
     }
   }
 
@@ -579,6 +613,106 @@ export class LenceLayout extends LitElement {
     }
   }
 
+  private openNewQueryDialog() {
+    this.showNewQueryDialog = true;
+    this.newQueryPath = '';
+    this.newQueryError = '';
+  }
+
+  private closeNewQueryDialog() {
+    this.showNewQueryDialog = false;
+    this.newQueryPath = '';
+    this.newQueryError = '';
+  }
+
+  private handleNewQueryInput(e: Event) {
+    this.newQueryPath = (e.target as HTMLInputElement).value;
+    this.newQueryError = '';
+  }
+
+  private async handleCreateQuery() {
+    const path = this.newQueryPath.trim();
+    if (!path) {
+      this.newQueryError = 'Please enter a query name';
+      return;
+    }
+
+    // Validate: each segment must match [a-z][a-z0-9_]*
+    const parts = path.split('/');
+    const validSegment = /^[a-z][a-z0-9_]*$/;
+    for (const part of parts) {
+      if (!validSegment.test(part)) {
+        this.newQueryError = 'Invalid name (use lowercase letters, numbers, underscores)';
+        return;
+      }
+    }
+
+    try {
+      const content = `-- ${path}\nSELECT 1 as example\n`;
+      await createQuery(path, content);
+      this.closeNewQueryDialog();
+      await this.loadQueries();
+      // Navigate to query editor
+      getRouter().navigate(`/_query/${path}`);
+    } catch (err) {
+      const error = err as Error;
+      this.newQueryError = error.message || 'Failed to create query';
+    }
+  }
+
+  private handleQueryDialogKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      this.handleCreateQuery();
+    } else if (e.key === 'Escape') {
+      this.closeNewQueryDialog();
+    }
+  }
+
+  private openQueryMenu(e: Event, path: string) {
+    e.stopPropagation();
+    this.queryMenuOpenPath = path;
+  }
+
+  private closeQueryMenu() {
+    this.queryMenuOpenPath = null;
+  }
+
+  private handleEditQuery(path: string) {
+    this.closeQueryMenu();
+    getRouter().navigate(`/_query/${path}`);
+  }
+
+  private openDeleteQueryDialog(path: string) {
+    this.closeQueryMenu();
+    this.deleteQueryTargetPath = path;
+    this.showDeleteQueryDialog = true;
+  }
+
+  private closeDeleteQueryDialog() {
+    this.showDeleteQueryDialog = false;
+    this.deleteQueryTargetPath = '';
+  }
+
+  private async handleDeleteQuery() {
+    if (this.deletingQuery) return;
+
+    this.deletingQuery = true;
+    try {
+      await deleteQuery(this.deleteQueryTargetPath);
+      this.closeDeleteQueryDialog();
+      await this.loadQueries();
+      // Navigate away if we deleted the current query
+      if (this.currentPath === `/_query/${this.deleteQueryTargetPath}`) {
+        getRouter().navigate('/');
+      }
+    } catch (err) {
+      console.error('Delete query failed:', err);
+      this.closeDeleteQueryDialog();
+    } finally {
+      this.deletingQuery = false;
+    }
+  }
+
   private openNavMenu(e: Event, path: string) {
     e.stopPropagation();
     this.menuOpenPath = path;
@@ -637,6 +771,54 @@ export class LenceLayout extends LitElement {
     } finally {
       this.deleting = false;
     }
+  }
+
+  private renderQueryItem(item: QueryMenuItem): unknown {
+    if (item.children && item.children.length > 0) {
+      // Directory with children
+      return html`
+        <li>
+          <div class="nav-group-title">${item.name}</div>
+          <ul class="nav-children">
+            ${item.children.map((child) => this.renderQueryItem(child))}
+          </ul>
+        </li>
+      `;
+    }
+
+    // Regular query item
+    const path = `/_query/${item.path}`;
+    const isActive = this.currentPath === path;
+    const isMenuOpen = this.queryMenuOpenPath === item.path;
+
+    return html`
+      <li class="nav-item">
+        <a
+          href="${path}"
+          class=${isActive ? 'active' : ''}
+          @click=${(e: Event) => this.handleNavClick(e, path)}
+        >
+          ${item.name}
+        </a>
+        ${this.editMode
+          ? html`
+              <button
+                class="nav-item-menu"
+                @click=${(e: Event) => this.openQueryMenu(e, item.path)}
+              >...</button>
+              ${isMenuOpen
+                ? html`
+                    <div class="nav-dropdown-backdrop" @click=${this.closeQueryMenu}></div>
+                    <div class="nav-dropdown">
+                      <button class="nav-dropdown-item" @click=${() => this.handleEditQuery(item.path)}>Edit</button>
+                      <button class="nav-dropdown-item danger" @click=${() => this.openDeleteQueryDialog(item.path)}>Delete</button>
+                    </div>
+                  `
+                : null}
+            `
+          : null}
+      </li>
+    `;
   }
 
   private renderMenuItem(item: MenuItem): unknown {
@@ -721,6 +903,21 @@ export class LenceLayout extends LitElement {
                     : null}
                 `}
           </nav>
+          ${this.editMode
+            ? html`
+                <nav class="docs-section">
+                  <div class="nav-group-title">Queries</div>
+                  ${this.queries.length > 0
+                    ? html`
+                        <ul class="nav-children">
+                          ${this.queries.map((item) => this.renderQueryItem(item))}
+                        </ul>
+                      `
+                    : html`<div class="loading" style="padding-left: 0.5rem;">No queries yet</div>`}
+                  <button class="new-page-button" @click=${this.openNewQueryDialog}>+ New Query</button>
+                </nav>
+              `
+            : null}
           ${this.showHelp
             ? html`
                 <nav class="docs-section">
@@ -783,6 +980,52 @@ export class LenceLayout extends LitElement {
                     ?disabled=${this.deleting}
                   >
                     ${this.deleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          `
+        : null}
+      ${this.showNewQueryDialog
+        ? html`
+            <div class="dialog-overlay" @click=${this.closeNewQueryDialog}>
+              <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
+                <h3>Create New Query</h3>
+                <p>Query name (e.g., monthly_sales or orders/active)</p>
+                <input
+                  type="text"
+                  class="dialog-input"
+                  placeholder="query_name"
+                  .value=${this.newQueryPath}
+                  @input=${this.handleNewQueryInput}
+                  @keydown=${this.handleQueryDialogKeydown}
+                  autofocus
+                />
+                ${this.newQueryError
+                  ? html`<div class="dialog-error">${this.newQueryError}</div>`
+                  : null}
+                <div class="dialog-buttons">
+                  <button class="dialog-button" @click=${this.closeNewQueryDialog}>Cancel</button>
+                  <button class="dialog-button primary" @click=${this.handleCreateQuery}>Create</button>
+                </div>
+              </div>
+            </div>
+          `
+        : null}
+      ${this.showDeleteQueryDialog
+        ? html`
+            <div class="dialog-overlay" @click=${this.closeDeleteQueryDialog}>
+              <div class="dialog" @click=${(e: Event) => e.stopPropagation()}>
+                <h3>Delete Query</h3>
+                <p>Are you sure you want to delete this query? This cannot be undone.</p>
+                <div class="dialog-buttons">
+                  <button class="dialog-button" @click=${this.closeDeleteQueryDialog}>Cancel</button>
+                  <button
+                    class="dialog-button danger"
+                    @click=${this.handleDeleteQuery}
+                    ?disabled=${this.deletingQuery}
+                  >
+                    ${this.deletingQuery ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </div>

@@ -8,17 +8,20 @@ A Lence project has this layout:
 
 ```
 my-project/
-├── pages/           # Markdown pages (required)
-│   ├── index.md     # Home page (/)
-│   ├── sales.md     # /sales
-│   └── sales/
-│       ├── index.md # /sales (alternative to sales.md)
-│       └── report.md # /sales/report
-├── sources/         # Local data files
+├── pages/              # Markdown pages (required)
+│   ├── index.md        # Home page (/)
+│   ├── sales.md        # /sales
+│   └── reports/
+│       └── monthly.md  # /reports/monthly
+├── data/               # Local data files
 │   ├── orders.csv
-│   └── customers.parquet
-├── sources.yaml     # Data source configuration
-└── settings.yaml    # Site settings (optional)
+│   └── products.parquet
+├── queries/            # Shared SQL queries (optional)
+│   ├── monthly_sales.sql       → {monthly_sales}
+│   └── orders/
+│       └── active.sql          → {orders/active}
+├── sources.yaml        # Data source configuration
+└── settings.yaml       # Site settings (optional)
 ```
 
 ## Pages
@@ -58,11 +61,13 @@ Data sources are configured in `sources.yaml`:
 sources:
   - table: orders
     type: csv
-    path: sources/orders.csv
+    path: data/orders.csv
 
   - table: api_data
     type: parquet
     path: https://example.com/data.parquet
+
+queries: queries/
 ```
 
 See [Sources](/_docs/sources) for details.

@@ -113,6 +113,24 @@ def load_settings(project_dir: Path) -> dict[str, Any]:
     return load_yaml(project_dir / "settings.yaml")
 
 
+def get_queries_dir(project_dir: Path) -> Path | None:
+    """Get the queries directory path from sources.yaml.
+
+    Returns the resolved Path if configured and exists, None otherwise.
+    """
+    data = load_yaml(project_dir / "sources.yaml")
+    queries_path = data.get("queries")
+
+    if not queries_path:
+        return None
+
+    queries_dir = project_dir / queries_path
+    if not queries_dir.is_dir():
+        return None
+
+    return queries_dir
+
+
 def load_queries(project_dir: Path) -> dict[str, str]:
     """Load shared queries from SQL files in the queries directory.
 
@@ -126,15 +144,8 @@ def load_queries(project_dir: Path) -> dict[str, str]:
     Returns:
         Dict mapping query name (relative path without .sql) to SQL content.
     """
-    data = load_yaml(project_dir / "sources.yaml")
-    queries_path = data.get("queries")
-
-    if not queries_path:
-        return {}
-
-    queries_dir = project_dir / queries_path
-    if not queries_dir.is_dir():
-        logger.warning(f"Queries directory not found: {queries_dir}")
+    queries_dir = get_queries_dir(project_dir)
+    if not queries_dir:
         return {}
 
     result: dict[str, str] = {}

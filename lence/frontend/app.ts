@@ -7,6 +7,7 @@ import { state } from 'lit/decorators.js';
 import { initRouter, getRouter } from './router.js';
 import './components/layout/layout.js';
 import './components/page/page.js';
+import './components/query-editor/query-editor.js';
 import './components/chart/echarts-chart.js';
 import './components/area-chart/area-chart.js';
 import './components/data-table/data-table.js';
@@ -50,9 +51,15 @@ export class LenceApp extends LitElement {
   }
 
   render() {
+    // Check if we're viewing a query editor
+    const isQueryEditor = this.currentPath.startsWith('/_query/');
+    const queryPath = isQueryEditor ? this.currentPath.slice('/_query/'.length) : '';
+
     return html`
       <lence-layout>
-        <lence-page .path=${this.currentPath}></lence-page>
+        ${isQueryEditor
+          ? html`<lence-query-editor .path=${queryPath}></lence-query-editor>`
+          : html`<lence-page .path=${this.currentPath}></lence-page>`}
       </lence-layout>
     `;
   }

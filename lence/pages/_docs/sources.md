@@ -187,23 +187,4 @@ WHERE category LIKE '${inputs.category.value}'
 {% datatable data="{orders_by_category}" /%}
 ```
 
-## Project Structure
-
-Recommended folder layout:
-
-```
-my-project/
-  sources.yaml
-  data/
-    orders.csv
-    products.csv
-  queries/
-    monthly_sales.sql       → {monthly_sales}
-    orders/
-      active.sql            → {orders/active}
-      by_region.sql         → {orders/by_region}
-  pages/
-    index.md
-    reports/
-      sales.md
-```
+See [Project Structure](/_docs/project-structure) for recommended folder layout.

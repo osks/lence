@@ -197,3 +197,91 @@ export async function deletePage(path: string): Promise<{ success: boolean }> {
     method: 'DELETE',
   });
 }
+
+/**
+ * Query menu item from backend.
+ */
+export interface QueryMenuItem {
+  name: string;
+  path: string;
+  children?: QueryMenuItem[];
+}
+
+/**
+ * Query response with content and metadata.
+ */
+export interface QueryResponse {
+  content: string;
+  name: string;
+}
+
+/**
+ * Response from query save/create operations.
+ */
+export interface QuerySaveResponse {
+  success: boolean;
+  path: string;
+}
+
+/**
+ * Fetch the list of available queries.
+ */
+export async function fetchQueries(): Promise<QueryMenuItem[]> {
+  return fetchJson<QueryMenuItem[]>('/_api/v1/queries/');
+}
+
+/**
+ * Fetch a query file's content.
+ */
+export async function fetchQuery(path: string): Promise<QueryResponse> {
+  let queryPath = path;
+  if (queryPath.startsWith('/')) {
+    queryPath = queryPath.slice(1);
+  }
+
+  return fetchJson<QueryResponse>(`/_api/v1/queries/${queryPath}`);
+}
+
+/**
+ * Create a new query file. Requires edit mode.
+ */
+export async function createQuery(path: string, content: string): Promise<QuerySaveResponse> {
+  let queryPath = path;
+  if (queryPath.startsWith('/')) {
+    queryPath = queryPath.slice(1);
+  }
+
+  return fetchJson<QuerySaveResponse>(`/_api/v1/queries/${queryPath}`, {
+    method: 'POST',
+    body: JSON.stringify({ content }),
+  });
+}
+
+/**
+ * Save changes to an existing query. Requires edit mode.
+ */
+export async function saveQuery(path: string, content: string): Promise<QuerySaveResponse> {
+  let queryPath = path;
+  if (queryPath.startsWith('/')) {
+    queryPath = queryPath.slice(1);
+  }
+
+  return fetchJson<QuerySaveResponse>(`/_api/v1/queries/${queryPath}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content }),
+  });
+}
+
+/**
+ * Delete a query file. Requires edit mode.
+ */
+export async function deleteQuery(path: string): Promise<{ success: boolean }> {
+  let queryPath = path;
+  if (queryPath.startsWith('/')) {
+    queryPath = queryPath.slice(1);
+  }
+
+  return fetchJson<{ success: boolean }>(`/_api/v1/queries/${queryPath}`, {
+    method: 'DELETE',
+  });
+}

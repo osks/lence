@@ -8,10 +8,11 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import load_config
+from .config import get_queries_dir, load_config
 from .database import init_database
 from .pages import PACKAGE_DIR
 from .pages import router as pages_router
+from .queries import router as queries_router
 from .query_registry import init_registry
 from .sources import router as sources_router
 
@@ -54,6 +55,7 @@ def create_app(
         app.state.config = config
         app.state.project_dir = project_dir
         app.state.pages_dir = pages_dir
+        app.state.queries_dir = get_queries_dir(project_dir)
         app.state.edit_mode = edit_mode
 
         try:
@@ -77,6 +79,7 @@ def create_app(
     # API routes under /_api/v1/
     app.include_router(sources_router, prefix="/_api/v1/sources")
     app.include_router(pages_router, prefix="/_api/v1/pages")
+    app.include_router(queries_router, prefix="/_api/v1/queries")
 
     # SPA catch-all (must be last)
     @app.get("/{path:path}")
