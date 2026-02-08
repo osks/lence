@@ -418,7 +418,10 @@ export class EChartsGantt extends LitElement {
           const newMin = this.chartRange.min + range * startPct;
           const newMax = this.chartRange.min + range * endPct;
           this.chart.setOption({
-            xAxis: { min: newMin, max: newMax },
+            xAxis: [
+              { min: newMin, max: newMax },
+              { min: newMin, max: newMax },
+            ],
           });
         }
       });
@@ -462,11 +465,13 @@ export class EChartsGantt extends LitElement {
           borderColor: 'transparent',
           backgroundColor: '#f3f4f6',
           fillerColor: 'rgba(35, 106, 164, 0.15)',
+          handleSize: 16,
           handleStyle: {
             color: '#236aa4',
             borderColor: '#236aa4',
           },
-          moveHandleSize: 0,
+          moveHandleSize: 8,
+          brushSelect: false,
           textStyle: {
             color: '#6b7280',
             fontSize: 10,
@@ -491,8 +496,13 @@ export class EChartsGantt extends LitElement {
     const newMax = viewEnd ? parseDate(viewEnd) : this.chartRange.max;
 
     if (this.height) {
-      // When fixed height is set, update xAxis directly (no dataZoom on main chart)
-      this.chart.setOption({ xAxis: { min: newMin, max: newMax } });
+      // When fixed height is set, update both xAxis directly (no dataZoom on main chart)
+      this.chart.setOption({
+        xAxis: [
+          { min: newMin, max: newMax },
+          { min: newMin, max: newMax },
+        ],
+      });
 
       // Update zoom control slider position
       if (this.zoomChart) {
@@ -673,13 +683,14 @@ export class EChartsGantt extends LitElement {
         },
         textStyle: {
           fontFamily: 'Inter, system-ui, sans-serif',
+          color: '#000',
         },
       },
       grid: {
         left: 10,
         right: '5%',
-        top: this.title ? 60 : 30,
-        bottom: this.height ? 30 : 70,
+        top: this.title ? 80 : 50,
+        bottom: this.height ? 50 : 90,
         containLabel: false,
       },
       // When fixed height is set, dataZoom slider is rendered separately below
@@ -689,39 +700,57 @@ export class EChartsGantt extends LitElement {
             // X-axis slider (inline when no fixed height)
             {
               type: 'slider',
-              xAxisIndex: 0,
+              xAxisIndex: [0, 1],
               filterMode: 'none',
               height: 20,
               bottom: 10,
               borderColor: 'transparent',
               backgroundColor: '#f3f4f6',
               fillerColor: 'rgba(35, 106, 164, 0.15)',
+              handleSize: 16,
               handleStyle: {
                 color: '#236aa4',
                 borderColor: '#236aa4',
               },
-              moveHandleSize: 0,
+              moveHandleSize: 8,
+              brushSelect: false,
               textStyle: {
                 color: '#6b7280',
                 fontSize: 10,
               },
             },
           ],
-      xAxis: {
-        type: 'time',
-        min: paddedMin,
-        max: paddedMax,
-        axisLabel: {
-          fontFamily: 'Inter, system-ui, sans-serif',
-          color: '#6b7280',
-        },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: '#e5e7eb',
+      xAxis: [
+        {
+          type: 'time',
+          position: 'top',
+          min: paddedMin,
+          max: paddedMax,
+          axisLabel: {
+            fontFamily: 'Inter, system-ui, sans-serif',
+            color: '#6b7280',
+          },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              color: '#e5e7eb',
+            },
           },
         },
-      },
+        {
+          type: 'time',
+          position: 'bottom',
+          min: paddedMin,
+          max: paddedMax,
+          axisLabel: {
+            fontFamily: 'Inter, system-ui, sans-serif',
+            color: '#6b7280',
+          },
+          splitLine: {
+            show: false,
+          },
+        },
+      ],
       yAxis: {
         type: 'category',
         data: validLabels,
@@ -785,25 +814,28 @@ export class EChartsGantt extends LitElement {
             const children: unknown[] = [];
 
             if (progress !== undefined) {
-              // Background bar (unfilled portion) - lighter opacity
+              // Background bar (unfilled portion) - lighter opacity with border
               children.push({
                 type: 'rect',
                 shape: rectShape,
                 style: {
                   fill: fillColor,
                   opacity: 0.3,
+                  stroke: fillColor,
+                  lineWidth: 1,
                 },
               });
 
               // Progress bar (filled portion) - full opacity
-              const progressWidth = rectShape.width * progress;
+              // Use full bar width for progress calculation, then clip to visible area
+              const progressWidth = barWidth * progress;
               if (progressWidth > 0) {
                 const progressShape = echarts.graphic.clipRectByRect(
                   {
-                    x: rectShape.x,
-                    y: rectShape.y,
+                    x: start[0],
+                    y: start[1] - height / 2,
                     width: progressWidth,
-                    height: rectShape.height,
+                    height: height,
                   },
                   {
                     x: coordSys.x,
@@ -835,7 +867,7 @@ export class EChartsGantt extends LitElement {
               });
             }
 
-            // Text label
+            // Text label with shadow for readability on light backgrounds
             children.push({
               type: 'text',
               style: {
@@ -847,6 +879,8 @@ export class EChartsGantt extends LitElement {
                 fontSize: 12,
                 fontWeight: 500,
                 verticalAlign: 'middle',
+                textShadowColor: 'rgba(0, 0, 0, 0.4)',
+                textShadowBlur: 2,
                 truncate: {
                   outerWidth: Math.max(0, rectShape.width - 12),
                   ellipsis: '…',
