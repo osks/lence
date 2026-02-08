@@ -149,6 +149,24 @@ class TestRewriteQuery:
         assert "orders.csv" in rewritten
         assert "products.parquet" in rewritten
 
+    def test_join_preserves_aliases(self):
+        """Table aliases are preserved after rewriting."""
+        sources = {
+            "orders": DataSource(type="csv", table="orders", path="orders.csv"),
+            "products": DataSource(type="csv", table="products", path="products.csv"),
+        }
+        sql = """
+            SELECT p.name, SUM(o.quantity) as total
+            FROM orders o
+            JOIN products p ON o.product_id = p.product_id
+            GROUP BY p.name
+        """
+        rewritten, params = rewrite_query(sql, sources, {}, Path("/data"))
+
+        # Aliases must be preserved for the query to work
+        assert " AS o" in rewritten or " o " in rewritten or ") o" in rewritten.lower()
+        assert " AS p" in rewritten or " p " in rewritten or ") p" in rewritten.lower()
+
     def test_subquery(self):
         """Table in subquery is replaced."""
         sources = {

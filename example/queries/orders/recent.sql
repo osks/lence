@@ -5,6 +5,6 @@ SELECT
   customer_id,
   ROUND(quantity * unit_price, 2) as total,
   status
-FROM orders
+FROM example_orders
 ORDER BY order_date DESC
 LIMIT 10

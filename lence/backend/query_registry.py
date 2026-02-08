@@ -196,15 +196,25 @@ class QueryRegistry:
         return sql
 
 
-# Global registry instance
+# Global registry instance (fallback, prefer app.state.registry)
 _registry: QueryRegistry | None = None
 
 
 def get_registry() -> QueryRegistry:
-    """Get the global query registry."""
+    """Get the global query registry.
+
+    Note: Prefer using request.app.state.registry directly in route handlers
+    to avoid race conditions during hot reload.
+    """
     if _registry is None:
         raise RuntimeError("Query registry not initialized. Call init_registry first.")
     return _registry
+
+
+def set_registry(registry: QueryRegistry) -> None:
+    """Set the global registry instance."""
+    global _registry
+    _registry = registry
 
 
 def init_registry(pages_dir: Path) -> QueryRegistry:

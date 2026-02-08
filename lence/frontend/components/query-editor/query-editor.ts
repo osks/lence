@@ -43,13 +43,16 @@ export class LenceQueryEditor extends LitElement {
       }
 
       .header-button {
+        height: var(--lence-control-height-sm);
+        line-height: var(--lence-control-height-sm);
         font-size: var(--lence-font-size-xs);
         color: var(--lence-text-muted);
         background: none;
         border: 1px solid var(--lence-border);
         border-radius: var(--lence-radius);
-        padding: 0.25rem 0.5rem;
+        padding: 0 0.5rem;
         cursor: pointer;
+        box-sizing: content-box;
       }
 
       .header-button:hover {

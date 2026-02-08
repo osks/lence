@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from .database import get_database
-from .query_registry import QueryDefinition, extract_params, get_registry
+from .query_registry import QueryDefinition, extract_params
 
 router = APIRouter(tags=["sources"])
 
@@ -67,7 +67,7 @@ async def execute_query(request: QueryRequest, req: Request) -> QueryResponse:
     - Uses provided sql from request
     - Allows authoring new pages with live query preview
     """
-    registry = get_registry()
+    registry = req.app.state.registry
     edit_mode = getattr(req.app.state, "edit_mode", False)
 
     # Determine query definition: from registry or from request
@@ -82,6 +82,15 @@ async def execute_query(request: QueryRequest, req: Request) -> QueryResponse:
     else:
         # Lookup in registry
         query = registry.get(request.page, request.query)
+
+        # In edit mode, try rebuilding the page's queries if not found
+        if query is None and edit_mode:
+            pages_dir = req.app.state.pages_dir
+            page_file = pages_dir / request.page.lstrip("/")
+            if page_file.exists():
+                registry.rebuild_page(request.page, page_file)
+                query = registry.get(request.page, request.query)
+
         if query is None:
             raise HTTPException(
                 status_code=404,

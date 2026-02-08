@@ -63,13 +63,15 @@ export class DataTable extends LitElement {
       }
 
       .search-input {
-        padding: 0.375rem 0.625rem;
+        height: var(--lence-control-height);
+        padding: 0 0.625rem;
         border: 1px solid var(--lence-border);
         border-radius: var(--lence-radius);
         font-size: var(--lence-font-size-sm);
         min-width: 200px;
         background: var(--lence-bg);
         color: var(--lence-text);
+        box-sizing: border-box;
       }
 
       .search-input:focus {
@@ -89,12 +91,13 @@ export class DataTable extends LitElement {
 
       th,
       td {
-        padding: 0.375rem 0.5rem;
+        padding: 0 0.5rem;
         text-align: left;
         border-bottom: 1px solid var(--lence-border);
       }
 
       th {
+        height: var(--lence-control-height);
         background: var(--lence-bg-subtle);
         font-weight: 500;
         font-size: var(--lence-font-size-xs);
@@ -102,6 +105,11 @@ export class DataTable extends LitElement {
         text-transform: uppercase;
         letter-spacing: 0.03em;
         white-space: nowrap;
+        line-height: var(--lence-control-height);
+      }
+
+      td {
+        padding: 0.375rem 0.5rem;
       }
 
       th.sortable {

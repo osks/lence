@@ -8,7 +8,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from .config import QUERY_FILE_PATTERN, load_config
-from .query_registry import get_registry
 
 router = APIRouter(tags=["queries"])
 
@@ -211,7 +210,7 @@ async def create_query(request: Request, path: str, body: QueryContent):
 
     # Reload global queries in registry
     config = load_config(request.app.state.project_dir)
-    get_registry().load_global_queries(config.queries)
+    request.app.state.registry.load_global_queries(config.queries)
 
     return {"success": True, "path": path}
 
@@ -233,7 +232,7 @@ async def save_query(request: Request, path: str, body: QueryContent):
 
     # Reload global queries in registry
     config = load_config(request.app.state.project_dir)
-    get_registry().load_global_queries(config.queries)
+    request.app.state.registry.load_global_queries(config.queries)
 
     return {"success": True, "path": path}
 
@@ -255,6 +254,6 @@ async def delete_query(request: Request, path: str):
 
     # Reload global queries in registry
     config = load_config(request.app.state.project_dir)
-    get_registry().load_global_queries(config.queries)
+    request.app.state.registry.load_global_queries(config.queries)
 
     return {"success": True}

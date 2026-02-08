@@ -42,7 +42,7 @@ export class LenceCheckbox extends LitElement {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        height: 2.125rem;
+        height: var(--lence-control-height);
         padding: 0 0.75rem;
         border: 1px solid var(--lence-border);
         border-radius: var(--lence-radius);

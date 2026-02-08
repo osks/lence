@@ -155,7 +155,8 @@ export class LencePage extends LitElement {
       }
 
       .content lence-dropdown,
-      .content lence-checkbox {
+      .content lence-checkbox,
+      .content lence-button-group {
         display: inline-block;
         margin: 0.5rem 0.5rem 0.5rem 0;
       }
@@ -167,13 +168,16 @@ export class LencePage extends LitElement {
       }
 
       .header-button {
+        height: var(--lence-control-height-sm);
+        line-height: var(--lence-control-height-sm);
         font-size: var(--lence-font-size-xs);
         color: var(--lence-text-muted);
         background: none;
         border: 1px solid var(--lence-border);
         border-radius: var(--lence-radius);
-        padding: 0.25rem 0.5rem;
+        padding: 0 0.5rem;
         cursor: pointer;
+        box-sizing: content-box;
       }
 
       .header-button:hover {
@@ -345,8 +349,7 @@ export class LencePage extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.unsubscribeInputs = inputs.onChange((name) => this.handleInputChange(name));
-    this.loadSettings();
-    this.loadPage();
+    this.loadSettings().then(() => this.loadPage());
     this.handleKeyDown = this.handleKeyDown.bind(this);
     document.addEventListener('keydown', this.handleKeyDown);
     document.addEventListener('lence-request-edit', this.boundRequestEditHandler);
@@ -625,6 +628,18 @@ export class LencePage extends LitElement {
         const queryName = parseDataRef(dataAttr);
         if (queryName && this.queryData.has(queryName)) {
           (dropdown as any).queryData = this.queryData.get(queryName);
+        }
+      }
+    }
+
+    // Find button-group components and pass their data
+    const buttonGroups = contentDiv.querySelectorAll('lence-button-group');
+    for (const buttonGroup of buttonGroups) {
+      const dataAttr = buttonGroup.getAttribute('data');
+      if (dataAttr) {
+        const queryName = parseDataRef(dataAttr);
+        if (queryName && this.queryData.has(queryName)) {
+          (buttonGroup as any).queryData = this.queryData.get(queryName);
         }
       }
     }

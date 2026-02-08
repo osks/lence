@@ -106,6 +106,11 @@ def rewrite_query(
                 read_func = _get_read_function(source, base_dir)
                 # Parse the function call and replace the table
                 func_expr = sqlglot.parse_one(read_func, dialect="duckdb")
+
+                # Preserve table alias if present (e.g., "FROM orders o" -> "FROM read_csv_auto(...) AS o")
+                if table.alias:
+                    func_expr = exp.Alias(this=func_expr, alias=exp.to_identifier(table.alias))
+
                 table.replace(func_expr)
             except ValueError as e:
                 # If we can't generate the read function, leave table as-is

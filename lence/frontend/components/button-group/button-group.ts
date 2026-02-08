@@ -1,24 +1,24 @@
 /**
- * Dropdown component for filtering queries.
- * Binds to the global inputs store for reactive data filtering.
+ * Button group component for single-select filtering.
+ * Displays options as horizontal buttons instead of a dropdown.
  */
 
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { inputs } from '../../stores/inputs.js';
-import { booleanConverter, type QueryResult } from '../../types.js';
+import type { QueryResult } from '../../types.js';
 import { themeDefaults } from '../../styles/theme.js';
 
-interface DropdownOption {
+interface ButtonOption {
   value: string;
   label: string;
 }
 
 /**
- * Dropdown input component that updates the global inputs store.
+ * Button group input component that updates the global inputs store.
  */
-@customElement('lence-dropdown')
-export class LenceDropdown extends LitElement {
+@customElement('lence-button-group')
+export class LenceButtonGroup extends LitElement {
   static styles = [
     themeDefaults,
     css`
@@ -29,7 +29,7 @@ export class LenceDropdown extends LitElement {
         margin: 0.75rem 0;
       }
 
-      .dropdown-container {
+      .button-group-container {
         display: inline-flex;
         flex-direction: column;
         gap: 0.375rem;
@@ -43,37 +43,67 @@ export class LenceDropdown extends LitElement {
         letter-spacing: 0.03em;
       }
 
-      select {
+      .buttons {
+        display: inline-flex;
+        flex-wrap: wrap;
+      }
+
+      button {
         height: var(--lence-control-height);
-        padding: 0 2rem 0 0.75rem;
+        padding: 0 0.75rem;
         font-size: var(--lence-font-size-sm);
         font-family: inherit;
         border: 1px solid var(--lence-border);
-        border-radius: var(--lence-radius);
         background: var(--lence-bg);
         color: var(--lence-text);
         cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 0.5rem center;
-        min-width: 150px;
+        transition: background-color 0.15s, border-color 0.15s, color 0.15s;
       }
 
-      select:hover {
+      /* First button gets left rounded corners */
+      button:first-child {
+        border-radius: var(--lence-radius) 0 0 var(--lence-radius);
+      }
+
+      /* Last button gets right rounded corners */
+      button:last-child {
+        border-radius: 0 var(--lence-radius) var(--lence-radius) 0;
+      }
+
+      /* Only child gets all rounded corners */
+      button:only-child {
+        border-radius: var(--lence-radius);
+      }
+
+      /* Adjacent buttons share borders */
+      button:not(:first-child) {
+        margin-left: -1px;
+      }
+
+      button:hover {
+        background: var(--lence-bg-subtle);
         border-color: var(--lence-border-hover);
+        z-index: 1;
       }
 
-      select:focus {
+      button:focus {
         outline: none;
         border-color: var(--lence-primary);
         box-shadow: 0 0 0 2px var(--lence-primary-bg);
+        z-index: 2;
       }
 
-      select:disabled {
-        background: var(--lence-bg-subtle);
-        color: var(--lence-text-muted);
-        cursor: not-allowed;
+      button.active {
+        background: var(--lence-primary-bg);
+        border-color: var(--lence-border);
+        color: var(--lence-primary);
+        font-weight: 500;
+        z-index: 1;
+      }
+
+      button.active:hover {
+        background: var(--lence-primary-bg);
+        border-color: var(--lence-border);
       }
 
       .loading {
@@ -108,7 +138,7 @@ export class LenceDropdown extends LitElement {
   label?: string;
 
   /**
-   * Title/label above the dropdown.
+   * Title/label above the button group.
    */
   @property({ type: String })
   title?: string;
@@ -120,25 +150,13 @@ export class LenceDropdown extends LitElement {
   defaultValue?: string;
 
   /**
-   * Placeholder text for "All" option.
-   */
-  @property({ type: String })
-  placeholder = 'All';
-
-  /**
-   * Disable the "All" option (value="%").
-   */
-  @property({ converter: booleanConverter })
-  disableSelectAll = false;
-
-  /**
    * Query result data (set by page component).
    */
   @property({ attribute: false })
   queryData?: QueryResult;
 
   @state()
-  private options: DropdownOption[] = [];
+  private options: ButtonOption[] = [];
 
   @state()
   private selectedValue: string | null = null;
@@ -158,12 +176,8 @@ export class LenceDropdown extends LitElement {
         this.selectedValue = this.defaultValue;
         const option = this.options.find((o) => o.value === this.defaultValue);
         inputs.set(this.name, this.defaultValue, option?.label ?? this.defaultValue);
-      } else if (!this.disableSelectAll) {
-        // Default to "All" (wildcard)
-        this.selectedValue = '%';
-        inputs.set(this.name, '%', this.placeholder);
       } else {
-        // No default, pick first option
+        // Default to first option
         const first = this.options[0];
         this.selectedValue = first.value;
         inputs.set(this.name, first.value, first.label);
@@ -171,7 +185,7 @@ export class LenceDropdown extends LitElement {
     }
   }
 
-  private extractOptions(data: QueryResult): DropdownOption[] {
+  private extractOptions(data: QueryResult): ButtonOption[] {
     const valueColumn = this.value;
     const labelColumn = this.label ?? this.value;
 
@@ -189,14 +203,14 @@ export class LenceDropdown extends LitElement {
     data: QueryResult,
     valueCol: string,
     labelCol: string
-  ): DropdownOption[] {
+  ): ButtonOption[] {
     const valueIndex = data.columns.findIndex((c) => c.name === valueCol);
     const labelIndex = data.columns.findIndex((c) => c.name === labelCol);
 
     if (valueIndex === -1) return [];
 
     const seen = new Set<string>();
-    const options: DropdownOption[] = [];
+    const options: ButtonOption[] = [];
 
     for (const row of data.data) {
       const value = row[valueIndex];
@@ -213,35 +227,32 @@ export class LenceDropdown extends LitElement {
     return options;
   }
 
-  private handleChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const value = select.value || null;
-    this.selectedValue = value;
-
-    const option = value ? this.options.find((o) => o.value === value) : null;
-    inputs.set(this.name, value, option?.label ?? null);
+  private handleClick(option: ButtonOption) {
+    this.selectedValue = option.value;
+    inputs.set(this.name, option.value, option.label);
   }
 
   render() {
     const showLoading = this.data && !this.queryData;
-    const selected = this.selectedValue ?? '%';
 
     return html`
-      <div class="dropdown-container">
+      <div class="button-group-container">
         ${this.title ? html`<label>${this.title}</label>` : null}
         ${showLoading
           ? html`<span class="loading">Loading...</span>`
           : html`
-              <select @change=${this.handleChange}>
-                ${!this.disableSelectAll
-                  ? html`<option value="%" ?selected=${selected === '%'}>${this.placeholder}</option>`
-                  : null}
+              <div class="buttons">
                 ${this.options.map(
                   (opt) => html`
-                    <option value=${opt.value} ?selected=${opt.value === selected}>${opt.label}</option>
+                    <button
+                      class=${opt.value === this.selectedValue ? 'active' : ''}
+                      @click=${() => this.handleClick(opt)}
+                    >
+                      ${opt.label}
+                    </button>
                   `
                 )}
-              </select>
+              </div>
             `}
       </div>
     `;
@@ -250,6 +261,6 @@ export class LenceDropdown extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lence-dropdown': LenceDropdown;
+    'lence-button-group': LenceButtonGroup;
   }
 }

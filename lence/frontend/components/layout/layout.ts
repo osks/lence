@@ -58,10 +58,13 @@ export class LenceLayout extends LitElement {
       }
 
       .edit-mode-badge {
+        display: inline-block;
+        height: var(--lence-control-height-sm);
+        line-height: var(--lence-control-height-sm);
         background: #fef3c7;
         border: 1px solid #f59e0b;
         border-radius: var(--lence-radius);
-        padding: 0.25rem 0.5rem;
+        padding: 0 0.5rem;
         font-size: var(--lence-font-size-xs);
         color: #92400e;
         font-weight: 500;
@@ -124,7 +127,9 @@ export class LenceLayout extends LitElement {
 
       nav a {
         display: block;
-        padding: 0.3rem 0.5rem;
+        height: var(--lence-control-height);
+        line-height: var(--lence-control-height);
+        padding: 0 0.5rem;
         border-radius: var(--lence-radius);
         text-decoration: none;
         color: var(--lence-text);
@@ -144,10 +149,12 @@ export class LenceLayout extends LitElement {
 
       .nav-group-title {
         display: block;
+        height: var(--lence-control-height);
+        line-height: var(--lence-control-height);
         font-weight: 500;
         font-size: var(--lence-font-size-xs);
         color: var(--lence-text-muted);
-        padding: 0.3rem 0.5rem;
+        padding: 0 0.5rem;
         margin-top: 0.625rem;
         text-decoration: none;
         border-radius: var(--lence-radius);
@@ -181,8 +188,10 @@ export class LenceLayout extends LitElement {
       .new-page-button {
         display: block;
         width: 100%;
+        height: var(--lence-control-height);
+        line-height: var(--lence-control-height);
         margin-top: 0.75rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0 0.75rem;
         font-size: var(--lence-font-size-sm);
         color: var(--lence-text-muted);
         background: none;
@@ -190,6 +199,7 @@ export class LenceLayout extends LitElement {
         border-radius: var(--lence-radius);
         cursor: pointer;
         text-align: left;
+        box-sizing: border-box;
       }
 
       .new-page-button:hover {

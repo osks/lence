@@ -23,8 +23,8 @@ export const themeDefaults = css`
 
     /* Colors - Background */
     --lence-bg: #ffffff;
-    --lence-bg-subtle: #f9fafb;
-    --lence-bg-muted: #f3f4f6;
+    --lence-bg-subtle: #f3f4f6;
+    --lence-bg-muted: #e5e7eb;
 
     /* Colors - Text */
     --lence-text: #374151;
@@ -46,6 +46,8 @@ export const themeDefaults = css`
 
     /* Sizing */
     --lence-radius: 4px;
+    --lence-control-height: 2rem;
+    --lence-control-height-sm: 1.5rem;
     --lence-chart-height: 300px;
   }
 `;

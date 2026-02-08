@@ -14,6 +14,7 @@ import './components/data-table/data-table.js';
 import './components/gantt/echarts-gantt.js';
 import './components/dropdown/dropdown.js';
 import './components/checkbox/checkbox.js';
+import './components/button-group/button-group.js';
 
 /**
  * Main application component.

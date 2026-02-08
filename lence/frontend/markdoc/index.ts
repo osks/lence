@@ -282,6 +282,19 @@ const tags: Config['tags'] = {
     },
   },
 
+  button_group: {
+    render: 'lence-button-group',
+    selfClosing: true,
+    attributes: {
+      name: { type: String, required: true },
+      data: { type: String },
+      value: { type: String },
+      label: { type: String },
+      title: { type: String },
+      defaultValue: { type: String },
+    },
+  },
+
   data: {
     render: 'data-block',
     attributes: {

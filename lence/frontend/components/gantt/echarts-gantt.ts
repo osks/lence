@@ -724,7 +724,7 @@ export class EChartsGantt extends LitElement {
             const categoryIndex = api.value(0) as number;
             const start = api.coord([api.value(1), categoryIndex]);
             const end = api.coord([api.value(2), categoryIndex]);
-            const height = (api.size?.([0, 1]) as number[])?.[1] * 0.6 || 20;
+            const height = (api.size?.([0, 1]) as number[])?.[1] * 0.75 || 24;
             const barWidth = end[0] - start[0];
 
             const coordSys = params.coordSys as unknown as {

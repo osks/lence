@@ -48,12 +48,10 @@ A dropdown input that filters queries reactively. When a value is selected, quer
 
 By default, the dropdown includes an "All" option with value `%` (SQL wildcard). Use `LIKE` in your SQL:
 
-```` {% process=false %}
-```sql filtered
+```sql {% process=false %}
 SELECT * FROM products
 WHERE category LIKE '${inputs.cat_filter.value}'
 ```
-````
 
 When user selects:
 - "All" → `WHERE category LIKE '%'` → matches everything
@@ -74,22 +72,20 @@ Use `disableSelectAll=true` to require a specific selection:
 
 ## Full Example
 
-```` {% process=false %}
-```sql categories
-SELECT DISTINCT category FROM products ORDER BY category
-```
-
+```markdown {% process=false %}
 {% dropdown
     name="cat_filter"
     data="{categories}"
     value="category"
     title="Filter Category"
 /%}
+```
 
-```sql filtered_products
+```sql {% process=false %}
+-- Query to populate dropdown options
+SELECT DISTINCT category FROM products ORDER BY category
+
+-- Query filtered by dropdown selection
 SELECT * FROM products
 WHERE category LIKE '${inputs.cat_filter.value}'
 ```
-
-{% datatable data="{filtered_products}" /%}
-````

@@ -51,7 +51,8 @@ def create_app(
         registry = init_registry(pages_dir)
         registry.load_global_queries(config.queries)
 
-        # Store config and paths in app state for access in routes
+        # Store config, paths, and registry in app state for access in routes
+        app.state.registry = registry
         app.state.config = config
         app.state.project_dir = project_dir
         app.state.pages_dir = pages_dir
