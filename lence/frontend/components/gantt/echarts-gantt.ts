@@ -165,6 +165,13 @@ export class EChartsGantt extends LitElement {
   url = '';
 
   /**
+   * Optional column name for progress (0-1 or 0-100).
+   * When set, bars show a filled portion indicating completion.
+   */
+  @property({ type: String })
+  progress = '';
+
+  /**
    * Show a vertical marker for today's date.
    */
   @property({ converter: booleanConverter })
@@ -513,6 +520,7 @@ export class EChartsGantt extends LitElement {
     const starts = this.getColumnValues(this.start);
     const ends = this.getColumnValues(this.end);
     const urls = this.url ? this.getColumnValues(this.url) : [];
+    const progressValues = this.progress ? this.getColumnValues(this.progress) : [];
 
     // Filter and collect valid time values for chart range
     const validTimes: number[] = [];
@@ -550,6 +558,7 @@ export class EChartsGantt extends LitElement {
       name: string;
       itemStyle: { color: string; opacity: number };
       url?: string;
+      progress?: number;
     }[] = [];
 
     let validIndex = 0;
@@ -589,6 +598,16 @@ export class EChartsGantt extends LitElement {
         item.url = String(urls[i]);
       }
 
+      // Add progress if present (normalize to 0-1 range)
+      if (progressValues.length > 0 && progressValues[i] != null) {
+        let prog = Number(progressValues[i]);
+        // If value > 1, assume it's a percentage (0-100)
+        if (prog > 1) {
+          prog = prog / 100;
+        }
+        item.progress = Math.max(0, Math.min(1, prog));
+      }
+
       dataItems.push(item);
 
       validIndex++;
@@ -615,7 +634,7 @@ export class EChartsGantt extends LitElement {
           const p = params as {
             name: string;
             value: [number, number, number];
-            data: { itemStyle: { opacity: number } };
+            data: { itemStyle: { opacity: number }; progress?: number };
           };
           const startDate = new Date(p.value[1]);
           const endDate = new Date(p.value[2]);
@@ -639,11 +658,17 @@ export class EChartsGantt extends LitElement {
           const durationMs = p.value[2] - p.value[1];
           const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24));
 
+          // Progress line
+          const progressStr = p.data.progress !== undefined
+            ? `Progress: ${Math.round(p.data.progress * 100)}%<br/>`
+            : '';
+
           return `
             <strong>${p.name}</strong><br/>
             Start: ${startStr}<br/>
             End: ${endStr}<br/>
-            Duration: ${durationDays} days
+            Duration: ${durationDays} days<br/>
+            ${progressStr}
           `;
         },
         textStyle: {
@@ -753,36 +778,85 @@ export class EChartsGantt extends LitElement {
 
             const label = validLabels[categoryIndex] || '';
             const fillColor = (api.style() as { fill?: string }).fill || CHART_COLORS[categoryIndex % CHART_COLORS.length];
+            const itemData = dataItems[categoryIndex];
+            const progress = itemData?.progress;
+
+            // Build children array
+            const children: unknown[] = [];
+
+            if (progress !== undefined) {
+              // Background bar (unfilled portion) - lighter opacity
+              children.push({
+                type: 'rect',
+                shape: rectShape,
+                style: {
+                  fill: fillColor,
+                  opacity: 0.3,
+                },
+              });
+
+              // Progress bar (filled portion) - full opacity
+              const progressWidth = rectShape.width * progress;
+              if (progressWidth > 0) {
+                const progressShape = echarts.graphic.clipRectByRect(
+                  {
+                    x: rectShape.x,
+                    y: rectShape.y,
+                    width: progressWidth,
+                    height: rectShape.height,
+                  },
+                  {
+                    x: coordSys.x,
+                    y: coordSys.y,
+                    width: coordSys.width,
+                    height: coordSys.height,
+                  }
+                );
+                if (progressShape) {
+                  children.push({
+                    type: 'rect',
+                    shape: progressShape,
+                    style: {
+                      fill: fillColor,
+                      opacity: 0.85,
+                    },
+                  });
+                }
+              }
+            } else {
+              // No progress - single bar with normal styling
+              children.push({
+                type: 'rect',
+                shape: rectShape,
+                style: {
+                  ...api.style(),
+                  fill: fillColor,
+                },
+              });
+            }
+
+            // Text label
+            children.push({
+              type: 'text',
+              style: {
+                x: rectShape.x + 6,
+                y: rectShape.y + rectShape.height / 2,
+                text: label,
+                fill: '#fff',
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontSize: 12,
+                fontWeight: 500,
+                verticalAlign: 'middle',
+                truncate: {
+                  outerWidth: Math.max(0, rectShape.width - 12),
+                  ellipsis: '…',
+                },
+              },
+            });
 
             return {
               type: 'group',
-              children: [
-                {
-                  type: 'rect',
-                  shape: rectShape,
-                  style: {
-                    ...api.style(),
-                    fill: fillColor,
-                  },
-                },
-                {
-                  type: 'text',
-                  style: {
-                    x: rectShape.x + 6,
-                    y: rectShape.y + rectShape.height / 2,
-                    text: label,
-                    fill: '#fff',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    verticalAlign: 'middle',
-                    truncate: {
-                      outerWidth: Math.max(0, rectShape.width - 12),
-                      ellipsis: '…',
-                    },
-                  },
-                },
-              ],
+              children,
             };
           },
           encode: {

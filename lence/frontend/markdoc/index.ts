@@ -249,6 +249,7 @@ const tags: Config['tags'] = {
       end: { type: String, required: true },
       title: { type: String },
       url: { type: String },
+      progress: { type: String },
       showToday: { type: Boolean, default: false },
       viewStart: { type: String },
       viewEnd: { type: String },

@@ -16,6 +16,7 @@ Renders timeline data as a horizontal bar chart (Gantt chart) using ECharts.
 | `end` | Yes | Column name for end dates |
 | `title` | No | Chart title |
 | `url` | No | Column name for URLs (makes bars clickable) |
+| `progress` | No | Column name for progress (0-1 or 0-100). Shows filled portion of bar |
 | `showToday` | No | Show a vertical marker for today's date (default: false) |
 | `viewStart` | No | View start date. Accepts ISO date, relative (`-30d`, `-3m`), or input reference (`${inputs.foo.value}`) |
 | `viewEnd` | No | View end date. Accepts ISO date, relative (`+30d`, `+3m`), or input reference (`${inputs.foo.value}`) |
@@ -118,6 +119,49 @@ Open-ended bars are rendered with reduced opacity (50%) for visual distinction.
 /%}
 ```
 
+## Progress Bars
+
+Use the `progress` attribute to show task completion. Values can be 0-1 (decimal) or 0-100 (percentage).
+
+{% data name="progress_tasks" %}
+{
+  "columns": [
+    {"name": "task", "type": "VARCHAR"},
+    {"name": "start_date", "type": "DATE"},
+    {"name": "end_date", "type": "DATE"},
+    {"name": "progress", "type": "DOUBLE"}
+  ],
+  "data": [
+    ["Planning", "2024-01-01", "2024-01-15", 1.0],
+    ["Design", "2024-01-10", "2024-02-01", 0.8],
+    ["Development", "2024-01-20", "2024-03-15", 0.45],
+    ["Testing", "2024-03-01", "2024-03-30", 0.1],
+    ["Launch", "2024-03-25", "2024-04-01", 0]
+  ]
+}
+{% /data %}
+
+{% gantt_chart
+    data="{progress_tasks}"
+    label="task"
+    start="start_date"
+    end="end_date"
+    progress="progress"
+    title="Project Progress"
+/%}
+
+``` {% process=false %}
+{% gantt_chart
+    data="{tasks}"
+    label="task"
+    start="start_date"
+    end="end_date"
+    progress="completion"
+/%}
+```
+
+The filled portion represents completed work, while the lighter portion shows remaining work.
+
 ## Tooltip
 
 Hovering over a bar shows:
@@ -125,6 +169,7 @@ Hovering over a bar shows:
 - Start date (or "open" if null)
 - End date (or "open" if null)
 - Duration in days
+- Progress percentage (when `progress` attribute is set)
 
 ## Clickable Bars
 
