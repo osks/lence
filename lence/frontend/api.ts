@@ -44,7 +44,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
       // Response wasn't JSON
     }
     throw new ApiRequestError(
-      `API request failed: ${response.status}`,
+      detail || `API request failed: ${response.status}`,
       response.status,
       detail,
     );

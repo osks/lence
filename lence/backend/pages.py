@@ -8,8 +8,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from .config import DocsVisibility
 from ..version import __version__
+from .config import DocsVisibility
 
 
 class PageContent(BaseModel):
@@ -50,6 +50,7 @@ def validate_page_path(path: str) -> str | None:
         return None
 
     return path
+
 
 # Package directory (where lence is installed)
 PACKAGE_DIR = Path(__file__).parent.parent

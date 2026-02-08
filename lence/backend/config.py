@@ -18,7 +18,7 @@ class DataSource(BaseModel):
         - headers: optional HTTP headers for remote files
 
     Database sources (type: postgres, mysql, sqlite):
-        - alias: prefix for SQL queries (e.g., FROM alias.tablename)
+        - db: prefix for SQL queries (e.g., FROM db.tablename)
         - connection: database connection string
         - schema: optional, which database schema to expose (e.g., 'public')
     """
@@ -33,7 +33,7 @@ class DataSource(BaseModel):
     headers: dict[str, str] = {}  # HTTP headers for remote sources
 
     # Database sources
-    alias: str | None = None
+    db: str | None = None
     connection: str | None = None
     db_schema: str | None = Field(default=None, alias="schema")  # e.g., 'public' for postgres
 
@@ -90,13 +90,13 @@ def load_sources(project_dir: Path) -> dict[str, DataSource]:
 
         source = DataSource(**source_config)
 
-        # Key by table (file sources) or alias (database sources)
+        # Key by table (file sources) or db (database sources)
         if source.table:
             result[source.table] = source
-        elif source.alias:
-            result[source.alias] = source
+        elif source.db:
+            result[source.db] = source
         else:
-            raise ValueError(f"Source must have either 'table' or 'alias': {source_config}")
+            raise ValueError(f"Source must have either 'table' or 'db': {source_config}")
 
     return result
 

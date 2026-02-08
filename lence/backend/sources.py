@@ -106,12 +106,10 @@ async def execute_query(request: QueryRequest, req: Request) -> QueryResponse:
             detail=f"Unexpected parameters: {extra}",
         )
 
-    # Interpolate parameters into SQL
-    sql = registry.interpolate_sql(query, request.params)
-
+    # Execute query with parameterized values (handled by query_rewriter)
     db = get_database()
     try:
-        result = db.execute_query(sql)
+        result = db.execute_query(query.sql, request.params)
         return QueryResponse(
             columns=[ColumnInfo(**col) for col in result.columns],
             data=result.data,

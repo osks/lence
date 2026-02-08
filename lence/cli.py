@@ -1,8 +1,8 @@
 """Command-line interface for Lence."""
 
 import os
-import signal
 import shutil
+import signal
 import sys
 from pathlib import Path
 
@@ -18,7 +18,7 @@ def _handle_sigterm(signum, frame):
 # Register SIGTERM handler for graceful Docker shutdown
 signal.signal(signal.SIGTERM, _handle_sigterm)
 
-from lence.backend.app import PACKAGE_DIR, create_app
+from lence.backend.app import PACKAGE_DIR, create_app  # noqa: E402
 
 # Environment variables (used by app factory for reload)
 LENCE_PROJECT_ENV = "LENCE_PROJECT_DIR"

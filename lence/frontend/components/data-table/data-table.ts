@@ -141,11 +141,6 @@ export class DataTable extends LitElement {
         color: var(--lence-text);
       }
 
-      td.numeric {
-        text-align: right;
-        font-variant-numeric: tabular-nums;
-        font-family: var(--lence-font-mono);
-      }
 
       th.align-left,
       td.align-left {
@@ -449,22 +444,10 @@ export class DataTable extends LitElement {
     return numericTypes.some((t) => type.toUpperCase().includes(t));
   }
 
-  private formatCell(value: unknown, type: string): string {
+  private formatCell(value: unknown, _type: string): string {
     if (value === null || value === undefined) {
       return '';
     }
-
-    if (this.isNumericType(type)) {
-      const num = Number(value);
-      if (Math.abs(num) >= 1000) {
-        return num.toLocaleString();
-      }
-      if (!Number.isInteger(num)) {
-        return num.toFixed(2);
-      }
-      return String(num);
-    }
-
     return String(value);
   }
 
@@ -595,11 +578,8 @@ export class DataTable extends LitElement {
               (row) => html`
                 <tr>
                   ${row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as { isNumeric?: boolean; align?: string } | undefined;
-                    const classes = [
-                      meta?.isNumeric ? 'numeric' : '',
-                      meta?.align ? `align-${meta.align}` : '',
-                    ].filter(Boolean).join(' ');
+                    const meta = cell.column.columnDef.meta as { align?: string } | undefined;
+                    const classes = meta?.align ? `align-${meta.align}` : '';
                     return html`
                       <td class=${classes}>
                         ${flexRender(cell.column.columnDef.cell, cell.getContext())}

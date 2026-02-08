@@ -69,7 +69,7 @@ Connect to external databases (PostgreSQL, MySQL, SQLite):
 
 ```yaml
 sources:
-  - alias: prod    # → SELECT * FROM prod.users
+  - db: prod    # → SELECT * FROM prod.users
     type: postgres
     connection: dbname=mydb user=postgres host=127.0.0.1
     schema: public
@@ -77,7 +77,7 @@ sources:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `alias` | yes | Name for this database in SQL (use as `alias.tablename`) |
+| `db` | yes | Name for this database in SQL (use as `db.tablename`) |
 | `type` | yes | `postgres`, `mysql`, or `sqlite` |
 | `connection` | yes | Database connection string |
 | `schema` | no | Which database schema to expose |
@@ -86,14 +86,14 @@ Environment variables work in connection strings:
 
 ```yaml
 sources:
-  - alias: prod
+  - db: prod
     type: postgres
     connection: dbname=mydb user=${DB_USER} password=${DB_PASS} host=${DB_HOST}
 ```
 
 ### Querying Database Tables
 
-Use the alias as a prefix:
+Use `db` as a prefix:
 
 ```` {% process=false %}
 ```sql active_users
@@ -122,4 +122,4 @@ LIMIT 100
 ````
 
 For file sources, the table name in SQL matches the `table` field.
-For database sources, use `alias.tablename` format.
+For database sources, use `db.tablename` format.

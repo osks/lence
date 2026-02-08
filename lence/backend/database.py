@@ -7,6 +7,7 @@ from typing import Any
 import duckdb
 
 from .config import DataSource
+from .query_rewriter import rewrite_query
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,6 @@ class Database:
         """Initialize database connection."""
         self.conn = duckdb.connect(db_path)
         self.sources: dict[str, DataSource] = {}
-        self._registered_tables: set[str] = set()
         self._base_dir: Path | None = None
 
     def register_source(self, name: str, source: DataSource, base_dir: Path | None = None) -> None:
@@ -64,62 +64,40 @@ class Database:
         type_name = source.type.upper()
         options = [f"TYPE {type_name}", "READ_ONLY"]
         if source.db_schema:
-            options.append(f"SCHEMA '{source.db_schema}'")
+            escaped_schema = source.db_schema.replace("'", "''")
+            options.append(f"SCHEMA '{escaped_schema}'")
 
         options_str = ", ".join(options)
-        self.conn.execute(f"ATTACH '{source.connection}' AS {name} ({options_str})")
-        self._registered_tables.add(name)
+        escaped_conn = source.connection.replace("'", "''")
+        self.conn.execute(f"ATTACH '{escaped_conn}' AS {name} ({options_str})")
 
     def _register_file_source(
         self, name: str, source: DataSource, base_dir: Path | None = None
     ) -> None:
-        """Create a view for a file source (csv, parquet, json)."""
+        """Register a file source (csv, parquet, json).
+
+        No views are created - queries are rewritten to use read_*() directly.
+        This only sets up HTTP secrets for authenticated remote sources.
+        """
         if not source.path:
             raise ValueError(f"File source '{name}' requires 'path'")
 
-        # Check if this is a remote URL
-        is_remote = source.path.startswith("http://") or source.path.startswith("https://")
-
-        # Resolve path relative to base_dir if local
-        if is_remote:
-            path_str = source.path
-        else:
-            path = Path(source.path)
-            if base_dir and not path.is_absolute():
-                path = base_dir / path
-            path_str = str(path)
-
         # Set up HTTP headers if provided (for remote sources)
+        is_remote = source.path.startswith("http://") or source.path.startswith("https://")
         if is_remote and source.headers:
-            # Build MAP literal for headers
-            header_items = ", ".join(f"'{k}': '{v}'" for k, v in source.headers.items())
+            # Escape quotes in header keys and values
+            def escape(s: str) -> str:
+                return s.replace("'", "''")
+
+            header_items = ", ".join(
+                f"'{escape(k)}': '{escape(v)}'" for k, v in source.headers.items()
+            )
             self.conn.execute(f"""
                 CREATE OR REPLACE SECRET {name}_http (
                     TYPE HTTP,
                     EXTRA_HTTP_HEADERS MAP {{{header_items}}}
                 )
             """)
-
-        # Create view based on source type
-        if source.type == "csv":
-            self.conn.execute(f"""
-                CREATE OR REPLACE VIEW {name} AS
-                SELECT * FROM read_csv_auto('{path_str}')
-            """)
-        elif source.type == "parquet":
-            self.conn.execute(f"""
-                CREATE OR REPLACE VIEW {name} AS
-                SELECT * FROM read_parquet('{path_str}')
-            """)
-        elif source.type == "json":
-            self.conn.execute(f"""
-                CREATE OR REPLACE VIEW {name} AS
-                SELECT * FROM read_json_auto('{path_str}')
-            """)
-        else:
-            raise ValueError(f"Unsupported file source type: {source.type}")
-
-        self._registered_tables.add(name)
 
     def register_sources(
         self, sources: dict[str, DataSource], base_dir: Path | None = None
@@ -132,17 +110,37 @@ class Database:
             except Exception as e:
                 logger.warning(f"Failed to register source '{name}': {e}")
 
-    def _execute_and_fetch(self, sql: str) -> QueryResult:
-        """Execute SQL and convert result to QueryResult."""
-        result = self.conn.execute(sql)
+    def execute_query(
+        self,
+        sql: str,
+        params: dict[str, str | None] | None = None,
+    ) -> QueryResult:
+        """Execute a SQL query and return results in table format.
 
-        # Get column info (convert type to string)
+        The query is rewritten to:
+        - Replace table names with read_*() calls (avoids stale views)
+        - Convert ${inputs.x.value} to parameterized queries (injection-safe)
+
+        Args:
+            sql: SQL query, may contain ${inputs.x.value} placeholders
+            params: Map of input name -> value for placeholders
+        """
+        # Rewrite query for safety and freshness
+        rewritten_sql, param_values = rewrite_query(
+            sql,
+            self.sources,
+            params or {},
+            self._base_dir,
+        )
+
+        # Execute with parameters
+        result = self.conn.execute(rewritten_sql, param_values)
+
+        # Get column info
         columns = [{"name": desc[0], "type": str(desc[1])} for desc in result.description]
 
         # Fetch all rows
         rows = result.fetchall()
-
-        # Convert to list of lists (row-major)
         data = [list(row) for row in rows]
 
         return QueryResult(
@@ -150,32 +148,6 @@ class Database:
             data=data,
             row_count=len(data),
         )
-
-    def _refresh_file_sources(self) -> None:
-        """Recreate views for all file sources."""
-        for name, source in self.sources.items():
-            if source.type in ("csv", "parquet", "json"):
-                try:
-                    self._register_file_source(name, source, self._base_dir)
-                    logger.info(f"Refreshed source '{name}'")
-                except Exception as e:
-                    logger.warning(f"Failed to refresh source '{name}': {e}")
-
-    def execute_query(self, sql: str) -> QueryResult:
-        """Execute a SQL query and return results in table format.
-
-        If a source file schema changes after views are created, DuckDB raises
-        "Contents of view were altered". This is handled by recreating views
-        and retrying the query once.
-        """
-        try:
-            return self._execute_and_fetch(sql)
-        except duckdb.BinderException as e:
-            if "Contents of view were altered" in str(e):
-                logger.info("View schema mismatch detected, refreshing sources")
-                self._refresh_file_sources()
-                return self._execute_and_fetch(sql)
-            raise
 
     def list_sources(self) -> list[dict[str, Any]]:
         """List all registered sources with their metadata."""
