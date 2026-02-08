@@ -138,6 +138,8 @@ class QueryRegistry:
     def build_from_pages(self, pages_dir: Path) -> None:
         """Build registry by parsing all markdown pages."""
         self._registry.clear()
+        if not pages_dir.exists():
+            return
         for md_file in pages_dir.glob("**/*.md"):
             page_path = "/" + md_file.relative_to(pages_dir).as_posix()
             self._load_page(page_path, md_file)

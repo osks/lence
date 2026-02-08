@@ -222,9 +222,11 @@ class TestQueryRegistry:
     def test_global_queries_loaded(self):
         """Global queries are loaded and accessible."""
         registry = QueryRegistry()
-        registry.load_global_queries({
-            "monthly_sales": "SELECT month, SUM(amount) FROM orders GROUP BY 1",
-        })
+        registry.load_global_queries(
+            {
+                "monthly_sales": "SELECT month, SUM(amount) FROM orders GROUP BY 1",
+            }
+        )
 
         query = registry.get("/any_page.md", "monthly_sales")
         assert query is not None
@@ -234,9 +236,11 @@ class TestQueryRegistry:
     def test_global_query_params_extracted(self):
         """Parameters are extracted from global queries."""
         registry = QueryRegistry()
-        registry.load_global_queries({
-            "filtered": "SELECT * FROM orders WHERE cat = '${inputs.category.value}'",
-        })
+        registry.load_global_queries(
+            {
+                "filtered": "SELECT * FROM orders WHERE cat = '${inputs.category.value}'",
+            }
+        )
 
         query = registry.get("/page.md", "filtered")
         assert query is not None
@@ -245,9 +249,11 @@ class TestQueryRegistry:
     def test_page_query_overrides_global(self):
         """Page-specific query takes precedence over global query."""
         registry = QueryRegistry()
-        registry.load_global_queries({
-            "sales": "SELECT * FROM global_sales",
-        })
+        registry.load_global_queries(
+            {
+                "sales": "SELECT * FROM global_sales",
+            }
+        )
         registry._registry = {
             "/page.md": {
                 "sales": QueryDefinition(
@@ -265,9 +271,11 @@ class TestQueryRegistry:
     def test_global_fallback_when_not_in_page(self):
         """Falls back to global query when not found in page."""
         registry = QueryRegistry()
-        registry.load_global_queries({
-            "global_only": "SELECT * FROM global_table",
-        })
+        registry.load_global_queries(
+            {
+                "global_only": "SELECT * FROM global_table",
+            }
+        )
         registry._registry = {
             "/page.md": {
                 "page_only": QueryDefinition(

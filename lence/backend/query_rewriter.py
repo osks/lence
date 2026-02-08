@@ -107,7 +107,7 @@ def rewrite_query(
                 # Parse the function call and replace the table
                 func_expr = sqlglot.parse_one(read_func, dialect="duckdb")
 
-                # Preserve table alias if present (e.g., "FROM orders o" -> "FROM read_csv_auto(...) AS o")
+                # Preserve table alias (e.g., "FROM orders o" -> "... AS o")
                 if table.alias:
                     func_expr = exp.Alias(this=func_expr, alias=exp.to_identifier(table.alias))
 

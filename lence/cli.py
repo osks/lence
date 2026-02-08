@@ -53,12 +53,10 @@ def edit(project: str, host: str, port: int):
     """
     project_path = Path(project).resolve()
 
-    if not (project_path / "pages").exists():
-        click.echo(f"Error: No pages/ directory found in {project_path}", err=True)
-        click.echo(
-            "Run 'lence init' to create a new project, or specify a valid project path.", err=True
-        )
-        raise SystemExit(1)
+    # In edit mode, allow starting without pages/ - it will be created when needed
+    pages_dir = project_path / "pages"
+    if not pages_dir.exists():
+        click.echo("Note: No pages/ directory. It will be created when you add a page.")
 
     click.echo(f"Starting Lence editor for: {project_path}")
     click.echo(f"Running at: http://{host}:{port}")
@@ -68,6 +66,10 @@ def edit(project: str, host: str, port: int):
     os.environ[LENCE_EDIT_MODE_ENV] = "true"
 
     # Use factory string for reload support
+    # Watch only project directories, exclude common non-source dirs
+    reload_dirs = [str(project_path)]
+    reload_excludes = [".venv", "venv", "node_modules", "__pycache__", ".git", "dist", "build"]
+
     try:
         uvicorn.run(
             "lence.cli:_create_app_from_env",
@@ -75,7 +77,8 @@ def edit(project: str, host: str, port: int):
             host=host,
             port=port,
             reload=True,
-            reload_dirs=[str(project_path / "pages")],
+            reload_dirs=reload_dirs,
+            reload_excludes=reload_excludes,
         )
     except (KeyboardInterrupt, SystemExit):
         pass  # Clean exit on Ctrl+C or SIGTERM

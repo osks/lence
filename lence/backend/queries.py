@@ -193,9 +193,7 @@ async def create_query(request: Request, path: str, body: QueryContent):
             content={"error": "Edit mode not enabled"},
         )
 
-    file_path, error = resolve_query_file(
-        request.app.state.queries_dir, path, must_exist=False
-    )
+    file_path, error = resolve_query_file(request.app.state.queries_dir, path, must_exist=False)
     if error:
         return error
 
