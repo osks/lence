@@ -1,23 +1,23 @@
 sources:
   - table: orders
     type: csv
-    path: ./sources/orders.csv
+    path: ./data/orders.csv
 
   - table: products
     type: csv
-    path: ./sources/products.csv
+    path: ./data/products.csv
 
   - table: customers
     type: csv
-    path: ./sources/customers.csv
+    path: ./data/customers.csv
 
   - table: departments
     type: csv
-    path: ./sources/departments.csv
+    path: ./data/departments.csv
 
   - table: regions
     type: csv
-    path: ./sources/regions.csv
+    path: ./data/regions.csv
 
   # Example HTTP source with auth (uncomment to use):
   # - table: api_data
@@ -26,7 +26,9 @@ sources:
   #   headers:
   #     Authorization: "Bearer ${API_TOKEN}"
 
-  # duckdb -c "COPY (SELECT * FROM 'example/sources/milestones.csv') TO 'example/sources/milestones.parquet'"
+  # duckdb -c "COPY (SELECT * FROM 'example/data/milestones.csv') TO 'example/data/milestones.parquet'"
   - table: gitlab_milestones
     type: parquet
-    path: ./sources/milestones.parquet
+    path: ./data/milestones.parquet
+
+queries: queries/

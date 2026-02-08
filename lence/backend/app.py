@@ -46,8 +46,9 @@ def create_app(
         db = init_database()
         db.register_sources(config.sources, base_dir=project_dir)
 
-        # Initialize query registry from markdown pages
-        init_registry(pages_dir)
+        # Initialize query registry from markdown pages and global SQL files
+        registry = init_registry(pages_dir)
+        registry.load_global_queries(config.queries)
 
         # Store config and paths in app state for access in routes
         app.state.config = config

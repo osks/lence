@@ -123,3 +123,87 @@ LIMIT 100
 
 For file sources, the table name in SQL matches the `table` field.
 For database sources, use `db.tablename` format.
+
+## Shared Queries
+
+For queries used across multiple pages, define them as SQL files in a `queries/` directory:
+
+```sql
+-- queries/monthly_sales.sql
+SELECT
+  strftime(date, '%Y-%m') as month,
+  SUM(amount) as total
+FROM orders
+GROUP BY 1
+```
+
+Configure the queries directory in `sources.yaml`:
+
+```yaml
+sources:
+  - table: orders
+    type: csv
+    path: data/orders.csv
+
+queries: queries/
+```
+
+Then use in any page:
+
+```` {% process=false %}
+{% line_chart data="{monthly_sales}" /%}
+````
+
+### File Naming
+
+Query files are auto-discovered recursively. The path relative to the queries directory (without `.sql`) becomes the query name.
+
+**Valid filenames** match `[a-z][a-z0-9_]*\.sql`:
+- `monthly_sales.sql` → `{monthly_sales}`
+- `top_10_products.sql` → `{top_10_products}`
+
+**Subdirectories** are included in the query name:
+- `orders/active.sql` → `{orders/active}`
+- `reports/sales/by_region.sql` → `{reports/sales/by_region}`
+
+**Ignored files** (with warning):
+- `_draft.sql` - starts with underscore (use this to exclude drafts)
+- `My Report.sql` - spaces or capitals
+- `top-products.sql` - hyphens not allowed
+- `123_report.sql` - must start with letter
+
+### Parameters
+
+Shared queries support parameters just like inline queries:
+
+```sql
+-- queries/orders_by_category.sql
+SELECT * FROM orders
+WHERE category LIKE '${inputs.category.value}'
+```
+
+```markdown {% process=false %}
+{% dropdown id="category" options="..." /%}
+{% datatable data="{orders_by_category}" /%}
+```
+
+## Project Structure
+
+Recommended folder layout:
+
+```
+my-project/
+  sources.yaml
+  data/
+    orders.csv
+    products.csv
+  queries/
+    monthly_sales.sql       → {monthly_sales}
+    orders/
+      active.sql            → {orders/active}
+      by_region.sql         → {orders/by_region}
+  pages/
+    index.md
+    reports/
+      sales.md
+```

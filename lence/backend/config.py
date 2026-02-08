@@ -1,5 +1,6 @@
 """Configuration loading for Lence."""
 
+import logging
 import os
 import re
 from pathlib import Path
@@ -7,6 +8,11 @@ from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
+
+# Pattern for valid query filenames: starts with lowercase letter, then lowercase/digits/underscores
+QUERY_FILE_PATTERN = re.compile(r"^[a-z][a-z0-9_]*\.sql$")
 
 
 class DataSource(BaseModel):
@@ -50,6 +56,7 @@ class Config(BaseModel):
     """Application configuration."""
 
     sources: dict[str, DataSource] = {}
+    queries: dict[str, str] = {}  # query_name -> SQL content
     docs: str = DocsVisibility.EDIT  # docs visibility: edit, always, never
     title: str = "Lence"  # site title shown in header
     show_source: bool = False  # show source button on pages
@@ -106,6 +113,50 @@ def load_settings(project_dir: Path) -> dict[str, Any]:
     return load_yaml(project_dir / "settings.yaml")
 
 
+def load_queries(project_dir: Path) -> dict[str, str]:
+    """Load shared queries from SQL files in the queries directory.
+
+    Reads the `queries` key from sources.yaml which specifies a directory path.
+    Scans that directory recursively for .sql files matching the pattern [a-z][a-z0-9_]*.sql.
+
+    Query names include the relative path from queries directory:
+    - queries/monthly.sql → {monthly}
+    - queries/orders/active.sql → {orders/active}
+
+    Returns:
+        Dict mapping query name (relative path without .sql) to SQL content.
+    """
+    data = load_yaml(project_dir / "sources.yaml")
+    queries_path = data.get("queries")
+
+    if not queries_path:
+        return {}
+
+    queries_dir = project_dir / queries_path
+    if not queries_dir.is_dir():
+        logger.warning(f"Queries directory not found: {queries_dir}")
+        return {}
+
+    result: dict[str, str] = {}
+    for sql_file in queries_dir.glob("**/*.sql"):
+        filename = sql_file.name
+
+        if not QUERY_FILE_PATTERN.match(filename):
+            logger.warning(f"Ignoring query file with invalid name: {filename}")
+            continue
+
+        # Query name is relative path without .sql extension
+        relative_path = sql_file.relative_to(queries_dir)
+        query_name = str(relative_path)[:-4]  # Remove .sql extension
+
+        try:
+            result[query_name] = sql_file.read_text().strip()
+        except Exception as e:
+            logger.warning(f"Failed to read query file {filename}: {e}")
+
+    return result
+
+
 def load_config(project_dir: Path | str) -> Config:
     """Load full configuration from project directory."""
     project_dir = Path(project_dir)
@@ -113,6 +164,7 @@ def load_config(project_dir: Path | str) -> Config:
 
     return Config(
         sources=load_sources(project_dir),
+        queries=load_queries(project_dir),
         docs=settings.get("docs", DocsVisibility.EDIT),
         title=settings.get("title", "Lence"),
         show_source=settings.get("showSource", False),

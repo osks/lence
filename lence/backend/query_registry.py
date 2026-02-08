@@ -107,8 +107,13 @@ def escape_sql_value(value: Any) -> str:
 class QueryRegistry:
     """Registry mapping (page_path, query_name) to QueryDefinition.
 
+    Supports two types of queries:
+    - Page queries: defined inline in markdown pages, scoped to that page
+    - Global queries: defined in SQL files, available on all pages
+
     Usage:
         registry = QueryRegistry()
+        registry.load_global_queries({"monthly_sales": "SELECT ..."})
         registry.build_from_pages(pages_dir)
         query = registry.get("/sales.md", "monthly_sales")
     """
@@ -116,6 +121,19 @@ class QueryRegistry:
     def __init__(self) -> None:
         # Map of page_path -> {query_name -> QueryDefinition}
         self._registry: dict[str, dict[str, QueryDefinition]] = {}
+        # Global queries available on all pages
+        self._global_queries: dict[str, QueryDefinition] = {}
+
+    def load_global_queries(self, queries: dict[str, str]) -> None:
+        """Load global queries from SQL file contents.
+
+        Args:
+            queries: Dict mapping query name to SQL content
+        """
+        self._global_queries.clear()
+        for name, sql in queries.items():
+            params = extract_params(sql)
+            self._global_queries[name] = QueryDefinition(name=name, sql=sql, params=params)
 
     def build_from_pages(self, pages_dir: Path) -> None:
         """Build registry by parsing all markdown pages."""
@@ -143,11 +161,15 @@ class QueryRegistry:
         self._load_page(page_path, file_path)
 
     def get(self, page: str, query_name: str) -> QueryDefinition | None:
-        """Get a query definition by page path and name."""
+        """Get a query definition by page path and name.
+
+        First checks page-specific queries, then falls back to global queries.
+        """
         page_queries = self._registry.get(page)
-        if page_queries:
-            return page_queries.get(query_name)
-        return None
+        if page_queries and query_name in page_queries:
+            return page_queries[query_name]
+        # Fall back to global queries
+        return self._global_queries.get(query_name)
 
     def get_page_queries(self, page: str) -> dict[str, QueryDefinition]:
         """Get all queries for a page."""

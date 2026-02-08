@@ -218,3 +218,69 @@ class TestQueryRegistry:
 
         queries = registry.get_page_queries("/page.md")
         assert queries == {}
+
+    def test_global_queries_loaded(self):
+        """Global queries are loaded and accessible."""
+        registry = QueryRegistry()
+        registry.load_global_queries({
+            "monthly_sales": "SELECT month, SUM(amount) FROM orders GROUP BY 1",
+        })
+
+        query = registry.get("/any_page.md", "monthly_sales")
+        assert query is not None
+        assert query.name == "monthly_sales"
+        assert "SUM(amount)" in query.sql
+
+    def test_global_query_params_extracted(self):
+        """Parameters are extracted from global queries."""
+        registry = QueryRegistry()
+        registry.load_global_queries({
+            "filtered": "SELECT * FROM orders WHERE cat = '${inputs.category.value}'",
+        })
+
+        query = registry.get("/page.md", "filtered")
+        assert query is not None
+        assert query.params == ["category"]
+
+    def test_page_query_overrides_global(self):
+        """Page-specific query takes precedence over global query."""
+        registry = QueryRegistry()
+        registry.load_global_queries({
+            "sales": "SELECT * FROM global_sales",
+        })
+        registry._registry = {
+            "/page.md": {
+                "sales": QueryDefinition(
+                    name="sales",
+                    sql="SELECT * FROM page_sales",
+                    params=[],
+                )
+            }
+        }
+
+        query = registry.get("/page.md", "sales")
+        assert query is not None
+        assert "page_sales" in query.sql
+
+    def test_global_fallback_when_not_in_page(self):
+        """Falls back to global query when not found in page."""
+        registry = QueryRegistry()
+        registry.load_global_queries({
+            "global_only": "SELECT * FROM global_table",
+        })
+        registry._registry = {
+            "/page.md": {
+                "page_only": QueryDefinition(
+                    name="page_only",
+                    sql="SELECT * FROM page_table",
+                    params=[],
+                )
+            }
+        }
+
+        # Page query works
+        assert registry.get("/page.md", "page_only") is not None
+        # Global query works as fallback
+        assert registry.get("/page.md", "global_only") is not None
+        # Non-existent query returns None
+        assert registry.get("/page.md", "nonexistent") is None
