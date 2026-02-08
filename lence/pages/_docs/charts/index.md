@@ -21,5 +21,5 @@ Charts receive data from SQL queries:
 SELECT month, revenue FROM monthly_sales
 ```
 
-{% chart data="sales" type="line" x="month" y="revenue" /%}
+{% chart data="{sales}" type="line" x="month" y="revenue" /%}
 ```

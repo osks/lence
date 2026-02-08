@@ -64,7 +64,7 @@ WHERE '${inputs.only_planned.value}' = 'false'
    OR (start_date IS NOT NULL OR due_date IS NOT NULL)
 ```
 
-{% table data="milestones" /%}
+{% datatable data="{milestones}" /%}
 ```
 
 ## Combining with Dropdown
@@ -74,7 +74,7 @@ Checkboxes work well alongside dropdowns for multi-dimensional filtering:
 ``` {% process=false %}
 {% dropdown
     name="status"
-    data="statuses"
+    data="{statuses}"
     value="status"
     title="Status"
 /%}

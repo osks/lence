@@ -66,9 +66,9 @@ FROM orders GROUP BY 1
 
 {% line_chart data="monthly" x="month" y="total" /%}
 
-{% table data="monthly" /%}
+{% datatable data="monthly" /%}
 
-{% table data="monthly" search=true pagination=10 /%}
+{% datatable data="monthly" search=true rows="10" /%}
 ````
 
 Available chart types: `line_chart`, `bar_chart`, `pie_chart`, `scatter_chart`, `area_chart`
@@ -79,7 +79,7 @@ To show Markdoc tags in code blocks without them being parsed, use `{% process=f
 
 ````markdown
 ```markdown {% process=false %}
-{% table data="example" /%}
+{% datatable data="example" /%}
 ```
 ````
 

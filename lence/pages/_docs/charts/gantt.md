@@ -59,7 +59,7 @@ ORDER BY start_date
 {% /data %}
 
 {% gantt_chart
-    data="tasks"
+    data="{tasks}"
     label="task"
     start="start_date"
     end="end_date"
@@ -68,7 +68,7 @@ ORDER BY start_date
 
 ``` {% process=false %}
 {% gantt_chart
-    data="tasks"
+    data="{tasks}"
     label="task"
     start="start_date"
     end="end_date"
@@ -102,7 +102,7 @@ Open-ended bars are rendered with reduced opacity (50%) for visual distinction.
 {% /data %}
 
 {% gantt_chart
-    data="open_ended"
+    data="{open_ended}"
     label="milestone"
     start="start"
     end="end"
@@ -111,7 +111,7 @@ Open-ended bars are rendered with reduced opacity (50%) for visual distinction.
 
 ``` {% process=false %}
 {% gantt_chart
-    data="open_ended"
+    data="{open_ended}"
     label="milestone"
     start="start"
     end="end"
@@ -147,7 +147,7 @@ Use the `url` attribute to make bars clickable. When clicked, the URL opens in a
 {% /data %}
 
 {% gantt_chart
-    data="clickable"
+    data="{clickable}"
     label="task"
     start="start"
     end="end"
@@ -157,7 +157,7 @@ Use the `url` attribute to make bars clickable. When clicked, the URL opens in a
 
 ``` {% process=false %}
 {% gantt_chart
-    data="clickable"
+    data="{clickable}"
     label="task"
     start="start"
     end="end"
@@ -171,7 +171,7 @@ Use `showToday=true` to display a vertical red line marking today's date.
 
 ``` {% process=false %}
 {% gantt_chart
-    data="tasks"
+    data="{tasks}"
     label="task"
     start="start"
     end="end"
@@ -187,7 +187,7 @@ Control the initial visible time range with `viewStart` and `viewEnd`. Values ca
 
 ``` {% process=false %}
 {% gantt_chart
-    data="tasks"
+    data="{tasks}"
     label="task"
     start="start"
     end="end"
@@ -213,14 +213,14 @@ Use `${inputs.foo.value}` syntax to bind the view range to a dropdown input:
 
 {% dropdown
     name="range"
-    data="ranges"
+    data="{ranges}"
     value="value"
     label="label"
     disableSelectAll=true
 /%}
 
 {% gantt_chart
-    data="tasks"
+    data="{tasks}"
     label="task"
     start="start"
     end="end"

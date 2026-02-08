@@ -23,7 +23,7 @@ help: ## Display this help
 ##@ Development
 .PHONY: dev
 dev: env ## Run dev server with edit mode (backend + frontend watch)
-	@npm run dev
+	@LENCE_PROJECT=$(or $(LENCE_PROJECT),./example) npm run dev
 
 .PHONY: serve
 serve: env ## Run production server

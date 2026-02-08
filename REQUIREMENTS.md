@@ -83,7 +83,7 @@ Recommendation: **Pico CSS** or **Open Props** work well with web components.
 **Current Implementation:** Browser-side rendering with Markdoc
 - Fetch markdown files via API
 - Parse with Markdoc in the browser
-- Custom tags (`{% query %}`, `{% chart %}`, `{% table %}`) render to web components
+- Custom tags (`{% query %}`, `{% chart %}`, `{% datatable %}`) render to web components
 - Components fetch data and render
 
 ### Development Experience

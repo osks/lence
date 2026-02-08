@@ -4,7 +4,7 @@
  * Works correctly in shadow DOM unlike Grid.js.
  */
 
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css, nothing, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   TableController,
@@ -23,6 +23,17 @@ import { themeDefaults } from '../../styles/theme.js';
 
 // Row type is a record with column names as keys
 type RowData = Record<string, unknown>;
+
+/**
+ * Column configuration for custom column rendering.
+ */
+interface ColumnConfig {
+  id: string;
+  title?: string;
+  contentType?: 'text' | 'link';
+  linkLabel?: string;
+  align?: 'left' | 'center' | 'right';
+}
 
 /**
  * Data Table component for displaying tabular data with search, pagination, and sorting.
@@ -136,6 +147,30 @@ export class DataTable extends LitElement {
         font-family: var(--lence-font-mono);
       }
 
+      th.align-left,
+      td.align-left {
+        text-align: left;
+      }
+
+      th.align-center,
+      td.align-center {
+        text-align: center;
+      }
+
+      th.align-right,
+      td.align-right {
+        text-align: right;
+      }
+
+      td a {
+        color: var(--lence-primary);
+        text-decoration: none;
+      }
+
+      td a:hover {
+        text-decoration: underline;
+      }
+
       .pagination {
         display: flex;
         align-items: center;
@@ -220,16 +255,24 @@ export class DataTable extends LitElement {
   search = false;
 
   /**
-   * Rows per page. Set to enable pagination.
+   * Number of rows to show before paginating. Use 'all' to show all rows.
+   * Default: 10
    */
-  @property({ type: Number })
-  pagination?: number;
+  @property()
+  rows: number | string = 10;
 
   /**
    * Enable column sorting (default: true).
    */
   @property({ converter: booleanConverter })
-  sort = true;
+  sortable = true;
+
+  /**
+   * Column configuration (JSON string of ColumnConfig[]).
+   * When provided, only configured columns are shown.
+   */
+  @property({ type: String })
+  columns?: string;
 
   /**
    * Current sorting state.
@@ -258,6 +301,23 @@ export class DataTable extends LitElement {
   private tableController = new TableController<RowData>(this);
 
   /**
+   * Check if pagination is enabled (rows is not 'all').
+   */
+  private get paginationEnabled(): boolean {
+    return String(this.rows).toLowerCase() !== 'all';
+  }
+
+  /**
+   * Get the page size from rows attribute.
+   */
+  private get pageSize(): number {
+    if (!this.paginationEnabled) return Infinity;
+    if (typeof this.rows === 'number') return this.rows;
+    const size = parseInt(this.rows, 10);
+    return isNaN(size) || size <= 0 ? 10 : size;
+  }
+
+  /**
    * Cached row model functions (must be stable across renders).
    */
   private coreRowModel = getCoreRowModel<RowData>();
@@ -272,13 +332,30 @@ export class DataTable extends LitElement {
   private cachedColumns: ColumnDef<RowData>[] = [];
 
   /**
+   * Parsed column configuration.
+   */
+  private parsedColumns: ColumnConfig[] | null = null;
+
+  /**
    * Update cached data when data prop changes.
    */
   private updateCachedData() {
     if (!this.data) {
       this.cachedRowData = [];
       this.cachedColumns = [];
+      this.parsedColumns = null;
       return;
+    }
+
+    // Parse column configuration if provided
+    if (this.columns) {
+      try {
+        this.parsedColumns = JSON.parse(this.columns) as ColumnConfig[];
+      } catch {
+        this.parsedColumns = null;
+      }
+    } else {
+      this.parsedColumns = null;
     }
 
     // Convert to row objects
@@ -290,16 +367,73 @@ export class DataTable extends LitElement {
       return obj;
     });
 
+    // Build column map for quick lookup
+    const columnTypeMap = new Map<string, string>();
+    for (const col of this.data.columns) {
+      columnTypeMap.set(col.name, col.type);
+    }
+
     // Generate column definitions
-    this.cachedColumns = this.data.columns.map((col) => ({
-      accessorKey: col.name,
-      header: col.name,
-      cell: (info: { getValue: () => unknown }) => this.formatCell(info.getValue(), col.type),
-      meta: {
-        type: col.type,
-        isNumeric: this.isNumericType(col.type),
-      },
-    }));
+    if (this.parsedColumns && this.parsedColumns.length > 0) {
+      // Use configured columns only
+      this.cachedColumns = this.parsedColumns
+        .filter((colConfig) => columnTypeMap.has(colConfig.id))
+        .map((colConfig) => {
+          const colType = columnTypeMap.get(colConfig.id) || 'VARCHAR';
+          return {
+            accessorKey: colConfig.id,
+            header: colConfig.title ?? colConfig.id,
+            cell: (info: { getValue: () => unknown; row: { original: RowData } }) =>
+              this.renderCell(info.getValue(), colType, colConfig, info.row.original),
+            meta: {
+              type: colType,
+              isNumeric: this.isNumericType(colType),
+              align: colConfig.align,
+            },
+          };
+        });
+    } else {
+      // Auto-generate from data columns
+      this.cachedColumns = this.data.columns.map((col) => ({
+        accessorKey: col.name,
+        header: col.name,
+        cell: (info: { getValue: () => unknown }) => this.formatCell(info.getValue(), col.type),
+        meta: {
+          type: col.type,
+          isNumeric: this.isNumericType(col.type),
+        },
+      }));
+    }
+  }
+
+  /**
+   * Render a cell with column configuration.
+   */
+  private renderCell(
+    value: unknown,
+    type: string,
+    config: ColumnConfig,
+    row: RowData
+  ): string | TemplateResult {
+    if (config.contentType === 'link' && value != null && value !== '') {
+      const url = String(value);
+      let label = url;
+
+      if (config.linkLabel) {
+        // Check for {column} reference
+        const match = config.linkLabel.match(/^\{(.+)\}$/);
+        if (match) {
+          const columnName = match[1];
+          label = row[columnName] != null ? String(row[columnName]) : url;
+        } else {
+          label = config.linkLabel;
+        }
+      }
+
+      return html`<a href="${url}" target="_blank" rel="noopener">${label}</a>`;
+    }
+
+    return this.formatCell(value, type);
   }
 
   private isNumericType(type: string): boolean {
@@ -342,22 +476,26 @@ export class DataTable extends LitElement {
   }
 
   willUpdate(changedProperties: Map<string, unknown>) {
-    // Update page size when pagination prop changes
-    if (changedProperties.has('pagination') && this.pagination !== undefined) {
+    // Update page size when rows prop changes
+    if (changedProperties.has('rows')) {
       this.paginationState = {
         ...this.paginationState,
-        pageSize: this.pagination,
+        pageSize: this.pageSize,
         pageIndex: 0,
       };
     }
     // Reset state and update cached data when data changes
     if (changedProperties.has('data')) {
-      this.sorting = [];
+      this.sortableing = [];
       this.globalFilter = '';
       this.paginationState = {
         pageIndex: 0,
-        pageSize: this.pagination || 10,
+        pageSize: this.pageSize,
       };
+      this.updateCachedData();
+    }
+    // Update cached data when columns config changes
+    if (changedProperties.has('columns') && !changedProperties.has('data')) {
       this.updateCachedData();
     }
   }
@@ -375,12 +513,12 @@ export class DataTable extends LitElement {
       data: this.cachedRowData,
       columns: this.cachedColumns,
       state: {
-        sorting: this.sorting,
+        sorting: this.sortableing,
         globalFilter: this.globalFilter,
         pagination: this.paginationState,
       },
       onSortingChange: (updater) => {
-        this.sorting = typeof updater === 'function' ? updater(this.sorting) : updater;
+        this.sortableing = typeof updater === 'function' ? updater(this.sortableing) : updater;
       },
       onGlobalFilterChange: (updater) => {
         this.globalFilter = typeof updater === 'function' ? updater(this.globalFilter) : updater;
@@ -389,14 +527,14 @@ export class DataTable extends LitElement {
         this.paginationState = typeof updater === 'function' ? updater(this.paginationState) : updater;
       },
       getCoreRowModel: this.coreRowModel,
-      getSortedRowModel: this.sort ? this.sortedRowModel : undefined,
+      getSortedRowModel: this.sortable ? this.sortableedRowModel : undefined,
       getFilteredRowModel: this.search ? this.filteredRowModel : undefined,
-      getPaginationRowModel: this.pagination ? this.paginationRowModel : undefined,
-      enableSorting: this.sort,
+      getPaginationRowModel: this.paginationEnabled ? this.paginationRowModel : undefined,
+      enableSorting: this.sortable,
       enableGlobalFilter: this.search,
     });
 
-    const showPagination = this.pagination !== undefined && this.pagination > 0;
+    const showPagination = this.paginationEnabled;
 
     return html`
       ${this.search
@@ -422,14 +560,18 @@ export class DataTable extends LitElement {
                   ${headerGroup.headers.map((header) => {
                     const canSort = header.column.getCanSort();
                     const sortDir = header.column.getIsSorted();
-                    const meta = header.column.columnDef.meta as { isNumeric?: boolean } | undefined;
+                    const meta = header.column.columnDef.meta as { isNumeric?: boolean; align?: string } | undefined;
+                    const classes = [
+                      canSort ? 'sortable' : '',
+                      meta?.align ? `align-${meta.align}` : '',
+                    ].filter(Boolean).join(' ');
                     return html`
                       <th
-                        class=${canSort ? 'sortable' : ''}
+                        class=${classes}
                         @click=${canSort ? () => header.column.toggleSorting() : nothing}
                       >
                         ${flexRender(header.column.columnDef.header, header.getContext())}
-                        ${this.sort
+                        ${this.sortable
                           ? html`
                               <span class="sort-indicator">
                                 <svg viewBox="0 0 8 6" class=${sortDir === 'asc' ? 'active' : ''}>
@@ -453,9 +595,13 @@ export class DataTable extends LitElement {
               (row) => html`
                 <tr>
                   ${row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as { isNumeric?: boolean } | undefined;
+                    const meta = cell.column.columnDef.meta as { isNumeric?: boolean; align?: string } | undefined;
+                    const classes = [
+                      meta?.isNumeric ? 'numeric' : '',
+                      meta?.align ? `align-${meta.align}` : '',
+                    ].filter(Boolean).join(' ');
                     return html`
-                      <td class=${meta?.isNumeric ? 'numeric' : ''}>
+                      <td class=${classes}>
                         ${flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     `;

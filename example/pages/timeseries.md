@@ -15,13 +15,13 @@ FROM generate_series(0, 1999) AS t(i)
 ```
 
 {% line_chart
-    data="timeseries"
+    data="{timeseries}"
     x="time"
     y="value"
 /%}
 
 {% area_chart
-    data="timeseries"
+    data="{timeseries}"
     x="time"
     y="value,value2"
 /%}

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "vite build",
     "watch": "vite build --watch",
-    "dev": "concurrently -n vite,lence -c blue,green \"vite build --watch\" \"uv run lence edit ./example\"",
+    "dev": "concurrently -n vite,lence -c blue,green \"vite build --watch\" \"uv run lence edit ${LENCE_PROJECT:-./example}\"",
     "test": "vitest run",
     "test:watch": "vitest"
   },

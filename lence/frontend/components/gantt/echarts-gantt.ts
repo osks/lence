@@ -15,8 +15,10 @@ type EChartsOption = echarts.EChartsOption;
 // Height constants for auto-sizing
 const BAR_HEIGHT = 32; // pixels per bar
 const TOP_PADDING = 30; // space for axis
-const BOTTOM_PADDING = 80; // space for x-axis labels + dataZoom slider
+const BOTTOM_PADDING = 40; // space for x-axis labels (dataZoom is separate when scrolling)
+const BOTTOM_PADDING_WITH_ZOOM = 80; // space when dataZoom is inline
 const TITLE_HEIGHT = 30; // additional space when title is present
+const ZOOM_CONTROL_HEIGHT = 50; // height of separate zoom control
 
 // Default palette
 const CHART_COLORS = [
@@ -78,8 +80,22 @@ export class EChartsGantt extends LitElement {
         font-family: var(--lence-font-family);
       }
 
+      .chart-wrapper {
+        width: 100%;
+      }
+
+      .chart-wrapper.scrollable {
+        overflow-y: auto;
+      }
+
       .chart-container {
         width: 100%;
+      }
+
+      .zoom-control {
+        width: 100%;
+        height: 50px;
+        border-top: 1px solid #e5e7eb;
       }
 
       .loading {
@@ -171,10 +187,11 @@ export class EChartsGantt extends LitElement {
   viewEnd?: string;
 
   /**
-   * Maximum height in pixels. If content exceeds this, a vertical scrollbar appears.
+   * Fixed height in pixels. Content scrolls if it exceeds this height.
+   * When not set, height adjusts automatically to fit content.
    */
   @property({ type: Number })
-  maxHeight?: number;
+  height?: number;
 
   /**
    * Query result data, passed from page component.
@@ -188,8 +205,12 @@ export class EChartsGantt extends LitElement {
   private error: string | null = null;
 
   private chart: EChartsInstance | null = null;
+  private zoomChart: EChartsInstance | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private unsubscribeInputs?: () => void;
+
+  // Cached chart range for zoom control
+  private chartRange: { min: number; max: number } | null = null;
 
   /**
    * Extract input name from ${inputs.foo.value} syntax, or null if not a reference.
@@ -315,18 +336,18 @@ export class EChartsGantt extends LitElement {
     return count;
   }
 
-  private calculateHeight(): { height: number; needsYScroll: boolean } {
+  private calculateHeight(): number {
     const itemCount = this.countValidItems();
     const titlePadding = this.title ? TITLE_HEIGHT : 0;
+    // Use smaller bottom padding when zoom is separate (fixed height set)
+    const bottomPadding = this.height ? BOTTOM_PADDING : BOTTOM_PADDING_WITH_ZOOM;
     const naturalHeight = Math.max(
       100, // minimum height
-      itemCount * BAR_HEIGHT + TOP_PADDING + BOTTOM_PADDING + titlePadding
+      itemCount * BAR_HEIGHT + TOP_PADDING + bottomPadding + titlePadding
     );
 
-    if (this.maxHeight && naturalHeight > this.maxHeight) {
-      return { height: this.maxHeight, needsYScroll: true };
-    }
-    return { height: naturalHeight, needsYScroll: false };
+    // Always use natural height - CSS overflow handles scrolling when fixed height is set
+    return naturalHeight;
   }
 
   private renderChart(): void {
@@ -338,7 +359,7 @@ export class EChartsGantt extends LitElement {
     if (!container) return;
 
     // Set container height based on data
-    const { height } = this.calculateHeight();
+    const height = this.calculateHeight();
     container.style.height = `${height}px`;
 
     // Set cursor style based on whether URLs are present
@@ -364,12 +385,93 @@ export class EChartsGantt extends LitElement {
     const option = this.buildGanttOption();
     this.chart.setOption(option, true);
 
+    // Set up separate zoom control if fixed height is set
+    if (this.height) {
+      this.renderZoomControl();
+    }
+
     // Apply view range after a microtask to ensure ECharts has finished rendering
     queueMicrotask(() => this.applyViewRange());
   }
 
+  private renderZoomControl(): void {
+    const zoomContainer = this.shadowRoot?.querySelector('.zoom-control') as HTMLElement;
+    if (!zoomContainer || !this.chartRange) return;
+
+    if (!this.zoomChart) {
+      this.zoomChart = echarts.init(zoomContainer);
+
+      // Sync zoom from control to main chart by updating xAxis range
+      this.zoomChart.on('datazoom', (params: unknown) => {
+        const p = params as { start?: number; end?: number; batch?: { start: number; end: number }[] };
+        if (this.chart && this.chartRange) {
+          const startPct = (p.batch?.[0]?.start ?? p.start ?? 0) / 100;
+          const endPct = (p.batch?.[0]?.end ?? p.end ?? 100) / 100;
+          const range = this.chartRange.max - this.chartRange.min;
+          const newMin = this.chartRange.min + range * startPct;
+          const newMax = this.chartRange.min + range * endPct;
+          this.chart.setOption({
+            xAxis: { min: newMin, max: newMax },
+          });
+        }
+      });
+    }
+
+    const zoomOption = this.buildZoomOption();
+    this.zoomChart.setOption(zoomOption, true);
+  }
+
+  private buildZoomOption(): EChartsOption {
+    if (!this.chartRange) return {};
+
+    return {
+      animation: false,
+      grid: {
+        left: 10,
+        right: '5%',
+        top: 5,
+        bottom: 25,
+      },
+      xAxis: {
+        type: 'time',
+        min: this.chartRange.min,
+        max: this.chartRange.max,
+        axisLabel: { show: false },
+        axisTick: { show: false },
+        axisLine: { show: false },
+        splitLine: { show: false },
+      },
+      yAxis: {
+        type: 'value',
+        show: false,
+      },
+      dataZoom: [
+        {
+          type: 'slider',
+          xAxisIndex: 0,
+          filterMode: 'none',
+          height: 20,
+          bottom: 5,
+          borderColor: 'transparent',
+          backgroundColor: '#f3f4f6',
+          fillerColor: 'rgba(35, 106, 164, 0.15)',
+          handleStyle: {
+            color: '#236aa4',
+            borderColor: '#236aa4',
+          },
+          moveHandleSize: 0,
+          textStyle: {
+            color: '#6b7280',
+            fontSize: 10,
+          },
+        },
+      ],
+      series: [],
+    };
+  }
+
   private applyViewRange(): void {
-    if (!this.chart) return;
+    if (!this.chart || !this.chartRange) return;
 
     const viewStart = this.resolveValue(this.viewStart);
     const viewEnd = this.resolveValue(this.viewEnd);
@@ -377,30 +479,36 @@ export class EChartsGantt extends LitElement {
     // Skip if neither is set
     if (!viewStart && !viewEnd) return;
 
-    // Apply via dispatchAction (more reliable than setOption for dataZoom)
-    if (viewStart && viewEnd) {
+    // Calculate the actual min/max values
+    const newMin = viewStart ? parseDate(viewStart) : this.chartRange.min;
+    const newMax = viewEnd ? parseDate(viewEnd) : this.chartRange.max;
+
+    if (this.height) {
+      // When fixed height is set, update xAxis directly (no dataZoom on main chart)
+      this.chart.setOption({ xAxis: { min: newMin, max: newMax } });
+
+      // Update zoom control slider position
+      if (this.zoomChart) {
+        const range = this.chartRange.max - this.chartRange.min;
+        const startPct = ((newMin - this.chartRange.min) / range) * 100;
+        const endPct = ((newMax - this.chartRange.min) / range) * 100;
+        this.zoomChart.dispatchAction({
+          type: 'dataZoom',
+          start: startPct,
+          end: endPct,
+        });
+      }
+    } else {
+      // Normal mode with inline dataZoom
       this.chart.dispatchAction({
         type: 'dataZoom',
-        startValue: parseDate(viewStart),
-        endValue: parseDate(viewEnd),
-      });
-    } else if (viewStart) {
-      this.chart.dispatchAction({
-        type: 'dataZoom',
-        startValue: parseDate(viewStart),
-        end: 100,
-      });
-    } else if (viewEnd) {
-      this.chart.dispatchAction({
-        type: 'dataZoom',
-        start: 0,
-        endValue: parseDate(viewEnd),
+        startValue: newMin,
+        endValue: newMax,
       });
     }
   }
 
   private buildGanttOption(): EChartsOption {
-    const { needsYScroll } = this.calculateHeight();
     const labels = this.getColumnValues(this.label);
     const starts = this.getColumnValues(this.start);
     const ends = this.getColumnValues(this.end);
@@ -431,6 +539,9 @@ export class EChartsGantt extends LitElement {
     const padding = range * 0.05;
     const paddedMin = chartMin - padding;
     const paddedMax = chartMax + padding;
+
+    // Store for zoom control
+    this.chartRange = { min: paddedMin, max: paddedMax };
 
     // Build data items, filtering out rows where both dates are null
     const validLabels: string[] = [];
@@ -541,51 +652,36 @@ export class EChartsGantt extends LitElement {
       },
       grid: {
         left: 10,
-        right: needsYScroll ? 50 : '5%',
+        right: '5%',
         top: this.title ? 60 : 30,
-        bottom: 70,
+        bottom: this.height ? 30 : 70,
         containLabel: false,
       },
-      dataZoom: [
-        // X-axis slider (always present)
-        {
-          type: 'slider',
-          xAxisIndex: 0,
-          filterMode: 'none',
-          height: 20,
-          bottom: 10,
-          borderColor: 'transparent',
-          backgroundColor: '#f3f4f6',
-          fillerColor: 'rgba(35, 106, 164, 0.15)',
-          handleStyle: {
-            color: '#236aa4',
-            borderColor: '#236aa4',
-          },
-          moveHandleSize: 0,
-          textStyle: {
-            color: '#6b7280',
-            fontSize: 10,
-          },
-        },
-        // Y-axis slider (only when content overflows maxHeight)
-        ...(needsYScroll ? [{
-          type: 'slider' as const,
-          yAxisIndex: 0,
-          filterMode: 'none' as const,
-          width: 20,
-          right: 10,
-          borderColor: 'transparent',
-          backgroundColor: '#f3f4f6',
-          fillerColor: 'rgba(35, 106, 164, 0.15)',
-          handleStyle: {
-            color: '#236aa4',
-            borderColor: '#236aa4',
-          },
-          moveHandleSize: 0,
-          startValue: 0,
-          endValue: Math.floor((this.maxHeight! - TOP_PADDING - BOTTOM_PADDING - (this.title ? TITLE_HEIGHT : 0)) / BAR_HEIGHT) - 1,
-        }] : []),
-      ],
+      // When fixed height is set, dataZoom slider is rendered separately below
+      dataZoom: this.height
+        ? [] // No dataZoom on main chart - controlled by separate zoom chart
+        : [
+            // X-axis slider (inline when no fixed height)
+            {
+              type: 'slider',
+              xAxisIndex: 0,
+              filterMode: 'none',
+              height: 20,
+              bottom: 10,
+              borderColor: 'transparent',
+              backgroundColor: '#f3f4f6',
+              fillerColor: 'rgba(35, 106, 164, 0.15)',
+              handleStyle: {
+                color: '#236aa4',
+                borderColor: '#236aa4',
+              },
+              moveHandleSize: 0,
+              textStyle: {
+                color: '#6b7280',
+                fontSize: 10,
+              },
+            },
+          ],
       xAxis: {
         type: 'time',
         min: paddedMin,
@@ -737,6 +833,11 @@ export class EChartsGantt extends LitElement {
       this.chart.dispose();
       this.chart = null;
     }
+
+    if (this.zoomChart) {
+      this.zoomChart.dispose();
+      this.zoomChart = null;
+    }
   }
 
   render() {
@@ -752,7 +853,22 @@ export class EChartsGantt extends LitElement {
       return html`<div class="no-data">No data available</div>`;
     }
 
-    return html`<div class="chart-container"></div>`;
+    if (this.height) {
+      // Scrollable chart with fixed zoom control below
+      const scrollHeight = this.height - ZOOM_CONTROL_HEIGHT;
+      return html`
+        <div class="chart-wrapper scrollable" style="height: ${scrollHeight}px">
+          <div class="chart-container"></div>
+        </div>
+        <div class="zoom-control"></div>
+      `;
+    }
+
+    return html`
+      <div class="chart-wrapper">
+        <div class="chart-container"></div>
+      </div>
+    `;
   }
 }
 

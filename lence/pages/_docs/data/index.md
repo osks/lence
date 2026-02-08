@@ -8,7 +8,7 @@ Components for displaying data in tabular format.
 
 ## Available Components
 
-- [Table](/_docs/data/table) - Interactive tables with sorting, search, and pagination
+- [Data Table](/_docs/data/datatable) - Interactive tables with sorting, search, and pagination
 
 ## Usage
 
@@ -19,5 +19,5 @@ Tables receive data from SQL queries:
 SELECT id, customer, amount, date FROM orders
 ```
 
-{% dataTable data="orders" search=true pagination=10 /%}
+{% datatable data="{orders}" search=true rows="10" /%}
 ```

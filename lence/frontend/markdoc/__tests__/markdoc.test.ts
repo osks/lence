@@ -147,11 +147,11 @@ SELECT * FROM example
     expect(html).toContain('y="revenue"');
   });
 
-  it('should render table tags', () => {
+  it('should render datatable tags', () => {
     const content = `
 # Data
 
-{% table data="sales" /%}
+{% datatable data="sales" /%}
 `;
 
     const result = parseMarkdoc(content);
@@ -159,6 +159,24 @@ SELECT * FROM example
 
     expect(html).toContain('lence-data-table');
     expect(html).toContain('data="sales"');
+  });
+
+  it('should render datatable with column children', () => {
+    const content = `
+{% datatable data="milestones" %}
+  {% column id="title" /%}
+  {% column id="url" contentType="link" linkLabel="{title}" /%}
+{% /datatable %}
+`;
+
+    const result = parseMarkdoc(content);
+    const html = renderToHtml(result.content);
+
+    expect(html).toContain('lence-data-table');
+    expect(html).toContain('data="milestones"');
+    expect(html).toContain('columns=');
+    // The columns attribute should be JSON-encoded and HTML-escaped
+    expect(html).toMatch(/columns="[^"]*title[^"]*"/);
   });
 });
 
@@ -175,8 +193,8 @@ describe('extractComponents', () => {
     expect(components[0].attributes.y).toBe('revenue');
   });
 
-  it('should extract table components', () => {
-    const content = '{% table data="products" /%}';
+  it('should extract datatable components', () => {
+    const content = '{% datatable data="products" /%}';
     const result = parseMarkdoc(content);
     const components = extractComponents(result.content);
 
@@ -185,10 +203,51 @@ describe('extractComponents', () => {
     expect(components[0].attributes.data).toBe('products');
   });
 
+  it('should extract datatable with column children', () => {
+    const content = `
+{% datatable data="milestones" %}
+  {% column id="title" /%}
+  {% column id="web_url" contentType="link" linkLabel="Open" /%}
+{% /datatable %}
+`;
+    const result = parseMarkdoc(content);
+    const components = extractComponents(result.content);
+
+    expect(components).toHaveLength(1);
+    expect(components[0].type).toBe('lence-data-table');
+    expect(components[0].attributes.data).toBe('milestones');
+    expect(components[0].attributes.columns).toBeDefined();
+
+    const columns = JSON.parse(components[0].attributes.columns as string);
+    expect(columns).toHaveLength(2);
+    expect(columns[0].id).toBe('title');
+    expect(columns[1].id).toBe('web_url');
+    expect(columns[1].contentType).toBe('link');
+    expect(columns[1].linkLabel).toBe('Open');
+  });
+
+  it('should extract datatable with column alignment', () => {
+    const content = `
+{% datatable data="data" %}
+  {% column id="name" /%}
+  {% column id="count" align="right" /%}
+  {% column id="status" align="center" /%}
+{% /datatable %}
+`;
+    const result = parseMarkdoc(content);
+    const components = extractComponents(result.content);
+
+    const columns = JSON.parse(components[0].attributes.columns as string);
+    expect(columns).toHaveLength(3);
+    expect(columns[0].align).toBeUndefined();
+    expect(columns[1].align).toBe('right');
+    expect(columns[2].align).toBe('center');
+  });
+
   it('should extract multiple components', () => {
     const content = `
 {% bar_chart data="sales" x="month" y="count" /%}
-{% table data="details" /%}
+{% datatable data="details" /%}
 `;
     const result = parseMarkdoc(content);
     const components = extractComponents(result.content);
@@ -209,8 +268,8 @@ describe('extractComponents', () => {
 describe('getReferencedQueries', () => {
   it('should extract unique query names from components', () => {
     const components = [
-      { type: 'lence-chart', attributes: { data: 'sales', x: 'month' } },
-      { type: 'lence-data-table', attributes: { data: 'details' } },
+      { type: 'lence-chart', attributes: { data: '{sales}', x: 'month' } },
+      { type: 'lence-data-table', attributes: { data: '{details}' } },
     ];
 
     const queries = getReferencedQueries(components);
@@ -222,8 +281,8 @@ describe('getReferencedQueries', () => {
 
   it('should deduplicate query references', () => {
     const components = [
-      { type: 'lence-chart', attributes: { data: 'sales' } },
-      { type: 'lence-data-table', attributes: { data: 'sales' } },
+      { type: 'lence-chart', attributes: { data: '{sales}' } },
+      { type: 'lence-data-table', attributes: { data: '{sales}' } },
     ];
 
     const queries = getReferencedQueries(components);
@@ -235,7 +294,7 @@ describe('getReferencedQueries', () => {
   it('should ignore components without data attribute', () => {
     const components = [
       { type: 'lence-chart', attributes: { x: 'month' } },
-      { type: 'lence-data-table', attributes: { data: 'sales' } },
+      { type: 'lence-data-table', attributes: { data: '{sales}' } },
     ];
 
     const queries = getReferencedQueries(components);

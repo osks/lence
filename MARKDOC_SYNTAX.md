@@ -23,7 +23,7 @@ FROM orders GROUP BY 1
 
 ## Detailed Data
 
-{% table data="monthly_sales" /%}
+{% datatable data="monthly_sales" /%}
 
 ## Conditional Content
 

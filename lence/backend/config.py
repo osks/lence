@@ -6,16 +6,36 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DataSource(BaseModel):
-    """A data source configuration."""
+    """A data source configuration.
 
-    table: str  # DuckDB table name
-    type: str  # csv, parquet, json, etc.
-    path: str
+    File sources (type: csv, parquet, json):
+        - table: DuckDB table name to create
+        - path: local file path or HTTP(S) URL
+        - headers: optional HTTP headers for remote files
+
+    Database sources (type: postgres, mysql, sqlite):
+        - alias: prefix for SQL queries (e.g., FROM alias.tablename)
+        - connection: database connection string
+        - schema: optional, which database schema to expose (e.g., 'public')
+    """
+
+    model_config = {"populate_by_name": True}
+
+    type: str  # csv, parquet, json, postgres, mysql, sqlite
+
+    # File sources
+    table: str | None = None
+    path: str | None = None
     headers: dict[str, str] = {}  # HTTP headers for remote sources
+
+    # Database sources
+    alias: str | None = None
+    connection: str | None = None
+    db_schema: str | None = Field(default=None, alias="schema")  # e.g., 'public' for postgres
 
 
 class DocsVisibility:
@@ -60,14 +80,23 @@ def load_sources(project_dir: Path) -> dict[str, DataSource]:
 
     result: dict[str, DataSource] = {}
     for source_config in sources_list:
-        # Interpolate env vars in headers
+        # Interpolate env vars in headers and connection strings
         if "headers" in source_config:
             source_config["headers"] = {
                 k: interpolate_env_vars(v) for k, v in source_config["headers"].items()
             }
+        if "connection" in source_config:
+            source_config["connection"] = interpolate_env_vars(source_config["connection"])
 
         source = DataSource(**source_config)
-        result[source.table] = source
+
+        # Key by table (file sources) or alias (database sources)
+        if source.table:
+            result[source.table] = source
+        elif source.alias:
+            result[source.alias] = source
+        else:
+            raise ValueError(f"Source must have either 'table' or 'alias': {source_config}")
 
     return result
 

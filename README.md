@@ -34,7 +34,7 @@ FROM orders GROUP BY 1
 
 {% line_chart data="monthly" x="month" y="total" /%}
 
-{% table data="monthly" /%}
+{% datatable data="monthly" /%}
 ````
 
 ## Development

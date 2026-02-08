@@ -22,5 +22,5 @@ Inputs are referenced in SQL queries using `${inputs.name.value}`:
 SELECT * FROM products WHERE category = '${inputs.category.value}'
 ```
 
-{% dataTable data="filtered" /%}
+{% dataTable data="{filtered}" /%}
 ```

@@ -5,7 +5,7 @@
  * Supports:
  * - ```sql query_name ... ``` - Define SQL queries (fenced code blocks)
  * - {% chart data="..." type="..." x="..." y="..." /%} - Render charts
- * - {% table data="..." /%} - Render tables
+ * - {% datatable data="..." /%} - Render tables
  */
 
 import Markdoc, { type Config, type Node, type RenderableTreeNode, type ValidateError } from '@markdoc/markdoc';
@@ -191,14 +191,51 @@ const tags: Config['tags'] = {
     },
   },
 
-  table: {
-    render: 'lence-data-table',
+  column: {
+    render: 'column-def',
     selfClosing: true,
+    attributes: {
+      id: { type: String, required: true },
+      title: { type: String },
+      contentType: { type: String },
+      linkLabel: { type: String },
+      align: { type: String },
+    },
+  },
+
+  // Note: We use "datatable" instead of "table" because Markdoc has special
+  // handling for tags named "table" that interferes with nested children.
+  // When a tag is named "table", Markdoc's parser converts inner content to
+  // a markdown table structure, losing any nested tags like {% column %}.
+  datatable: {
+    render: 'lence-data-table',
+    selfClosing: false,
     attributes: {
       data: { type: String, required: true },
       search: { type: Boolean, default: false },
-      pagination: { type: Number },
-      sort: { type: Boolean, default: true },
+      rows: { default: 10 }, // Number or 'all'
+      sortable: { type: Boolean, default: true },
+    },
+    transform(node: Node, config: Config) {
+      const attrs = node.transformAttributes(config);
+
+      // Extract column definitions from children
+      const columns: Record<string, unknown>[] = [];
+      for (const child of node.children || []) {
+        if (typeof child === 'object' && child !== null) {
+          const childNode = child as Node;
+          if (childNode.type === 'tag' && childNode.tag === 'column') {
+            columns.push(childNode.attributes || {});
+          }
+        }
+      }
+
+      // Only add columns attr if there are column children
+      if (columns.length > 0) {
+        attrs.columns = JSON.stringify(columns);
+      }
+
+      return new Markdoc.Tag('lence-data-table', attrs, []);
     },
   },
 
@@ -215,7 +252,7 @@ const tags: Config['tags'] = {
       showToday: { type: Boolean, default: false },
       viewStart: { type: String },
       viewEnd: { type: String },
-      maxHeight: { type: Number },
+      height: { type: Number },
     },
   },
 
@@ -260,10 +297,30 @@ const tags: Config['tags'] = {
 };
 
 /**
+ * Node overrides to allow annotations on built-in elements.
+ */
+const nodes: Config['nodes'] = {
+  fence: {
+    render: 'pre',
+    attributes: {
+      content: { type: String, render: false },
+      language: { type: String },
+      process: { type: Boolean, default: true },
+    },
+    transform(node, config) {
+      const attrs = node.transformAttributes(config);
+      const content = node.attributes.content || '';
+      return new Markdoc.Tag('pre', {}, [content]);
+    },
+  },
+};
+
+/**
  * Markdoc configuration.
  */
 const config: Config = {
   tags,
+  nodes,
 };
 
 /**
@@ -385,6 +442,15 @@ export function extractComponents(tree: RenderableTreeNode): ComponentDefinition
 }
 
 /**
+ * Extract query name from data attribute.
+ * Expects {queryName} syntax, returns null if not matched.
+ */
+export function parseDataRef(value: string): string | null {
+  const match = value.match(/^\{(.+)\}$/);
+  return match ? match[1] : null;
+}
+
+/**
  * Get unique query names referenced by components (via 'data' attribute).
  */
 export function getReferencedQueries(components: ComponentDefinition[]): string[] {
@@ -393,7 +459,10 @@ export function getReferencedQueries(components: ComponentDefinition[]): string[
   for (const component of components) {
     const dataAttr = component.attributes.data;
     if (typeof dataAttr === 'string') {
-      queryNames.add(dataAttr);
+      const queryName = parseDataRef(dataAttr);
+      if (queryName) {
+        queryNames.add(queryName);
+      }
     }
   }
 

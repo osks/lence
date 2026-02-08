@@ -32,7 +32,7 @@ Renders data as area charts with support for multiple series and stacking.
 {% /data %}
 
 {% area_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
     title="Monthly Revenue"
@@ -40,7 +40,7 @@ Renders data as area charts with support for multiple series and stacking.
 
 ``` {% process=false %}
 {% area_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
     title="Monthly Revenue"
@@ -69,7 +69,7 @@ Renders data as area charts with support for multiple series and stacking.
 {% /data %}
 
 {% area_chart
-    data="metrics"
+    data="{metrics}"
     x="month"
     y="revenue,costs,profit"
     title="Financial Metrics"
@@ -77,7 +77,7 @@ Renders data as area charts with support for multiple series and stacking.
 
 ``` {% process=false %}
 {% area_chart
-    data="metrics"
+    data="{metrics}"
     x="month"
     y="revenue,costs,profit"
     title="Financial Metrics"
@@ -108,7 +108,7 @@ Use `stacked=true` to stack multiple series on top of each other:
 {% /data %}
 
 {% area_chart
-    data="breakdown"
+    data="{breakdown}"
     x="month"
     y="product_a,product_b,product_c"
     stacked=true
@@ -117,7 +117,7 @@ Use `stacked=true` to stack multiple series on top of each other:
 
 ``` {% process=false %}
 {% area_chart
-    data="breakdown"
+    data="{breakdown}"
     x="month"
     y="product_a,product_b,product_c"
     stacked=true

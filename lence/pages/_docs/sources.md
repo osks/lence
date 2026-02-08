@@ -2,30 +2,44 @@
 
 Configure data sources in `sources.yaml` at your project root.
 
-## Basic Format
+## Query Engine
+
+Lence uses [DuckDB](https://duckdb.org/) as its query engine. All SQL queries use DuckDB syntax, which is PostgreSQL-compatible with additional features:
+
+- Modern SQL syntax (e.g., `SELECT * EXCLUDE (column)`)
+- Built-in functions for dates, strings, and aggregations
+- Direct querying of CSV, Parquet, and JSON files
+- Window functions, CTEs, and complex joins
+
+See the [DuckDB SQL documentation](https://duckdb.org/docs/sql/introduction) for full syntax reference.
+
+## File Sources
+
+For CSV, Parquet, and JSON files:
 
 ```yaml
 sources:
   - table: orders
     type: csv
-    path: ./sources/orders.csv
+    path: ./data/orders.csv
 
   - table: products
     type: parquet
     path: ./data/products.parquet
+
+  - table: config
+    type: json
+    path: ./data/config.json
 ```
 
-## Supported Types
+| Field | Required | Description |
+|-------|----------|-------------|
+| `table` | yes | Table name to use in SQL queries |
+| `type` | yes | `csv`, `parquet`, or `json` |
+| `path` | yes | Local file path or HTTP(S) URL |
+| `headers` | no | HTTP headers for remote files |
 
-| Type | Function | Description |
-|------|----------|-------------|
-| `csv` | `read_csv_auto()` | CSV files (local or remote) |
-| `parquet` | `read_parquet()` | Parquet files |
-| `json` | `read_json_auto()` | JSON files |
-
-## Remote Sources
-
-Sources can be URLs:
+### Remote Files
 
 ```yaml
 sources:
@@ -34,7 +48,7 @@ sources:
     path: https://example.com/data.csv
 ```
 
-## Authentication
+### Authentication
 
 For authenticated HTTP sources, use `headers` with environment variables:
 
@@ -47,14 +61,50 @@ sources:
       Authorization: "Bearer ${API_TOKEN}"
 ```
 
-Set the environment variable before running:
+The `${VAR}` syntax is replaced with the environment variable value at startup.
 
-```bash
-export API_TOKEN="your-secret-token"
-lence edit
+## Database Sources
+
+Connect to external databases (PostgreSQL, MySQL, SQLite):
+
+```yaml
+sources:
+  - alias: prod    # → SELECT * FROM prod.users
+    type: postgres
+    connection: dbname=mydb user=postgres host=127.0.0.1
+    schema: public
 ```
 
-The `${VAR}` syntax is replaced with the environment variable value at startup.
+| Field | Required | Description |
+|-------|----------|-------------|
+| `alias` | yes | Name for this database in SQL (use as `alias.tablename`) |
+| `type` | yes | `postgres`, `mysql`, or `sqlite` |
+| `connection` | yes | Database connection string |
+| `schema` | no | Which database schema to expose |
+
+Environment variables work in connection strings:
+
+```yaml
+sources:
+  - alias: prod
+    type: postgres
+    connection: dbname=mydb user=${DB_USER} password=${DB_PASS} host=${DB_HOST}
+```
+
+### Querying Database Tables
+
+Use the alias as a prefix:
+
+```` {% process=false %}
+```sql active_users
+SELECT * FROM prod.users
+WHERE active = true
+```
+
+{% datatable data="{active_users}" /%}
+````
+
+Database sources are attached as read-only.
 
 ## Using Sources in Pages
 
@@ -68,7 +118,8 @@ ORDER BY date DESC
 LIMIT 100
 ```
 
-{% table data="recent_orders" /%}
+{% datatable data="{recent_orders}" /%}
 ````
 
-The table name in SQL must match a `table` from your `sources.yaml`.
+For file sources, the table name in SQL matches the `table` field.
+For database sources, use `alias.tablename` format.

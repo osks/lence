@@ -14,6 +14,7 @@ import {
   getReferencedQueries,
   buildQueryMap,
   renderToHtml,
+  parseDataRef,
   type QueryDefinition,
   type DataDefinition,
 } from '../../markdoc/index.js';
@@ -35,7 +36,6 @@ export class LencePage extends LitElement {
     css`
       :host {
         display: block;
-        position: relative;
         font-family: var(--lence-font-family);
         font-size: var(--lence-font-size-sm);
         line-height: 1.6;
@@ -160,13 +160,10 @@ export class LencePage extends LitElement {
         margin: 0.5rem 0.5rem 0.5rem 0;
       }
 
-      .page-header {
-        position: absolute;
-        top: 0;
-        right: 0;
-        z-index: 1;
+      .page-toolbar {
         display: flex;
         gap: 0.5rem;
+        margin-bottom: 0.75rem;
       }
 
       .header-button {
@@ -251,8 +248,8 @@ export class LencePage extends LitElement {
       .source-editor {
         flex: 1;
         width: 100%;
-        background: var(--lence-bg-subtle);
-        border: 1px solid var(--lence-border);
+        background: #fafafa;
+        border: 1px solid var(--lence-border-strong, var(--lence-border));
         border-radius: var(--lence-radius);
         padding: 1rem;
         font-family: var(--lence-font-mono);
@@ -260,11 +257,13 @@ export class LencePage extends LitElement {
         line-height: 1.5;
         resize: none;
         box-sizing: border-box;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
       }
 
       .source-editor:focus {
         outline: none;
         border-color: var(--lence-primary);
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 2px var(--lence-primary-bg);
       }
     `,
   ];
@@ -462,6 +461,15 @@ export class LencePage extends LitElement {
       this.queryMap = buildQueryMap(parsed.queries);
       this.parseErrors = parsed.errors;
 
+      // Log parse errors to console for debugging
+      if (parsed.errors.length > 0) {
+        console.group(`Markdoc parse errors (${parsed.errors.length})`);
+        for (const err of parsed.errors) {
+          console.error(`Line ${err.lines?.[0] ?? '?'}: ${err.error.message}`, err);
+        }
+        console.groupEnd();
+      }
+
       // Build input dependency map from queries
       this.buildInputDependencies();
 
@@ -599,11 +607,13 @@ export class LencePage extends LitElement {
     const dataComponents = contentDiv.querySelectorAll('lence-chart, lence-area-chart, lence-data-table, lence-gantt');
 
     for (const component of dataComponents) {
-      // Markdoc uses 'data' attribute, but we also check 'query' for backwards compat
-      const queryName = component.getAttribute('data') || component.getAttribute('query');
-      if (queryName && this.queryData.has(queryName)) {
-        // Pass data to component via property
-        (component as any).data = this.queryData.get(queryName);
+      // Data attribute uses {queryName} syntax
+      const dataAttr = component.getAttribute('data');
+      if (dataAttr) {
+        const queryName = parseDataRef(dataAttr);
+        if (queryName && this.queryData.has(queryName)) {
+          (component as any).data = this.queryData.get(queryName);
+        }
       }
     }
 
@@ -611,8 +621,11 @@ export class LencePage extends LitElement {
     const dropdowns = contentDiv.querySelectorAll('lence-dropdown');
     for (const dropdown of dropdowns) {
       const dataAttr = dropdown.getAttribute('data');
-      if (dataAttr && this.queryData.has(dataAttr)) {
-        (dropdown as any).queryData = this.queryData.get(dataAttr);
+      if (dataAttr) {
+        const queryName = parseDataRef(dataAttr);
+        if (queryName && this.queryData.has(queryName)) {
+          (dropdown as any).queryData = this.queryData.get(queryName);
+        }
       }
     }
   }
@@ -650,13 +663,24 @@ export class LencePage extends LitElement {
     const hasQueryErrors = this.queryErrors.size > 0;
     if (!hasParseErrors && !hasQueryErrors) return null;
 
-    const parts: string[] = [];
-    if (hasParseErrors) parts.push(`${this.parseErrors.length} syntax`);
-    if (hasQueryErrors) parts.push(`${this.queryErrors.size} query`);
-
     return html`
       <div class="error-notice">
-        ${parts.join(', ')} error${(this.parseErrors.length + this.queryErrors.size) > 1 ? 's' : ''}
+        ${hasParseErrors
+          ? html`
+              <strong>Syntax errors</strong>
+              ${this.parseErrors.map(
+                (err) => html`<div>Line ${err.lines?.[0] ?? '?'}: ${err.error.message}</div>`
+              )}
+            `
+          : null}
+        ${hasQueryErrors
+          ? html`
+              <strong>Query errors</strong>
+              ${Array.from(this.queryErrors.entries()).map(
+                ([name, error]) => html`<div>"${name}": ${error}</div>`
+              )}
+            `
+          : null}
       </div>
     `;
   }
@@ -769,7 +793,7 @@ export class LencePage extends LitElement {
     // Split view when editing
     if (this.editing) {
       return html`
-        <div class="page-header">
+        <div class="page-toolbar">
           <button
             class="header-button save-button"
             @click=${this.handleSave}
@@ -801,7 +825,7 @@ export class LencePage extends LitElement {
     // Viewing source - show X to close
     if (this.viewingSource) {
       return html`
-        <div class="page-header">
+        <div class="page-toolbar">
           <button class="header-button" @click=${this.toggleSource}>✕</button>
         </div>
         ${this.renderQueryErrors()}
@@ -814,7 +838,7 @@ export class LencePage extends LitElement {
     return html`
       ${showHeader
         ? html`
-            <div class="page-header">
+            <div class="page-toolbar">
               ${this.showSourceEnabled
                 ? html`<button class="header-button" @click=${this.toggleSource}>Source</button>`
                 : null}

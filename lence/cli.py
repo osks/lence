@@ -1,11 +1,22 @@
 """Command-line interface for Lence."""
 
 import os
+import signal
 import shutil
+import sys
 from pathlib import Path
 
 import click
 import uvicorn
+
+
+def _handle_sigterm(signum, frame):
+    """Handle SIGTERM by raising SystemExit for clean shutdown."""
+    sys.exit(0)
+
+
+# Register SIGTERM handler for graceful Docker shutdown
+signal.signal(signal.SIGTERM, _handle_sigterm)
 
 from lence.backend.app import PACKAGE_DIR, create_app
 
@@ -63,8 +74,8 @@ def edit(project: str, host: str, port: int):
             reload=True,
             reload_dirs=[str(project_path / "pages")],
         )
-    except KeyboardInterrupt:
-        pass  # Clean exit on Ctrl+C
+    except (KeyboardInterrupt, SystemExit):
+        pass  # Clean exit on Ctrl+C or SIGTERM
 
 
 @cli.command()
@@ -89,8 +100,8 @@ def serve(project: str, host: str, port: int, workers: int):
     app = create_app(project_path)
     try:
         uvicorn.run(app, host=host, port=port, workers=workers)
-    except KeyboardInterrupt:
-        pass  # Clean exit on Ctrl+C
+    except (KeyboardInterrupt, SystemExit):
+        pass  # Clean exit on Ctrl+C or SIGTERM
 
 
 @cli.command()

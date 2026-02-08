@@ -18,7 +18,7 @@ SELECT DISTINCT state FROM gitlab_milestones ORDER BY state
 
 {% dropdown
     name="state_filter"
-    data="states"
+    data="{states}"
     value="state"
     title="State"
     defaultValue="active"
@@ -26,7 +26,7 @@ SELECT DISTINCT state FROM gitlab_milestones ORDER BY state
 
 {% dropdown
     name="time_range"
-    data="time_ranges"
+    data="{time_ranges}"
     value="value"
     label="label"
     title="Time Range"
@@ -61,7 +61,7 @@ ORDER BY COALESCE(start_date, created_at) DESC
 ```
 
 {% gantt_chart
-    data="filtered_milestones"
+    data="{filtered_milestones}"
     label="title"
     start="start_date"
     end="due_date"
@@ -72,7 +72,7 @@ ORDER BY COALESCE(start_date, created_at) DESC
     viewEnd="+3m"
 /%}
 
-{% table
-    data="filtered_milestones"
+{% datatable
+    data="{filtered_milestones}"
     search=true
 /%}

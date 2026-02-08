@@ -41,10 +41,41 @@ class Database:
         self.conn = duckdb.connect(db_path)
         self.sources: dict[str, DataSource] = {}
         self._registered_tables: set[str] = set()
+        self._base_dir: Path | None = None
 
     def register_source(self, name: str, source: DataSource, base_dir: Path | None = None) -> None:
         """Register a data source, making it available for queries."""
         self.sources[name] = source
+
+        # Database sources (postgres, mysql, sqlite)
+        if source.type in ("postgres", "mysql", "sqlite"):
+            self._register_database_source(name, source)
+            return
+
+        # File sources (csv, parquet, json)
+        self._register_file_source(name, source, base_dir)
+
+    def _register_database_source(self, name: str, source: DataSource) -> None:
+        """Attach a database source (postgres, mysql, sqlite)."""
+        if not source.connection:
+            raise ValueError(f"Database source '{name}' requires 'connection'")
+
+        # Build ATTACH options
+        type_name = source.type.upper()
+        options = [f"TYPE {type_name}", "READ_ONLY"]
+        if source.db_schema:
+            options.append(f"SCHEMA '{source.db_schema}'")
+
+        options_str = ", ".join(options)
+        self.conn.execute(f"ATTACH '{source.connection}' AS {name} ({options_str})")
+        self._registered_tables.add(name)
+
+    def _register_file_source(
+        self, name: str, source: DataSource, base_dir: Path | None = None
+    ) -> None:
+        """Create a view for a file source (csv, parquet, json)."""
+        if not source.path:
+            raise ValueError(f"File source '{name}' requires 'path'")
 
         # Check if this is a remote URL
         is_remote = source.path.startswith("http://") or source.path.startswith("https://")
@@ -69,7 +100,7 @@ class Database:
                 )
             """)
 
-        # Create view/table based on source type
+        # Create view based on source type
         if source.type == "csv":
             self.conn.execute(f"""
                 CREATE OR REPLACE VIEW {name} AS
@@ -86,7 +117,7 @@ class Database:
                 SELECT * FROM read_json_auto('{path_str}')
             """)
         else:
-            raise ValueError(f"Unsupported source type: {source.type}")
+            raise ValueError(f"Unsupported file source type: {source.type}")
 
         self._registered_tables.add(name)
 
@@ -94,14 +125,15 @@ class Database:
         self, sources: dict[str, DataSource], base_dir: Path | None = None
     ) -> None:
         """Register multiple data sources."""
+        self._base_dir = base_dir
         for name, source in sources.items():
             try:
                 self.register_source(name, source, base_dir)
             except Exception as e:
                 logger.warning(f"Failed to register source '{name}': {e}")
 
-    def execute_query(self, sql: str) -> QueryResult:
-        """Execute a SQL query and return results in table format."""
+    def _execute_and_fetch(self, sql: str) -> QueryResult:
+        """Execute SQL and convert result to QueryResult."""
         result = self.conn.execute(sql)
 
         # Get column info (convert type to string)
@@ -118,6 +150,32 @@ class Database:
             data=data,
             row_count=len(data),
         )
+
+    def _refresh_file_sources(self) -> None:
+        """Recreate views for all file sources."""
+        for name, source in self.sources.items():
+            if source.type in ("csv", "parquet", "json"):
+                try:
+                    self._register_file_source(name, source, self._base_dir)
+                    logger.info(f"Refreshed source '{name}'")
+                except Exception as e:
+                    logger.warning(f"Failed to refresh source '{name}': {e}")
+
+    def execute_query(self, sql: str) -> QueryResult:
+        """Execute a SQL query and return results in table format.
+
+        If a source file schema changes after views are created, DuckDB raises
+        "Contents of view were altered". This is handled by recreating views
+        and retrying the query once.
+        """
+        try:
+            return self._execute_and_fetch(sql)
+        except duckdb.BinderException as e:
+            if "Contents of view were altered" in str(e):
+                logger.info("View schema mismatch detected, refreshing sources")
+                self._refresh_file_sources()
+                return self._execute_and_fetch(sql)
+            raise
 
     def list_sources(self) -> list[dict[str, Any]]:
         """List all registered sources with their metadata."""

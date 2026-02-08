@@ -35,7 +35,7 @@ Renders data as interactive charts using ECharts. Each chart type has its own ta
 {% /data %}
 
 {% line_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
     title="Monthly Revenue"
@@ -43,7 +43,7 @@ Renders data as interactive charts using ECharts. Each chart type has its own ta
 
 ``` {% process=false %}
 {% line_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
     title="Monthly Revenue"
@@ -53,7 +53,7 @@ Renders data as interactive charts using ECharts. Each chart type has its own ta
 ## Bar Chart
 
 {% bar_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
     title="Revenue by Month"
@@ -61,7 +61,7 @@ Renders data as interactive charts using ECharts. Each chart type has its own ta
 
 ``` {% process=false %}
 {% bar_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
 /%}
@@ -72,7 +72,7 @@ Renders data as interactive charts using ECharts. Each chart type has its own ta
 For simple area charts, use `area_chart`. See the [Area Chart](/pages/_docs/components/area-chart.md) docs for stacked area charts with multiple series.
 
 {% area_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
     title="Revenue Trend"
@@ -80,7 +80,7 @@ For simple area charts, use `area_chart`. See the [Area Chart](/pages/_docs/comp
 
 ``` {% process=false %}
 {% area_chart
-    data="monthly"
+    data="{monthly}"
     x="month"
     y="revenue"
 /%}
@@ -105,7 +105,7 @@ For simple area charts, use `area_chart`. See the [Area Chart](/pages/_docs/comp
 {% /data %}
 
 {% pie_chart
-    data="categories"
+    data="{categories}"
     x="category"
     y="sales"
     title="Sales by Category"
@@ -113,7 +113,7 @@ For simple area charts, use `area_chart`. See the [Area Chart](/pages/_docs/comp
 
 ``` {% process=false %}
 {% pie_chart
-    data="categories"
+    data="{categories}"
     x="category"
     y="sales"
 /%}
@@ -141,7 +141,7 @@ For simple area charts, use `area_chart`. See the [Area Chart](/pages/_docs/comp
 {% /data %}
 
 {% scatter_chart
-    data="correlation"
+    data="{correlation}"
     x="price"
     y="quantity"
     title="Price vs Quantity"
@@ -149,7 +149,7 @@ For simple area charts, use `area_chart`. See the [Area Chart](/pages/_docs/comp
 
 ``` {% process=false %}
 {% scatter_chart
-    data="correlation"
+    data="{correlation}"
     x="price"
     y="quantity"
 /%}
