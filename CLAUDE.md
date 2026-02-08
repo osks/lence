@@ -17,7 +17,7 @@ make test     # Run Python tests (pytest)
 npm test      # Run JS tests (vitest)
 ```
 
-Dev server runs at http://localhost:8000
+Dev server runs at http://localhost:7700
 
 ## Project Structure
 

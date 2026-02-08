@@ -24,6 +24,9 @@ from lence.backend.app import PACKAGE_DIR, create_app  # noqa: E402
 LENCE_PROJECT_ENV = "LENCE_PROJECT_DIR"
 LENCE_EDIT_MODE_ENV = "LENCE_EDIT_MODE"
 
+# Default port for dev/serve commands
+DEFAULT_PORT = 7700
+
 
 def _create_app_from_env():
     """Factory function for uvicorn reload - reads config from env."""
@@ -42,7 +45,7 @@ def cli():
 @cli.command()
 @click.argument("project", default=".", type=click.Path())
 @click.option("--host", default="127.0.0.1", help="Host to bind to")
-@click.option("--port", default=8000, help="Port to bind to")
+@click.option("--port", default=DEFAULT_PORT, help="Port to bind to")
 def edit(project: str, host: str, port: int):
     """Run editor with live preview and auto-reload.
 
@@ -81,7 +84,7 @@ def edit(project: str, host: str, port: int):
 @cli.command()
 @click.argument("project", default=".", type=click.Path())
 @click.option("--host", default="0.0.0.0", help="Host to bind to")
-@click.option("--port", default=8000, help="Port to bind to")
+@click.option("--port", default=DEFAULT_PORT, help="Port to bind to")
 @click.option("--workers", default=1, help="Number of worker processes")
 def serve(project: str, host: str, port: int, workers: int):
     """Run production server.

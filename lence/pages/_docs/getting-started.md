@@ -20,7 +20,7 @@ cd my-project
 lence edit
 ```
 
-Open http://localhost:8000 in your browser.
+Open http://localhost:7700 in your browser.
 
 ## Commands
 
@@ -46,7 +46,7 @@ lence edit [PROJECT] [--host HOST] [--port PORT]
 
 - `PROJECT` - Path to project directory (default: current directory)
 - `--host` - Host to bind to (default: 127.0.0.1)
-- `--port` - Port to bind to (default: 8000)
+- `--port` - Port to bind to (default: 7700)
 
 In edit mode:
 - An "Edit" button appears in the page header
@@ -66,5 +66,5 @@ lence serve [PROJECT] [--host HOST] [--port PORT] [--workers N]
 
 - `PROJECT` - Path to project directory (default: current directory)
 - `--host` - Host to bind to (default: 0.0.0.0)
-- `--port` - Port to bind to (default: 8000)
+- `--port` - Port to bind to (default: 7700)
 - `--workers` - Number of worker processes (default: 1)

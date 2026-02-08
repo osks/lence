@@ -133,7 +133,7 @@ lence edit
 lence edit ./my-project
 
 # Run production server
-lence serve ./my-project --host 0.0.0.0 --port 8000
+lence serve ./my-project --host 0.0.0.0 --port 7700
 ```
 
 ## Query API

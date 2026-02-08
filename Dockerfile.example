@@ -1,6 +1,6 @@
 # Dockerfile for running Lence with example project
 # Build: docker build -f Dockerfile.example -t lence-example .
-# Run:   docker run -p 8000:8000 lence-example
+# Run:   docker run -p 7700:7700 lence-example
 
 # Stage 1: Build frontend assets
 FROM node:20-slim AS frontend
@@ -36,6 +36,6 @@ RUN uv pip install --system .
 # Copy example project
 COPY example/ /app/example/
 
-EXPOSE 8000
+EXPOSE 7700
 
 CMD ["lence", "serve", "/app/example"]

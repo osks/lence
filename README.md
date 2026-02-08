@@ -17,7 +17,7 @@ cd my-project
 lence edit
 ```
 
-Then open http://localhost:8000
+Then open http://localhost:7700
 
 
 ## Example Page
